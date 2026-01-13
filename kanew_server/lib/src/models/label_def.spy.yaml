@@ -1,0 +1,8 @@
+# Definição de Etiquetas (Labels) do Board
+class: LabelDef
+table: label_def
+fields:
+  boardId: int, relation(parent=board)
+  name: String
+  colorHex: String
+  deletedAt: DateTime?

@@ -1,0 +1,8 @@
+class: ChecklistItem
+table: checklist_item
+fields:
+  checklistId: int, relation(parent=checklist)
+  title: String
+  isChecked: bool
+  rank: String # Lexorank para reordenar itens
+  deletedAt: DateTime?

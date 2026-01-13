@@ -1,0 +1,21 @@
+# Convites pendentes enviados por email
+# Nota: Convites não expiram (conforme plan.md linha 181)
+class: WorkspaceInvite
+table: workspace_invite
+fields:
+  email: String? # Opcional - convite não é vinculado ao e-mail (plan.md linha 184)
+  code: String
+  workspaceId: int, relation(parent=workspace)
+  createdBy: int # Quem criou o convite
+  
+  # Lista de IDs de permissão que serão aplicadas ao aceitar
+  # O Serverpod serializa List<int> como JSON no Postgres
+  initialPermissions: List<int>
+  
+  acceptedAt: DateTime? # Quando foi aceito (só pode ser aceito uma vez)
+  revokedAt: DateTime? # Quando foi revogado (em vez de deletedAt)
+  createdAt: DateTime
+indexes:
+  workspace_invite_code_idx:
+    fields: code
+    unique: true

@@ -1,0 +1,27 @@
+class: Board
+table: board
+fields:
+  # Identificadores
+  uuid: UuidValue
+  workspaceId: int, relation(parent=workspace)
+  title: String
+  slug: String # URL relativa (/workspace/board)
+  
+  # Configuração
+  visibility: BoardVisibility
+  backgroundUrl: String? # URL da imagem ou Hex Color
+  isTemplate: bool
+  
+  createdAt: DateTime
+  createdBy: int
+  
+  # Soft Delete
+  deletedAt: DateTime?
+  deletedBy: int?
+indexes:
+  board_uuid_idx:
+    fields: uuid
+    unique: true
+  board_slug_idx:
+    fields: workspaceId, slug
+    unique: true

@@ -1,0 +1,7 @@
+enum: CardPriority
+serialized: byName
+values:
+  - none
+  - low
+  - medium
+  - high

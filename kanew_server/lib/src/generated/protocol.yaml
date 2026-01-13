@@ -1,0 +1,24 @@
+emailIdp:
+  - finishRegistration:
+  - login:
+  - startRegistration:
+  - verifyRegistrationCode:
+  - startPasswordReset:
+  - verifyPasswordResetCode:
+  - finishPasswordReset:
+jwtRefresh:
+  - refreshAccessToken:
+auth:
+  - login:
+  - startSignup:
+  - verifyCode:
+  - finishSignup:
+  - resendCode:
+workspace:
+  - getWorkspaces:
+  - getWorkspace:
+  - createWorkspace:
+  - updateWorkspace:
+  - deleteWorkspace:
+greeting:
+  - hello:

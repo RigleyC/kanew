@@ -1,0 +1,6 @@
+enum: BoardVisibility
+serialized: byName
+values:
+  - private
+  - workspace
+  - public

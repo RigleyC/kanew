@@ -1,0 +1,10 @@
+enum: ActivityType
+serialized: byName
+values:
+  - create
+  - update
+  - delete
+  - move
+  - comment
+  - archive
+  - restore

@@ -1,0 +1,14 @@
+# Enum para status de autenticação
+# Usado para comunicar estados do fluxo de auth ao frontend
+enum: AuthStatus
+serialized: byName
+values:
+  - success                 # Login bem-sucedido
+  - accountNotFound         # Conta não existe → frontend redireciona para signup
+  - emailNotVerified        # Email pendente → frontend redireciona para verificação
+  - invalidCredentials      # Senha incorreta
+  - verificationCodeSent    # Código enviado (signup)
+  - verificationCodeInvalid # Código inválido
+  - verificationCodeExpired # Código expirou
+  - registrationComplete    # Registro finalizado com sucesso
+  - accountAlreadyExists    # Conta já existe e está verificada

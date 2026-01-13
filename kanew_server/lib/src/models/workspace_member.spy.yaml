@@ -1,0 +1,17 @@
+# Liga o Usuário (UserInfo do Serverpod) ao Workspace
+class: WorkspaceMember
+table: workspace_member
+fields:
+  userInfoId: int
+  workspaceId: int, relation(parent=workspace)
+  role: MemberRole # owner, admin, member (hierarquia)
+  status: MemberStatus # active, invited, suspended (estado)
+  joinedAt: DateTime
+  
+  # Soft Delete (Se removido do time)
+  deletedAt: DateTime?
+  deletedBy: int?
+indexes:
+  workspace_member_unique_idx:
+    fields: userInfoId, workspaceId
+    unique: true

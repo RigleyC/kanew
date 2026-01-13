@@ -1,0 +1,14 @@
+# Tabela Pivô: Define o que cada membro pode fazer (Checkboxes)
+class: MemberPermission
+table: member_permission
+fields:
+  workspaceMemberId: int, relation(parent=workspace_member)
+  permissionId: int, relation(parent=permission)
+  
+  # Future-Proof: Se preenchido, a permissão vale SÓ para este board.
+  # Se nulo (Padrão MVP), vale para o Workspace todo.
+  scopeBoardId: int?, relation(parent=board)
+indexes:
+  mem_perm_unique_idx:
+    fields: workspaceMemberId, permissionId, scopeBoardId
+    unique: true

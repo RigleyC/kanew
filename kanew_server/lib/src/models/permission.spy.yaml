@@ -1,0 +1,10 @@
+# Tabela de referência de permissões (Ver, Criar, Editar, Deletar)
+class: Permission
+table: permission
+fields:
+  slug: String # ex: 'board.create', 'card.delete'
+  description: String?
+indexes:
+  permission_slug_idx:
+    fields: slug
+    unique: true

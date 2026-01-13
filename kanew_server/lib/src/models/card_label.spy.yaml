@@ -1,0 +1,10 @@
+# Associação de Labels aos Cards
+class: CardLabel
+table: card_label
+fields:
+  cardId: int, relation(parent=card)
+  labelDefId: int, relation(parent=label_def)
+indexes:
+  card_label_unique:
+    fields: cardId, labelDefId
+    unique: true

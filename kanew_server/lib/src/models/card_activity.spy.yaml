@@ -1,0 +1,14 @@
+# Log de Atividades (Audit)
+class: CardActivity
+table: card_activity
+fields:
+  cardId: int, relation(parent=card)
+  actorId: int # Conforme plan.md (userId -> actorId)
+  type: ActivityType
+  
+  # Detalhes flexíveis (ex: {"fromList": "A", "toList": "B"})
+  # Nota: Serverpod não suporta Map diretamente, então usamos String (JSON)
+  # O plan.md especifica Map<String, dynamic>, mas String é a implementação válida
+  details: String? # JSON String
+  
+  createdAt: DateTime

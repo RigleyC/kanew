@@ -1,0 +1,22 @@
+class: Workspace
+table: workspace
+fields:
+  # Identificadores
+  uuid: UuidValue
+  title: String
+  slug: String # URL amigável
+  
+  # Dados
+  ownerId: int
+  createdAt: DateTime
+  
+  # Soft Delete
+  deletedAt: DateTime?
+  deletedBy: int?
+indexes:
+  workspace_uuid_idx:
+    fields: uuid
+    unique: true
+  workspace_slug_idx:
+    fields: slug
+    unique: true

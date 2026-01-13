@@ -1,0 +1,21 @@
+00:00 +0: loading test/integration/auth_test.dart
+00:00 +0: Auth Flow (setUpAll)
+WARNING: CPU and memory usage metrics are not supported on Windows.
+00:00 +0: Auth Flow given a new user when registering then verification code is stored and account can be created
+00:00 +0 -1: Auth Flow given a new user when registering then verification code is stored and account can be created [E]
+  Bad state: AuthServices is not set. Call AuthServices.set() to initialize it before accessing the instance.
+  package:serverpod_auth_core_server/src/common/business/auth_services.dart 18:7                      AuthServices.instance
+  package:serverpod_auth_idp_server/src/providers/email/endpoints/email_idp_base_endpoint.dart 23:41  EmailIdpBaseEndpoint.emailIdp
+  package:serverpod_auth_idp_server/src/providers/email/endpoints/email_idp_base_endpoint.dart 64:12  EmailIdpBaseEndpoint.startRegistration
+  package:kanew_server/src/generated/endpoints.dart 87:20                                             Endpoints.initializeEndpoints.<fn>
+  test\integration\test_tools\serverpod_test_tools.dart 221:49                                        _EmailIdpEndpoint.startRegistration.<fn>
+  ===== asynchronous gap ===========================
+  package:serverpod_test/src/function_call_wrappers.dart 12:12                                        callAwaitableFunctionAndHandleExceptions
+  ===== asynchronous gap ===========================
+  test\integration\auth_test.dart 17:34                                                               main.<fn>.<fn>
+  
+00:00 +0 -1: Auth Flow (tearDownAll)
+00:01 +0 -1: Some tests failed.
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.

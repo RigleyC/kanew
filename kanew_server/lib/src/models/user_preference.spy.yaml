@@ -1,0 +1,12 @@
+class: UserPreference
+table: user_preference
+fields:
+  userInfoId: int
+  lastWorkspaceId: int?
+  theme: String?
+  createdAt: DateTime
+  updatedAt: DateTime
+indexes:
+  user_info_id_unique_idx:
+    fields: userInfoId
+    unique: true

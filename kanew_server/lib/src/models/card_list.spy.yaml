@@ -1,0 +1,20 @@
+class: CardList
+table: card_list
+fields:
+  uuid: UuidValue
+  boardId: int, relation(parent=board)
+  title: String
+  
+  # Ordenação
+  rank: String # Lexorank (String alfanumérica)
+  
+  archived: bool
+  createdAt: DateTime
+  
+  # Soft Delete
+  deletedAt: DateTime?
+  deletedBy: int?
+indexes:
+  card_list_uuid_idx:
+    fields: uuid
+    unique: true

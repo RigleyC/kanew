@@ -1,0 +1,9 @@
+class: Comment
+table: comment
+fields:
+  cardId: int, relation(parent=card)
+  authorId: int # Conforme plan.md (userId -> authorId)
+  content: String # Conforme plan.md (text -> content)
+  createdAt: DateTime
+  updatedAt: DateTime?
+  deletedAt: DateTime?
