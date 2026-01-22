@@ -217,7 +217,7 @@ Future<void> load() async {
 ## Serverpod 3.x
 
 * Mantenha models no `kanew_client` (protocol).
-* Gere código com `serverpod generate`.
+* Gere código com `serverpod generate` na pasta server.
 * Use `Client` injetado nos repositórios.
 
 ---
@@ -243,6 +243,7 @@ Future<void> load() async {
 - Preze por boas práticas, sempre seguindo a arquitetura do projeto, caso seja necessário (ex. controller muito grande, estados muitos grandes no controller) você pode criar outras pastas/arquivos derivados do clean arch como UseCases, Store/State etc.
 - Valide se sua proposta também segue boas práticas de mercado, as vezes a sua solução pode ser complexa e outra pessoa na internet já resolveu o problema de forma mais simples.
 - Você pode usar os MCPs disponíveis como do dart, serverpod etc. caso ele nao tire sua dúvida, busque na internet em documentações oficiais ou forums, github etc.
+- Ao corrigir ou implementar algo, sempre crie um branch usando as convenções padrão, feat, chore, refactor. Não faça o merge com a master enquanto o usuário não confirmar.
 
 
 ---

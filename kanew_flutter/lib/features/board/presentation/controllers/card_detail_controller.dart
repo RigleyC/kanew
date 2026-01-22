@@ -26,6 +26,8 @@ class CardDetailPageController extends ChangeNotifier {
   List<LabelDef> _labels = []; // Labels attached to this card
   List<LabelDef> _boardLabels = []; // All available labels in board
   List<Attachment> _attachments = [];
+  List<CardList> _boardLists = [];
+  List<WorkspaceMember> _members = [];
   
   bool _isLoading = false;
   bool _isUploading = false;
@@ -56,6 +58,8 @@ class CardDetailPageController extends ChangeNotifier {
   List<LabelDef> get labels => _labels;
   List<LabelDef> get boardLabels => _boardLabels;
   List<Attachment> get attachments => _attachments;
+  List<CardList> get boardLists => _boardLists;
+  List<WorkspaceMember> get members => _members;
   bool get isLoading => _isLoading;
   bool get isUploading => _isUploading;
   String? get error => _error;
@@ -64,90 +68,51 @@ class CardDetailPageController extends ChangeNotifier {
     return _checklistItems[checklistId] ?? [];
   }
   
-  Future<void> load(int cardId) async {
+  Future<void> load(String cardUuid) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     
-    final result = await _repository.getCard(cardId);
+    final result = await _repository.getCardDetailByUuid(cardUuid);
+    
     result.fold(
       (f) => _error = f.message,
-      (card) => _card = card,
+      (detail) {
+        if (detail != null) {
+          _card = detail.card;
+          _list = detail.currentList;
+          _boardLists = detail.boardLists;
+          _members = detail.members;
+          _boardLabels = detail.boardLabels;
+          
+          // Checklists and items
+          _checklists = detail.checklists.map((c) => c.checklist).toList();
+          _checklistItems.clear();
+          for (final c in detail.checklists) {
+            if (c.checklist.id != null) {
+              _checklistItems[c.checklist.id!] = c.items;
+            }
+          }
+          
+          _attachments = detail.attachments;
+          _labels = detail.cardLabels;
+          _comments = detail.recentComments;
+          _activities = detail.recentActivities;
+        } else {
+          _error = 'Card não encontrado';
+        }
+      },
     );
-    
-    if (_card != null) {
-      await Future.wait([
-        _loadChecklists(cardId),
-        _loadComments(cardId),
-        _loadActivities(cardId),
-        _loadLabels(cardId),
-        _loadBoardLabels(_card!.boardId),
-        _loadAttachments(cardId),
-      ]);
-    }
     
     _isLoading = false;
     notifyListeners();
   }
   
-  Future<void> _loadChecklists(int cardId) async {
-    final result = await _checklistRepo.getChecklists(cardId);
-    
-    await result.fold(
-      (f) { _error = f.message; },
-      (checklists) async {
-        _checklists = checklists;
-        
-        // Load items for each checklist
-        // TODO: This could be optimized to load in parallel or backend returns items
-        for (final checklist in checklists) {
-          final itemsResult = await _checklistRepo.getItems(checklist.id!);
-          itemsResult.fold(
-            (f) => null, // Ignore item load errors for now
-            (items) => _checklistItems[checklist.id!] = items,
-          );
-        }
-      },
-    );
-  }
-
-  Future<void> _loadComments(int cardId) async {
-    final result = await _commentRepo.getComments(cardId);
-    result.fold(
-      (f) => _error = f.message, // Non-fatal
-      (comments) => _comments = comments,
-    );
-  }
-
   Future<void> _loadActivities(int cardId) async {
     final result = await _activityRepo.getLog(cardId);
     result.fold(
       (f) => _error = f.message, // Non-fatal
       (activities) => _activities = activities,
-    );
-  }
-
-  Future<void> _loadLabels(int cardId) async {
-    final result = await _labelRepo.getCardLabels(cardId);
-    result.fold(
-      (f) => _error = f.message,
-      (labels) => _labels = labels,
-    );
-  }
-
-  Future<void> _loadBoardLabels(int boardId) async {
-    final result = await _labelRepo.getLabels(boardId);
-    result.fold(
-      (f) => _error = f.message,
-      (labels) => _boardLabels = labels,
-    );
-  }
-
-  Future<void> _loadAttachments(int cardId) async {
-    final result = await _attachmentRepo.getAttachments(cardId);
-    result.fold(
-      (f) => _error = f.message, // Non-fatal
-      (attachments) => _attachments = attachments,
     );
   }
 
@@ -383,15 +348,15 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
   
-  Future<Card?> updateCard(int cardId, {
+  Future<Card?> updateCard({
     String? title,
     String? description,
     DateTime? dueDate,
   }) async {
-    if (_card == null) return null;
+    if (_card == null || _card?.id == null) return null;
     
     final result = await _repository.updateCard(
-      cardId,
+      _card!.id!,
       title: title,
       description: description,
       dueDate: dueDate,
@@ -407,8 +372,8 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
 
-  Future<Card?> loadCardById(int cardId) async {
-    await load(cardId);
+  Future<Card?> loadCardByUuid(String uuid) async {
+    await load(uuid);
     return _card;
   }
 }

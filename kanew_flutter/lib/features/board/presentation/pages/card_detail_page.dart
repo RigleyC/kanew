@@ -21,13 +21,13 @@ import '../widgets/checklist_widget.dart';
 class CardDetailPage extends StatefulWidget {
   final String workspaceSlug;
   final String boardSlug;
-  final int cardId;
+  final String cardUuid;
 
   const CardDetailPage({
     super.key,
     required this.workspaceSlug,
     required this.boardSlug,
-    required this.cardId,
+    required this.cardUuid,
   });
 
   @override
@@ -60,14 +60,12 @@ class _CardDetailPageState extends State<CardDetailPage> {
   }
 
   Future<void> _loadCard() async {
-    // Carrega diretamente pelo cardId - não precisa do WorkspaceController
-    await _controller.load(widget.cardId);
+    // Carrega diretamente pelo cardUuid
+    await _controller.load(widget.cardUuid);
   }
 
   String _getListName(int listId) {
-    // TODO: Implement getting list name from repository or controller
-    // For now returning generic name as we decoupled ListController
-    return 'Lista'; 
+    return _controller.list?.title ?? 'Lista'; 
   }
 
   void _showAddChecklistDialog(BuildContext context) {
@@ -191,7 +189,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
               boardLabels: _controller.boardLabels,
               onAddChecklist: () => _showAddChecklistDialog(context),
               onDueDateChanged: (date) {
-                _controller.updateCard(widget.cardId, dueDate: date);
+                _controller.updateCard(dueDate: date);
               },
               onToggleLabel: (labelId) {
                 if (_controller.labels.any((l) => l.id == labelId)) {
@@ -227,7 +225,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
             boardLabels: _controller.boardLabels,
             onAddChecklist: () => _showAddChecklistDialog(context),
             onDueDateChanged: (date) {
-              _controller.updateCard(widget.cardId, dueDate: date);
+              _controller.updateCard(dueDate: date);
             },
             onToggleLabel: (labelId) {
               if (_controller.labels.any((l) => l.id == labelId)) {
@@ -252,14 +250,14 @@ class _CardDetailPageState extends State<CardDetailPage> {
         // Title
         CardTitleEditor(
           initialTitle: card.title,
-          onSave: (newTitle) => _controller.updateCard(widget.cardId, title: newTitle),
+          onSave: (newTitle) => _controller.updateCard(title: newTitle),
         ),
         const SizedBox(height: 24),
 
         // Description
         CardDescriptionEditor(
           initialDescription: card.descriptionDocument,
-          onSave: (newDesc) => _controller.updateCard(widget.cardId, description: newDesc),
+          onSave: (newDesc) => _controller.updateCard(description: newDesc),
         ),
         const SizedBox(height: 32),
 

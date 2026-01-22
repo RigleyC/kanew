@@ -287,23 +287,20 @@ final appRouter = GoRouter(
                       routes: [
                         // Card Detail Route - needs its own BoardScope wrapper
                         GoRoute(
-                          path: 'c/:cardId',
+                          path: 'c/:cardUuid',
                           pageBuilder: (context, state) {
                             final workspaceSlug =
                                 state.pathParameters['slug'] ?? '';
                             final boardSlug =
                                 state.pathParameters['boardSlug'] ?? '';
-                            final cardId =
-                                int.tryParse(
-                                  state.pathParameters['cardId'] ?? '',
-                                ) ??
-                                0;
+                            final cardUuid =
+                                state.pathParameters['cardUuid'] ?? '';
                             return NoTransitionPage(
                               key: state.pageKey,
                               child: CardDetailPage(
                                 workspaceSlug: workspaceSlug,
                                 boardSlug: boardSlug,
-                                cardId: cardId,
+                                cardUuid: cardUuid,
                               ),
                             );
                           },

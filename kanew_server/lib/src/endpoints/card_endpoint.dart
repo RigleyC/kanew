@@ -453,4 +453,212 @@ class CardEndpoint extends Endpoint {
 
     return result;
   }
+
+  /// Gets complete card details including all related data
+  /// Requires: board.read permission
+  /// 
+  /// This is an aggregate endpoint that returns everything needed for the card detail page
+  /// in a single request, reducing the number of HTTP calls from 7+ to 1.
+  Future<CardDetail?> getCardDetail(
+    Session session,
+    int cardId,
+  ) async {
+    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
+
+    // 1. Get card
+    final card = await Card.db.findById(session, cardId);
+    if (card == null || card.deletedAt != null) {
+      return null;
+    }
+
+    // 2. Get board and validate permission
+    final board = await Board.db.findById(session, card.boardId);
+    if (board == null || board.deletedAt != null) {
+      return null;
+    }
+
+    final hasPermission = await PermissionService.hasPermission(
+      session,
+      userId: numericUserId,
+      workspaceId: board.workspaceId,
+      permissionSlug: 'board.read',
+    );
+
+    if (!hasPermission) {
+      return null;
+    }
+
+    // 3. Get current list
+    final currentList = await CardList.db.findById(session, card.listId);
+    if (currentList == null || currentList.deletedAt != null) {
+      return null;
+    }
+
+    // 4. Get workspace
+    final workspace = await Workspace.db.findById(session, board.workspaceId);
+    if (workspace == null || workspace.deletedAt != null) {
+      return null;
+    }
+
+    // 5. Fetch all related data in parallel
+    final results = await Future.wait([
+      // Board lists
+      CardList.db.find(
+        session,
+        where: (l) => l.boardId.equals(card.boardId) & l.deletedAt.equals(null),
+        orderBy: (l) => l.rank,
+      ),
+      
+      // Board labels
+      LabelDef.db.find(
+        session,
+        where: (l) => l.boardId.equals(card.boardId) & l.deletedAt.equals(null),
+      ),
+      
+      // Workspace members
+      WorkspaceMember.db.find(
+        session,
+        where: (m) => m.workspaceId.equals(board.workspaceId) & m.deletedAt.equals(null),
+      ),
+      
+      // Checklists
+      Checklist.db.find(
+        session,
+        where: (c) => c.cardId.equals(cardId) & c.deletedAt.equals(null),
+        orderBy: (c) => c.rank,
+      ),
+      
+      // Attachments
+      Attachment.db.find(
+        session,
+        where: (a) => a.cardId.equals(cardId) & a.deletedAt.equals(null),
+      ),
+      
+      // Card labels (via join table)
+      _getCardLabels(session, cardId),
+      
+      // Comments (last 20)
+      Comment.db.find(
+        session,
+        where: (c) => c.cardId.equals(cardId) & c.deletedAt.equals(null),
+        orderBy: (c) => c.createdAt,
+        orderDescending: true,
+        limit: 20,
+      ),
+      
+      // Activities (last 20)
+      CardActivity.db.find(
+        session,
+        where: (a) => a.cardId.equals(cardId),
+        orderBy: (a) => a.createdAt,
+        orderDescending: true,
+        limit: 20,
+      ),
+      
+      // Total comments count
+      Comment.db.count(
+        session,
+        where: (c) => c.cardId.equals(cardId) & c.deletedAt.equals(null),
+      ),
+      
+      // Total activities count
+      CardActivity.db.count(
+        session,
+        where: (a) => a.cardId.equals(cardId),
+      ),
+    ]);
+
+    final boardLists = results[0] as List<CardList>;
+    final boardLabels = results[1] as List<LabelDef>;
+    final members = results[2] as List<WorkspaceMember>;
+    final checklists = results[3] as List<Checklist>;
+    final attachments = results[4] as List<Attachment>;
+    final cardLabels = results[5] as List<LabelDef>;
+    final recentComments = results[6] as List<Comment>;
+    final recentActivities = results[7] as List<CardActivity>;
+    final totalComments = results[8] as int;
+    final totalActivities = results[9] as int;
+
+    // 6. For each checklist, get its items (optimized with Future.wait)
+    final checklistsWithItems = await Future.wait(
+      checklists.map((checklist) async {
+        final items = await ChecklistItem.db.find(
+          session,
+          where: (i) => i.checklistId.equals(checklist.id!) & i.deletedAt.equals(null),
+          orderBy: (i) => i.rank,
+        );
+        return ChecklistWithItems(
+          checklist: checklist,
+          items: items,
+        );
+      }),
+    );
+
+    // 7. Calculate canEdit permission
+    final canEdit = await PermissionService.hasPermission(
+      session,
+      userId: numericUserId,
+      workspaceId: board.workspaceId,
+      permissionSlug: 'board.update',
+    );
+
+    // 8. Build and return CardDetail
+    return CardDetail(
+      card: card,
+      currentList: currentList,
+      board: board,
+      workspace: workspace,
+      boardLists: boardLists,
+      boardLabels: boardLabels,
+      members: members,
+      checklists: checklistsWithItems,
+      attachments: attachments,
+      cardLabels: cardLabels,
+      recentComments: recentComments,
+      totalComments: totalComments,
+      recentActivities: recentActivities,
+      totalActivities: totalActivities,
+      canEdit: canEdit,
+    );
+  }
+
+  /// Gets complete card details by UUID
+  /// Requires: board.read permission
+  Future<CardDetail?> getCardDetailByUuid(
+    Session session,
+    String uuid,
+  ) async {
+    final card = await Card.db.findFirstRow(
+      session,
+      where: (c) => c.uuid.equals(UuidValue.fromString(uuid)),
+    );
+
+    if (card == null || card.deletedAt != null) {
+      return null;
+    }
+
+    return getCardDetail(session, card.id!);
+  }
+
+  /// Helper method to get labels attached to a card
+  Future<List<LabelDef>> _getCardLabels(Session session, int cardId) async {
+    // Get card_label join records
+    final cardLabelLinks = await CardLabel.db.find(
+      session,
+      where: (cl) => cl.cardId.equals(cardId),
+    );
+
+    if (cardLabelLinks.isEmpty) {
+      return [];
+    }
+
+    // Get the actual label definitions
+    final labelIds = cardLabelLinks.map((cl) => cl.labelDefId).toList();
+    final labels = await LabelDef.db.find(
+      session,
+      where: (l) => l.id.inSet(labelIds.toSet()) & l.deletedAt.equals(null),
+    );
+
+    return labels;
+  }
 }

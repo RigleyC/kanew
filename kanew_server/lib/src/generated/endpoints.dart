@@ -922,6 +922,43 @@ class Endpoints extends _i1.EndpointDispatch {
                 params['cardId'],
               ),
         ),
+        'getCardDetail': _i1.MethodConnector(
+          name: 'getCardDetail',
+          params: {
+            'cardId': _i1.ParameterDescription(
+              name: 'cardId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['card'] as _i7.CardEndpoint).getCardDetail(
+                session,
+                params['cardId'],
+              ),
+        ),
+        'getCardDetailByUuid': _i1.MethodConnector(
+          name: 'getCardDetailByUuid',
+          params: {
+            'uuid': _i1.ParameterDescription(
+              name: 'uuid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['card'] as _i7.CardEndpoint)
+                  .getCardDetailByUuid(
+                session,
+                params['uuid'],
+              ),
+        ),
       },
     );
     connectors['cardList'] = _i1.EndpointConnector(

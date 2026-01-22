@@ -90,9 +90,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
     }
   }
 
-  Future<void> _reloadCards() async {
-    await widget.controller.reloadCards();
-  }
+  
 
   // ============================================================
   // DRAG & DROP CALLBACKS
@@ -196,7 +194,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
                         RoutePaths.cardDetail(
                           widget.workspaceSlug,
                           widget.boardSlug,
-                          cardItem.card.id!,
+                          cardItem.card.uuid.toString(),
                         ),
                       );
                     },

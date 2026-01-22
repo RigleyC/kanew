@@ -276,4 +276,64 @@ class CardRepository {
       );
     }
   }
+
+  /// Gets complete card details (aggregate)
+  Future<Either<Failure, CardDetail?>> getCardDetail(int cardId) async {
+    developer.log(
+      'CardRepository.getCardDetail($cardId)',
+      name: 'card_repository',
+    );
+    try {
+      final detail = await _client.card.getCardDetail(cardId);
+      developer.log(
+        'CardRepository.getCardDetail success: ${detail?.card.title}',
+        name: 'card_repository',
+      );
+      return Right(detail);
+    } catch (e, s) {
+      developer.log(
+        'CardRepository.getCardDetail error: $e',
+        name: 'card_repository',
+        error: e,
+        stackTrace: s,
+      );
+      return Left(
+        ServerFailure(
+          'Erro ao carregar detalhes do card',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
+  }
+
+  /// Gets complete card details by UUID
+  Future<Either<Failure, CardDetail?>> getCardDetailByUuid(String uuid) async {
+    developer.log(
+      'CardRepository.getCardDetailByUuid($uuid)',
+      name: 'card_repository',
+    );
+    try {
+      final detail = await _client.card.getCardDetailByUuid(uuid);
+      developer.log(
+        'CardRepository.getCardDetailByUuid success: ${detail?.card.title}',
+        name: 'card_repository',
+      );
+      return Right(detail);
+    } catch (e, s) {
+      developer.log(
+        'CardRepository.getCardDetailByUuid error: $e',
+        name: 'card_repository',
+        error: e,
+        stackTrace: s,
+      );
+      return Left(
+        ServerFailure(
+          'Erro ao carregar detalhes do card por UUID',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
+  }
 }

@@ -1,0 +1,4 @@
+class: ChecklistWithItems
+fields:
+  checklist: Checklist
+  items: List<ChecklistItem>

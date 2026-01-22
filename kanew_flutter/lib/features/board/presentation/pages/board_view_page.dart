@@ -96,7 +96,6 @@ class _BoardViewPageState extends State<BoardViewPage> {
         }
 
         return Scaffold(
-          backgroundColor: colorScheme.surface,
           body: Stack(
             children: [
               const Positioned.fill(

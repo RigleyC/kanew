@@ -28,9 +28,6 @@ final GetIt getIt = GetIt.instance;
 
 /// Initializes all dependencies
 Future<void> setupDependencies() async {
-  // ============================================================
-  // CORE SERVICES
-  // ============================================================
 
   // App configuration
   final config = await AppConfig.loadConfig();
@@ -87,8 +84,6 @@ Future<void> setupDependencies() async {
   // VIEWMODELS
   // ============================================================
 
-  // AuthController is registered as singleton to maintain consistent state
-  // across all auth screens
   getIt.registerLazySingleton<AuthController>(
     () => AuthController(
       repository: getIt<AuthRepository>(),
@@ -129,10 +124,9 @@ Future<void> setupDependencies() async {
   );
 
   getIt.registerLazySingleton<AttachmentRepository>(
-    () => AttachmentRepository(getIt<Client>()),
+    () => AttachmentRepository(client: getIt<Client>()),
   );
 
-  // NOTE: CardController now requires boardId param - created in BoardScope
 
   // ============================================================
   // PAGE CONTROLLERS (Factories)
