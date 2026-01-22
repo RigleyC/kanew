@@ -7,23 +7,27 @@ import '../components/label_picker.dart';
 class CardDetailSidebar extends StatefulWidget {
   final Card card;
   final String listName;
+  final List<CardList> boardLists; // New prop
   final List<LabelDef> labels;
   final List<LabelDef> boardLabels;
   final VoidCallback onAddChecklist;
   final Function(DateTime) onDueDateChanged;
   final Function(int) onToggleLabel;
   final Function(String, String) onCreateLabel;
+  final Function(int) onListChanged; // New prop
 
   const CardDetailSidebar({
     super.key,
     required this.card,
     required this.listName,
+    required this.boardLists,
     required this.labels,
     required this.boardLabels,
     required this.onAddChecklist,
     required this.onDueDateChanged,
     required this.onToggleLabel,
     required this.onCreateLabel,
+    required this.onListChanged,
   });
 
   @override
@@ -64,10 +68,73 @@ class _CardDetailSidebarState extends State<CardDetailSidebar> with SingleTicker
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // List
-        _SidebarItem(
-          label: 'Lista',
-          value: widget.listName,
+        // List Dropdown
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Lista',
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 4),
+            MenuAnchor(
+              builder: (context, controller, child) {
+                return InkWell(
+                  onTap: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(4),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            widget.listName,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: colorScheme.onSurface,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.keyboard_arrow_down,
+                          size: 16,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              menuChildren: widget.boardLists.map((list) {
+                final isSelected = list.id == widget.card.listId;
+                return MenuItemButton(
+                  onPressed: () => widget.onListChanged(list.id!),
+                  leadingIcon: isSelected 
+                      ? Icon(Icons.check, size: 16, color: colorScheme.primary) 
+                      : const SizedBox(width: 16),
+                  child: Text(
+                    list.title,
+                    style: TextStyle(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
         ),
         const SizedBox(height: 20),
 

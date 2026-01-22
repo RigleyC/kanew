@@ -147,15 +147,10 @@ class _CardDetailPageState extends State<CardDetailPage> {
                 workspaceSlug: widget.workspaceSlug,
                 boardSlug: widget.boardSlug,
                 listName: _getListName(card.listId),
-                boardLists: _controller.boardLists,
-                currentListId: card.listId,
                 isMobile: isMobile,
                 onClose: () => context.go(
                   RoutePaths.boardView(widget.workspaceSlug, widget.boardSlug),
                 ),
-                onListChanged: (newListId) {
-                  _controller.moveCardToList(newListId);
-                },
               ),
               Expanded(
                 child: isMobile
@@ -226,6 +221,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
           CardDetailSidebar(
             card: card,
             listName: _getListName(card.listId),
+            boardLists: _controller.boardLists,
             labels: _controller.labels,
             boardLabels: _controller.boardLabels,
             onAddChecklist: () => _showAddChecklistDialog(context),
@@ -241,6 +237,9 @@ class _CardDetailPageState extends State<CardDetailPage> {
             },
             onCreateLabel: (name, color) {
               _controller.createLabel(name, color);
+            },
+            onListChanged: (newListId) {
+              _controller.moveCardToList(newListId);
             },
           ),
         ],
