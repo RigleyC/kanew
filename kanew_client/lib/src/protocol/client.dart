@@ -16,24 +16,35 @@ import 'package:serverpod_client/serverpod_client.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i4;
-import 'package:kanew_client/src/protocol/auth_result.dart' as _i5;
-import 'package:kanew_client/src/protocol/workspace.dart' as _i6;
-import 'package:kanew_client/src/protocol/greetings/greeting.dart' as _i7;
-import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i8;
-import 'protocol.dart' as _i9;
+import 'package:kanew_client/src/protocol/card_activity.dart' as _i5;
+import 'package:kanew_client/src/protocol/attachment.dart' as _i6;
+import 'dart:typed_data' as _i7;
+import 'package:kanew_client/src/protocol/board.dart' as _i8;
+import 'package:kanew_client/src/protocol/card.dart' as _i9;
+import 'package:kanew_client/src/protocol/card_priority.dart' as _i10;
+import 'package:kanew_client/src/protocol/card_list.dart' as _i11;
+import 'package:kanew_client/src/protocol/checklist.dart' as _i12;
+import 'package:kanew_client/src/protocol/checklist_item.dart' as _i13;
+import 'package:kanew_client/src/protocol/comment.dart' as _i14;
+import 'package:kanew_client/src/protocol/label_def.dart' as _i15;
+import 'package:kanew_client/src/protocol/workspace.dart' as _i16;
+import 'package:kanew_client/src/protocol/greetings/greeting.dart' as _i17;
+import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i18;
+import 'protocol.dart' as _i19;
 
-/// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
-/// are made available on the server and enable the corresponding sign-in widget
-/// on the client.
+/// Extends EmailIdpBaseEndpoint to expose email auth endpoints.
 ///
-/// This enables:
+/// All standard auth methods are inherited from EmailIdpBaseEndpoint:
 /// - startRegistration(email) → Sends verification code
 /// - verifyRegistrationCode(accountRequestId, code) → Returns registration token
-/// - finishRegistration(registrationToken, password) → Creates user + workspace
+/// - finishRegistration(registrationToken, password) → Creates user
 /// - login(email, password) → Returns session token
 /// - startPasswordReset(email) → Sends password reset code
 /// - verifyPasswordResetCode(passwordResetRequestId, code) → Returns reset token
 /// - finishPasswordReset(token, newPassword) → Resets password
+///
+/// The workspace creation hook is configured via `onAfterAccountCreated`
+/// in server.dart, so no override is needed here.
 /// {@category Endpoint}
 class EndpointEmailIdp extends _i1.EndpointEmailIdpBase {
   EndpointEmailIdp(_i2.EndpointCaller caller) : super(caller);
@@ -41,19 +52,17 @@ class EndpointEmailIdp extends _i1.EndpointEmailIdpBase {
   @override
   String get name => 'emailIdp';
 
-  /// Override finishRegistration to also create default workspace and preferences
-  @override
-  _i3.Future<_i4.AuthSuccess> finishRegistration({
-    required String registrationToken,
-    required String password,
-  }) => caller.callServerEndpoint<_i4.AuthSuccess>(
-    'emailIdp',
-    'finishRegistration',
-    {
-      'registrationToken': registrationToken,
-      'password': password,
-    },
-  );
+  /// Checks if an email address is already registered.
+  ///
+  /// Returns `true` if the email has an existing account, `false` otherwise.
+  /// This allows the client to show appropriate error messages before
+  /// attempting registration.
+  _i3.Future<bool> isEmailRegistered({required String email}) =>
+      caller.callServerEndpoint<bool>(
+        'emailIdp',
+        'isEmailRegistered',
+        {'email': email},
+      );
 
   /// Logs in the user and returns a new session.
   ///
@@ -115,6 +124,33 @@ class EndpointEmailIdp extends _i1.EndpointEmailIdpBase {
     {
       'accountRequestId': accountRequestId,
       'verificationCode': verificationCode,
+    },
+  );
+
+  /// Completes a new account registration, creating a new auth user with a
+  /// profile and attaching the given email account to it.
+  ///
+  /// Throws an [EmailAccountRequestException] in case of errors, with reason:
+  /// - [EmailAccountRequestExceptionReason.expired] if the account request has
+  ///   already expired.
+  /// - [EmailAccountRequestExceptionReason.policyViolation] if the password
+  ///   does not comply with the password policy.
+  /// - [EmailAccountRequestExceptionReason.invalid] if the [registrationToken]
+  ///   is invalid.
+  ///
+  /// Throws an [AuthUserBlockedException] if the auth user is blocked.
+  ///
+  /// Returns a session for the newly created user.
+  @override
+  _i3.Future<_i4.AuthSuccess> finishRegistration({
+    required String registrationToken,
+    required String password,
+  }) => caller.callServerEndpoint<_i4.AuthSuccess>(
+    'emailIdp',
+    'finishRegistration',
+    {
+      'registrationToken': registrationToken,
+      'password': password,
     },
   );
 
@@ -232,106 +268,635 @@ class EndpointJwtRefresh extends _i4.EndpointRefreshJwtTokens {
   );
 }
 
-/// Custom authentication endpoint providing clear responses for the frontend.
-///
-/// This endpoint wraps the Serverpod email IDP to provide:
-/// - Clear status codes for each auth scenario
-/// - Automatic code resending for unverified accounts
-/// - Proper flow handling for signup, login, and verification
 /// {@category Endpoint}
-class EndpointAuth extends _i2.EndpointRef {
-  EndpointAuth(_i2.EndpointCaller caller) : super(caller);
+class EndpointActivity extends _i2.EndpointRef {
+  EndpointActivity(_i2.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'auth';
+  String get name => 'activity';
 
-  /// Attempts to log in a user with email and password.
+  /// Gets activity log for a card
+  _i3.Future<List<_i5.CardActivity>> getLog(int cardId) =>
+      caller.callServerEndpoint<List<_i5.CardActivity>>(
+        'activity',
+        'getLog',
+        {'cardId': cardId},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointAttachment extends _i2.EndpointRef {
+  EndpointAttachment(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'attachment';
+
+  /// Uploads a file directly via ByteData.
+  /// This is a simpler approach that doesn't require the FileUploader client.
   ///
-  /// Returns [AuthResult] with:
-  /// - [AuthStatus.success] + authToken if login successful
-  /// - [AuthStatus.accountNotFound] if no account exists (→ redirect to signup)
-  /// - [AuthStatus.emailNotVerified] + accountRequestId if pending verification (→ redirect to verify)
-  /// - [AuthStatus.invalidCredentials] if wrong password
-  _i3.Future<_i5.AuthResult> login({
-    required String email,
-    required String password,
-  }) => caller.callServerEndpoint<_i5.AuthResult>(
-    'auth',
-    'login',
+  /// Requires: card.update permission
+  _i3.Future<_i6.Attachment?> uploadFile({
+    required int cardId,
+    required String fileName,
+    required _i7.ByteData fileData,
+    required String mimeType,
+  }) => caller.callServerEndpoint<_i6.Attachment?>(
+    'attachment',
+    'uploadFile',
     {
-      'email': email,
-      'password': password,
+      'cardId': cardId,
+      'fileName': fileName,
+      'fileData': fileData,
+      'mimeType': mimeType,
     },
   );
 
-  /// Starts the signup process for a new user.
+  /// Returns an upload description for uploading a file to the server.
+  /// The file is uploaded to the [storageId] storage.
+  /// Returns a JSON string: {"path": "...", "description": "..."}
   ///
-  /// Sends a verification code to the email address.
+  /// Requires: card.update permission
+  _i3.Future<String?> getUploadDescription({
+    required int cardId,
+    required String fileName,
+    required int size,
+    required String mimeType,
+  }) => caller.callServerEndpoint<String?>(
+    'attachment',
+    'getUploadDescription',
+    {
+      'cardId': cardId,
+      'fileName': fileName,
+      'size': size,
+      'mimeType': mimeType,
+    },
+  );
+
+  /// Verifies that a file has been uploaded and creates the Attachment record.
   ///
-  /// Returns [AuthResult] with:
-  /// - [AuthStatus.verificationCodeSent] + accountRequestId for new signups
-  /// - [AuthStatus.accountAlreadyExists] if email is already registered and verified
-  _i3.Future<_i5.AuthResult> startSignup({required String email}) =>
-      caller.callServerEndpoint<_i5.AuthResult>(
-        'auth',
-        'startSignup',
-        {'email': email},
+  /// Requires: card.update permission
+  _i3.Future<_i6.Attachment?> verifyUpload({
+    required int cardId,
+    required String fileName,
+    required String storagePath,
+    required String mimeType,
+    required int size,
+  }) => caller.callServerEndpoint<_i6.Attachment?>(
+    'attachment',
+    'verifyUpload',
+    {
+      'cardId': cardId,
+      'fileName': fileName,
+      'storagePath': storagePath,
+      'mimeType': mimeType,
+      'size': size,
+    },
+  );
+
+  /// Lists all active attachments for a card.
+  ///
+  /// Requires: card.read permission
+  _i3.Future<List<_i6.Attachment>> listAttachments(int cardId) =>
+      caller.callServerEndpoint<List<_i6.Attachment>>(
+        'attachment',
+        'listAttachments',
+        {'cardId': cardId},
       );
 
-  /// Verifies the registration code entered by the user.
+  /// Deletes an attachment (soft delete).
   ///
-  /// Returns [AuthResult] with:
-  /// - [AuthStatus.success] + registrationToken if code is valid
-  /// - [AuthStatus.verificationCodeInvalid] if code is wrong
-  /// - [AuthStatus.verificationCodeExpired] if code expired
-  _i3.Future<_i5.AuthResult> verifyCode({
-    required String accountRequestId,
-    required String code,
-  }) => caller.callServerEndpoint<_i5.AuthResult>(
-    'auth',
-    'verifyCode',
+  /// Requires: card.update permission (and check ownership/admin logic)
+  _i3.Future<void> deleteAttachment(int attachmentId) =>
+      caller.callServerEndpoint<void>(
+        'attachment',
+        'deleteAttachment',
+        {'attachmentId': attachmentId},
+      );
+}
+
+/// Endpoint for managing boards within a workspace
+/// {@category Endpoint}
+class EndpointBoard extends _i2.EndpointRef {
+  EndpointBoard(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'board';
+
+  /// Gets all boards for a workspace by ID
+  /// Requires: board.read permission
+  _i3.Future<List<_i8.Board>> getBoards(int workspaceId) =>
+      caller.callServerEndpoint<List<_i8.Board>>(
+        'board',
+        'getBoards',
+        {'workspaceId': workspaceId},
+      );
+
+  /// Gets all boards for a workspace by workspace slug
+  /// Requires: board.read permission
+  _i3.Future<List<_i8.Board>> getBoardsByWorkspaceSlug(String workspaceSlug) =>
+      caller.callServerEndpoint<List<_i8.Board>>(
+        'board',
+        'getBoardsByWorkspaceSlug',
+        {'workspaceSlug': workspaceSlug},
+      );
+
+  /// Gets a single board by slug within a workspace (by workspace ID)
+  /// Requires: board.read permission
+  _i3.Future<_i8.Board?> getBoard(
+    int workspaceId,
+    String slug,
+  ) => caller.callServerEndpoint<_i8.Board?>(
+    'board',
+    'getBoard',
     {
-      'accountRequestId': accountRequestId,
-      'code': code,
+      'workspaceId': workspaceId,
+      'slug': slug,
     },
   );
 
-  /// Finishes the signup process, creating the user account.
-  ///
-  /// Called after verification with:
-  /// - registrationToken from verifyCode
-  /// - name: user's full name
-  /// - password: user's chosen password
-  ///
-  /// Returns [AuthResult] with:
-  /// - [AuthStatus.registrationComplete] + authToken if successful
-  _i3.Future<_i5.AuthResult> finishSignup({
-    required String registrationToken,
-    required String name,
-    required String password,
-  }) => caller.callServerEndpoint<_i5.AuthResult>(
-    'auth',
-    'finishSignup',
+  /// Gets a single board by workspace slug and board slug
+  /// Requires: board.read permission
+  _i3.Future<_i8.Board?> getBoardBySlug(
+    String workspaceSlug,
+    String boardSlug,
+  ) => caller.callServerEndpoint<_i8.Board?>(
+    'board',
+    'getBoardBySlug',
     {
-      'registrationToken': registrationToken,
+      'workspaceSlug': workspaceSlug,
+      'boardSlug': boardSlug,
+    },
+  );
+
+  /// Creates a new board in a workspace (by workspace ID)
+  /// Requires: board.create permission
+  _i3.Future<_i8.Board> createBoard(
+    int workspaceId,
+    String title,
+  ) => caller.callServerEndpoint<_i8.Board>(
+    'board',
+    'createBoard',
+    {
+      'workspaceId': workspaceId,
+      'title': title,
+    },
+  );
+
+  /// Creates a new board in a workspace by workspace slug
+  /// Requires: board.create permission
+  _i3.Future<_i8.Board> createBoardByWorkspaceSlug(
+    String workspaceSlug,
+    String title,
+  ) => caller.callServerEndpoint<_i8.Board>(
+    'board',
+    'createBoardByWorkspaceSlug',
+    {
+      'workspaceSlug': workspaceSlug,
+      'title': title,
+    },
+  );
+
+  /// Updates a board's title and/or slug
+  /// Requires: board.update permission
+  _i3.Future<_i8.Board> updateBoard(
+    int boardId,
+    String title,
+    String? slug,
+  ) => caller.callServerEndpoint<_i8.Board>(
+    'board',
+    'updateBoard',
+    {
+      'boardId': boardId,
+      'title': title,
+      'slug': slug,
+    },
+  );
+
+  /// Soft deletes a board
+  /// Requires: board.delete permission
+  _i3.Future<void> deleteBoard(int boardId) => caller.callServerEndpoint<void>(
+    'board',
+    'deleteBoard',
+    {'boardId': boardId},
+  );
+}
+
+/// Endpoint for managing cards within a list
+/// {@category Endpoint}
+class EndpointCard extends _i2.EndpointRef {
+  EndpointCard(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'card';
+
+  /// Gets all cards for a list
+  /// Requires: board.read permission
+  _i3.Future<List<_i9.Card>> getCards(int listId) =>
+      caller.callServerEndpoint<List<_i9.Card>>(
+        'card',
+        'getCards',
+        {'listId': listId},
+      );
+
+  /// Gets all cards for a board (across all lists)
+  /// Requires: board.read permission
+  _i3.Future<List<_i9.Card>> getCardsByBoard(int boardId) =>
+      caller.callServerEndpoint<List<_i9.Card>>(
+        'card',
+        'getCardsByBoard',
+        {'boardId': boardId},
+      );
+
+  /// Gets a single card by ID
+  /// Requires: board.read permission
+  _i3.Future<_i9.Card?> getCard(int cardId) =>
+      caller.callServerEndpoint<_i9.Card?>(
+        'card',
+        'getCard',
+        {'cardId': cardId},
+      );
+
+  /// Creates a new card in a list
+  /// Requires: board.update permission
+  _i3.Future<_i9.Card> createCard(
+    int listId,
+    String title, {
+    String? description,
+    required _i10.CardPriority priority,
+    DateTime? dueDate,
+  }) => caller.callServerEndpoint<_i9.Card>(
+    'card',
+    'createCard',
+    {
+      'listId': listId,
+      'title': title,
+      'description': description,
+      'priority': priority,
+      'dueDate': dueDate,
+    },
+  );
+
+  /// Updates a card's details
+  /// Requires: board.update permission
+  _i3.Future<_i9.Card> updateCard(
+    int cardId, {
+    String? title,
+    String? description,
+    _i10.CardPriority? priority,
+    DateTime? dueDate,
+    bool? isCompleted,
+  }) => caller.callServerEndpoint<_i9.Card>(
+    'card',
+    'updateCard',
+    {
+      'cardId': cardId,
+      'title': title,
+      'description': description,
+      'priority': priority,
+      'dueDate': dueDate,
+      'isCompleted': isCompleted,
+    },
+  );
+
+  /// Moves a card to a different list and/or reorders within the list
+  /// Requires: board.update permission
+  _i3.Future<_i9.Card> moveCard(
+    int cardId,
+    int targetListId, {
+    String? afterRank,
+    String? beforeRank,
+    _i10.CardPriority? newPriority,
+  }) => caller.callServerEndpoint<_i9.Card>(
+    'card',
+    'moveCard',
+    {
+      'cardId': cardId,
+      'targetListId': targetListId,
+      'afterRank': afterRank,
+      'beforeRank': beforeRank,
+      'newPriority': newPriority,
+    },
+  );
+
+  /// Soft deletes a card
+  /// Requires: board.update permission
+  _i3.Future<void> deleteCard(int cardId) => caller.callServerEndpoint<void>(
+    'card',
+    'deleteCard',
+    {'cardId': cardId},
+  );
+
+  /// Toggles card completion status
+  /// Requires: board.update permission
+  _i3.Future<_i9.Card> toggleComplete(int cardId) =>
+      caller.callServerEndpoint<_i9.Card>(
+        'card',
+        'toggleComplete',
+        {'cardId': cardId},
+      );
+}
+
+/// Endpoint for managing lists within a board
+/// {@category Endpoint}
+class EndpointCardList extends _i2.EndpointRef {
+  EndpointCardList(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'cardList';
+
+  /// Gets all lists for a board
+  /// Requires: board.read permission
+  _i3.Future<List<_i11.CardList>> getLists(int boardId) =>
+      caller.callServerEndpoint<List<_i11.CardList>>(
+        'cardList',
+        'getLists',
+        {'boardId': boardId},
+      );
+
+  /// Creates a new list in a board
+  /// Requires: board.update permission
+  _i3.Future<_i11.CardList> createList(
+    int boardId,
+    String title,
+  ) => caller.callServerEndpoint<_i11.CardList>(
+    'cardList',
+    'createList',
+    {
+      'boardId': boardId,
+      'title': title,
+    },
+  );
+
+  /// Updates a list's title
+  /// Requires: board.update permission
+  _i3.Future<_i11.CardList> updateList(
+    int listId,
+    String title,
+  ) => caller.callServerEndpoint<_i11.CardList>(
+    'cardList',
+    'updateList',
+    {
+      'listId': listId,
+      'title': title,
+    },
+  );
+
+  /// Reorders lists within a board
+  /// Receives an ordered list of list IDs and recalculates ranks
+  /// Requires: board.update permission
+  _i3.Future<List<_i11.CardList>> reorderLists(
+    int boardId,
+    List<int> orderedListIds,
+  ) => caller.callServerEndpoint<List<_i11.CardList>>(
+    'cardList',
+    'reorderLists',
+    {
+      'boardId': boardId,
+      'orderedListIds': orderedListIds,
+    },
+  );
+
+  /// Soft deletes a list
+  /// Requires: board.update permission
+  _i3.Future<void> deleteList(int listId) => caller.callServerEndpoint<void>(
+    'cardList',
+    'deleteList',
+    {'listId': listId},
+  );
+
+  /// Archives a list (sets archived = true)
+  /// Requires: board.update permission
+  _i3.Future<_i11.CardList> archiveList(int listId) =>
+      caller.callServerEndpoint<_i11.CardList>(
+        'cardList',
+        'archiveList',
+        {'listId': listId},
+      );
+}
+
+/// Endpoint for managing checklists within a card
+/// {@category Endpoint}
+class EndpointChecklist extends _i2.EndpointRef {
+  EndpointChecklist(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'checklist';
+
+  /// Gets all checklists for a card
+  /// Requires: board.read permission
+  _i3.Future<List<_i12.Checklist>> getChecklists(int cardId) =>
+      caller.callServerEndpoint<List<_i12.Checklist>>(
+        'checklist',
+        'getChecklists',
+        {'cardId': cardId},
+      );
+
+  /// Gets all items for a checklist
+  /// Requires: board.read permission
+  _i3.Future<List<_i13.ChecklistItem>> getItems(int checklistId) =>
+      caller.callServerEndpoint<List<_i13.ChecklistItem>>(
+        'checklist',
+        'getItems',
+        {'checklistId': checklistId},
+      );
+
+  /// Creates a new checklist in a card
+  /// Requires: board.update permission
+  _i3.Future<_i12.Checklist> createChecklist(
+    int cardId,
+    String title,
+  ) => caller.callServerEndpoint<_i12.Checklist>(
+    'checklist',
+    'createChecklist',
+    {
+      'cardId': cardId,
+      'title': title,
+    },
+  );
+
+  /// Updates a checklist
+  /// Requires: board.update permission
+  _i3.Future<_i12.Checklist> updateChecklist(
+    int checklistId,
+    String title,
+  ) => caller.callServerEndpoint<_i12.Checklist>(
+    'checklist',
+    'updateChecklist',
+    {
+      'checklistId': checklistId,
+      'title': title,
+    },
+  );
+
+  /// Soft deletes a checklist
+  /// Requires: board.update permission
+  _i3.Future<void> deleteChecklist(int checklistId) =>
+      caller.callServerEndpoint<void>(
+        'checklist',
+        'deleteChecklist',
+        {'checklistId': checklistId},
+      );
+
+  /// Creates a new item in a checklist
+  /// Requires: board.update permission
+  _i3.Future<_i13.ChecklistItem> addItem(
+    int checklistId,
+    String title,
+  ) => caller.callServerEndpoint<_i13.ChecklistItem>(
+    'checklist',
+    'addItem',
+    {
+      'checklistId': checklistId,
+      'title': title,
+    },
+  );
+
+  /// Updates a checklist item
+  /// Requires: board.update permission
+  _i3.Future<_i13.ChecklistItem> updateItem(
+    int itemId, {
+    String? title,
+    bool? isChecked,
+  }) => caller.callServerEndpoint<_i13.ChecklistItem>(
+    'checklist',
+    'updateItem',
+    {
+      'itemId': itemId,
+      'title': title,
+      'isChecked': isChecked,
+    },
+  );
+
+  /// Soft deletes a checklist item
+  /// Requires: board.update permission
+  _i3.Future<void> deleteItem(int itemId) => caller.callServerEndpoint<void>(
+    'checklist',
+    'deleteItem',
+    {'itemId': itemId},
+  );
+}
+
+/// {@category Endpoint}
+class EndpointComment extends _i2.EndpointRef {
+  EndpointComment(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'comment';
+
+  /// Gets all comments for a card
+  _i3.Future<List<_i14.Comment>> getComments(int cardId) =>
+      caller.callServerEndpoint<List<_i14.Comment>>(
+        'comment',
+        'getComments',
+        {'cardId': cardId},
+      );
+
+  /// Creates a comment
+  _i3.Future<_i14.Comment> createComment(
+    int cardId,
+    String content,
+  ) => caller.callServerEndpoint<_i14.Comment>(
+    'comment',
+    'createComment',
+    {
+      'cardId': cardId,
+      'content': content,
+    },
+  );
+
+  /// Deletes a comment (soft delete)
+  _i3.Future<void> deleteComment(int commentId) =>
+      caller.callServerEndpoint<void>(
+        'comment',
+        'deleteComment',
+        {'commentId': commentId},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointLabel extends _i2.EndpointRef {
+  EndpointLabel(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'label';
+
+  /// Gets all labels defined for a board
+  _i3.Future<List<_i15.LabelDef>> getLabels(int boardId) =>
+      caller.callServerEndpoint<List<_i15.LabelDef>>(
+        'label',
+        'getLabels',
+        {'boardId': boardId},
+      );
+
+  /// Creates a new label definition
+  _i3.Future<_i15.LabelDef> createLabel(
+    int boardId,
+    String name,
+    String colorHex,
+  ) => caller.callServerEndpoint<_i15.LabelDef>(
+    'label',
+    'createLabel',
+    {
+      'boardId': boardId,
       'name': name,
-      'password': password,
+      'colorHex': colorHex,
     },
   );
 
-  /// Resends the verification code for a pending registration.
-  ///
-  /// Use this when:
-  /// - User didn't receive the code
-  /// - Code expired
-  ///
-  /// Returns [AuthResult] with:
-  /// - [AuthStatus.verificationCodeSent] + new accountRequestId
-  _i3.Future<_i5.AuthResult> resendCode({required String email}) =>
-      caller.callServerEndpoint<_i5.AuthResult>(
-        'auth',
-        'resendCode',
-        {'email': email},
+  /// Updates a label definition
+  _i3.Future<_i15.LabelDef> updateLabel(
+    int labelId,
+    String name,
+    String colorHex,
+  ) => caller.callServerEndpoint<_i15.LabelDef>(
+    'label',
+    'updateLabel',
+    {
+      'labelId': labelId,
+      'name': name,
+      'colorHex': colorHex,
+    },
+  );
+
+  /// Deletes a label definition (soft delete)
+  _i3.Future<void> deleteLabel(int labelId) => caller.callServerEndpoint<void>(
+    'label',
+    'deleteLabel',
+    {'labelId': labelId},
+  );
+
+  /// Attaches a label to a card
+  _i3.Future<void> attachLabel(
+    int cardId,
+    int labelId,
+  ) => caller.callServerEndpoint<void>(
+    'label',
+    'attachLabel',
+    {
+      'cardId': cardId,
+      'labelId': labelId,
+    },
+  );
+
+  /// Detaches a label from a card
+  _i3.Future<void> detachLabel(
+    int cardId,
+    int labelId,
+  ) => caller.callServerEndpoint<void>(
+    'label',
+    'detachLabel',
+    {
+      'cardId': cardId,
+      'labelId': labelId,
+    },
+  );
+
+  /// Get labels attached to a card
+  _i3.Future<List<_i15.LabelDef>> getCardLabels(int cardId) =>
+      caller.callServerEndpoint<List<_i15.LabelDef>>(
+        'label',
+        'getCardLabels',
+        {'cardId': cardId},
       );
 }
 
@@ -344,8 +909,8 @@ class EndpointWorkspace extends _i2.EndpointRef {
   String get name => 'workspace';
 
   /// Gets all workspaces for authenticated user
-  _i3.Future<List<_i6.Workspace>> getWorkspaces() =>
-      caller.callServerEndpoint<List<_i6.Workspace>>(
+  _i3.Future<List<_i16.Workspace>> getWorkspaces() =>
+      caller.callServerEndpoint<List<_i16.Workspace>>(
         'workspace',
         'getWorkspaces',
         {},
@@ -353,18 +918,18 @@ class EndpointWorkspace extends _i2.EndpointRef {
 
   /// Gets a single workspace by slug
   /// Verifies that user has permission to read workspace
-  _i3.Future<_i6.Workspace?> getWorkspace(String slug) =>
-      caller.callServerEndpoint<_i6.Workspace?>(
+  _i3.Future<_i16.Workspace?> getWorkspace(String slug) =>
+      caller.callServerEndpoint<_i16.Workspace?>(
         'workspace',
         'getWorkspace',
         {'slug': slug},
       );
 
   /// Creates a new workspace
-  _i3.Future<_i6.Workspace> createWorkspace(
+  _i3.Future<_i16.Workspace> createWorkspace(
     String title,
     String? slug,
-  ) => caller.callServerEndpoint<_i6.Workspace>(
+  ) => caller.callServerEndpoint<_i16.Workspace>(
     'workspace',
     'createWorkspace',
     {
@@ -374,11 +939,11 @@ class EndpointWorkspace extends _i2.EndpointRef {
   );
 
   /// Updates workspace settings
-  _i3.Future<_i6.Workspace> updateWorkspace(
+  _i3.Future<_i16.Workspace> updateWorkspace(
     int workspaceId,
     String title,
     String? slug,
-  ) => caller.callServerEndpoint<_i6.Workspace>(
+  ) => caller.callServerEndpoint<_i16.Workspace>(
     'workspace',
     'updateWorkspace',
     {
@@ -407,8 +972,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i7.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i7.Greeting>(
+  _i3.Future<_i17.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i17.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -419,14 +984,14 @@ class Modules {
   Modules(Client client) {
     serverpod_auth_idp = _i1.Caller(client);
     serverpod_auth_core = _i4.Caller(client);
-    auth = _i8.Caller(client);
+    auth = _i18.Caller(client);
   }
 
   late final _i1.Caller serverpod_auth_idp;
 
   late final _i4.Caller serverpod_auth_core;
 
-  late final _i8.Caller auth;
+  late final _i18.Caller auth;
 }
 
 class Client extends _i2.ServerpodClientShared {
@@ -449,7 +1014,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i9.Protocol(),
+         _i19.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -460,7 +1025,14 @@ class Client extends _i2.ServerpodClientShared {
        ) {
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
-    auth = EndpointAuth(this);
+    activity = EndpointActivity(this);
+    attachment = EndpointAttachment(this);
+    board = EndpointBoard(this);
+    card = EndpointCard(this);
+    cardList = EndpointCardList(this);
+    checklist = EndpointChecklist(this);
+    comment = EndpointComment(this);
+    label = EndpointLabel(this);
     workspace = EndpointWorkspace(this);
     greeting = EndpointGreeting(this);
     modules = Modules(this);
@@ -470,7 +1042,21 @@ class Client extends _i2.ServerpodClientShared {
 
   late final EndpointJwtRefresh jwtRefresh;
 
-  late final EndpointAuth auth;
+  late final EndpointActivity activity;
+
+  late final EndpointAttachment attachment;
+
+  late final EndpointBoard board;
+
+  late final EndpointCard card;
+
+  late final EndpointCardList cardList;
+
+  late final EndpointChecklist checklist;
+
+  late final EndpointComment comment;
+
+  late final EndpointLabel label;
 
   late final EndpointWorkspace workspace;
 
@@ -482,7 +1068,14 @@ class Client extends _i2.ServerpodClientShared {
   Map<String, _i2.EndpointRef> get endpointRefLookup => {
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
-    'auth': auth,
+    'activity': activity,
+    'attachment': attachment,
+    'board': board,
+    'card': card,
+    'cardList': cardList,
+    'checklist': checklist,
+    'comment': comment,
+    'label': label,
     'workspace': workspace,
     'greeting': greeting,
   };

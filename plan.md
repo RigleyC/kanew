@@ -12,7 +12,7 @@ O **Kan Clone** é uma plataforma de gerenciamento de projetos baseada na metodo
 - **Libs Principais (Sugestão):**
     - *Auth:* `serverpod_auth` (Nativo).
     
-    - **Roteamento:** `zenrouter` (Baseado em path, ideal para suporte a Slugs).
+    - **Roteamento:** `go_router`.
     - **Editor de Texto:** `appflowy_editor` (Para descrições ricas e documentos).
     - *Drag and Drop:* `appflowy_board.`
     - *Ordenação:* Implementação de algoritmo **Lexorank**.
