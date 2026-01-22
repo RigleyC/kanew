@@ -147,10 +147,15 @@ class _CardDetailPageState extends State<CardDetailPage> {
                 workspaceSlug: widget.workspaceSlug,
                 boardSlug: widget.boardSlug,
                 listName: _getListName(card.listId),
+                boardLists: _controller.boardLists,
+                currentListId: card.listId,
                 isMobile: isMobile,
                 onClose: () => context.go(
                   RoutePaths.boardView(widget.workspaceSlug, widget.boardSlug),
                 ),
+                onListChanged: (newListId) {
+                  _controller.moveCardToList(newListId);
+                },
               ),
               Expanded(
                 child: isMobile

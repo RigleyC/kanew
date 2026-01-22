@@ -376,4 +376,34 @@ class CardDetailPageController extends ChangeNotifier {
     await load(uuid);
     return _card;
   }
+
+  Future<void> moveCardToList(int newListId) async {
+    if (_card == null) return;
+    
+    // Optimistic update
+    final oldList = _list;
+    final newList = _boardLists.firstWhere((l) => l.id == newListId);
+    
+    _list = newList;
+    _card = _card!.copyWith(listId: newListId);
+    notifyListeners();
+
+    final result = await _repository.moveCard(_card!.id!, newListId);
+    
+    result.fold(
+      (f) {
+        // Revert
+        _list = oldList;
+        _card = _card!.copyWith(listId: oldList?.id ?? 0);
+        _error = f.message;
+        notifyListeners();
+      },
+      (card) {
+        // Update with server data just in case
+        _card = card;
+        _loadActivities(card.id!);
+        notifyListeners();
+      },
+    );
+  }
 }
