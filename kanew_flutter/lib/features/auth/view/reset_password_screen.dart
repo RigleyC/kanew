@@ -1,20 +1,19 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
-import 'package:provider/provider.dart';
-import 'package:zenrouter/zenrouter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_theme.dart';
-import '../viewmodel/auth_viewmodel.dart';
+import '../../../core/di/injection.dart';
+import '../viewmodel/auth_controller.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
-  final Coordinator coordinator;
   final String email;
   final String accountRequestId;
 
   const ResetPasswordScreen({
     super.key,
-    required this.coordinator,
     required this.email,
     required this.accountRequestId,
   });
@@ -37,51 +36,62 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     super.dispose();
   }
 
+  /// Verify reset code.
   Future<void> _handleVerifyCode() async {
-    if (_codeController.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('O código deve ter pelo menos 6 caracteres'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+    final code = _codeController.text.trim();
+    if (code.isEmpty) return;
 
-    final viewModel = context.read<AuthViewModel>();
+    final viewModel = getIt<AuthController>();
+    await viewModel.verifyPasswordResetCode(
+      requestId: UuidValue.fromString(widget.accountRequestId),
+      code: code,
+    );
 
-    try {
-      final token = await viewModel.verifyPasswordResetCode(
-        passwordResetRequestId: widget.accountRequestId,
-        verificationCode: _codeController.text.trim(),
-      );
+    if (!mounted) return;
 
-      setState(() {
-        _resetToken = token;
-      });
+    final state = viewModel.state;
 
-      if (mounted) {
+    switch (state) {
+      case AuthPasswordResetVerified():
+        setState(() {
+          _resetToken = state.token;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Código verificado! Defina sua nova senha.'),
+            content: Text('Código verificado!'),
             backgroundColor: Colors.green,
           ),
         );
-      }
-    } catch (e) {
-      if (mounted) {
+        developer.log(
+          'Password reset code verified',
+          name: 'reset_password_screen',
+        );
+
+      case AuthError():
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(viewModel.errorMessage ?? 'Código inválido'),
+            content: Text(state.message),
             backgroundColor: Colors.red,
           ),
         );
-      }
+        developer.log(
+          'Password reset code verification failed',
+          name: 'reset_password_screen',
+          level: 1000,
+          error: state.message,
+        );
+
+      default:
+        break;
     }
   }
 
+  /// Reset password.
   Future<void> _handleResetPassword() async {
-    if (_passwordController.text.length < 8) {
+    if (_resetToken == null) return;
+
+    final password = _passwordController.text;
+    if (password.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('A senha deve ter pelo menos 8 caracteres'),
@@ -91,181 +101,186 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return;
     }
 
-    final viewModel = context.read<AuthViewModel>();
+    final viewModel = getIt<AuthController>();
+    await viewModel.finishPasswordReset(
+      token: _resetToken!,
+      newPassword: password,
+    );
 
-    try {
-      if (_resetToken == null) {
+    if (!mounted) return;
+
+    final state = viewModel.state;
+
+    switch (state) {
+      case AuthInitial():
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Por favor, verifique o código primeiro'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      await viewModel.finishPasswordReset(
-        finishPasswordResetToken: _resetToken!,
-        newPassword: _passwordController.text,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Senha redefinida com sucesso! Faça login.'),
+            content: Text('Senha redefinida com sucesso!'),
             backgroundColor: Colors.green,
           ),
         );
-        widget.coordinator.replace(LoginRoute());
-      }
-    } catch (e) {
-      if (mounted) {
+        developer.log(
+          'Password reset completed, navigating to login',
+          name: 'reset_password_screen',
+        );
+        if (mounted) {
+          context.go('/auth/login');
+        }
+
+      case AuthError():
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(viewModel.errorMessage ?? 'Erro ao redefinir senha'),
+            content: Text(state.message),
             backgroundColor: Colors.red,
           ),
         );
-      }
+        developer.log(
+          'Password reset failed',
+          name: 'reset_password_screen',
+          level: 1000,
+          error: state.message,
+        );
+
+      default:
+        break;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final typography = theme.textTheme;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.authGradient),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
               child: FCard(
                 child: Padding(
                   padding: const EdgeInsets.all(32),
                   child: Form(
                     key: _formKey,
-                    child: Consumer<AuthViewModel>(
-                      builder: (context, viewModel, _) => Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.lock_reset_rounded,
-                            size: 64,
-                            color: AppTheme.accentColor,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Redefinir Senha',
-                            style: typography.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
+                    child: ListenableBuilder(
+                      listenable: getIt<AuthController>(),
+                      builder: (context, _) {
+                        final viewModel = getIt<AuthController>();
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.lock_reset_rounded,
+                              size: 64,
+                              color: theme.colorScheme.primary,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _resetToken == null
-                                ? 'Verifique o código do email'
-                                : 'Defina sua nova senha',
-                            style: typography.bodySmall?.copyWith(
-                              color: colorScheme.onSurface.withAlpha(153),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 32),
-
-                          Text(
-                            'Redefinindo para:\n${widget.email}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Code field
-                          FTextField(
-                            control: FTextFieldControl.managed(
-                              controller: _codeController,
-                            ),
-                            label: const Text('Código de Verificação'),
-                            hint: 'Digite o código do email',
-                            enabled:
-                                _resetToken == null && !viewModel.isLoading,
-                            keyboardType: TextInputType.text,
-                          ),
-                          const SizedBox(height: 16),
-
-                          if (_resetToken == null)
-                            SizedBox(
-                              width: double.infinity,
-                              child: FButton(
-                                onPress: viewModel.isLoading
-                                    ? null
-                                    : _handleVerifyCode,
-                                child: viewModel.isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text('Verificar Código'),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Redefinir Senha',
+                              style: typography.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-
-                          if (_resetToken != null) ...[
-                            FTextField(
-                              control: FTextFieldControl.managed(
-                                controller: _passwordController,
+                            const SizedBox(height: 8),
+                            Text(
+                              _resetToken == null
+                                  ? 'Verifique o código do email'
+                                  : 'Defina sua nova senha',
+                              style: typography.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
                               ),
-                              label: const Text('Nova Senha'),
-                              hint: 'Mínimo 8 caracteres',
-                              obscureText: true,
-                              enabled: !viewModel.isLoading,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 32),
+
+                            Text(
+                              'Redefinindo para:\n${widget.email}',
+                              textAlign: TextAlign.center,
+                              style: typography.bodyMedium,
                             ),
                             const SizedBox(height: 24),
-                            SizedBox(
-                              width: double.infinity,
-                              child: FButton(
-                                onPress: viewModel.isLoading
-                                    ? null
-                                    : _handleResetPassword,
-                                child: viewModel.isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text('Definir Nova Senha'),
+
+                            // Code field
+                            FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: _codeController,
                               ),
+                              label: const Text('Código de Verificação'),
+                              hint: 'Digite o código do email',
+                              enabled:
+                                  _resetToken == null && !viewModel.isLoading,
+                              keyboardType: TextInputType.text,
+                            ),
+                            const SizedBox(height: 16),
+
+                            if (_resetToken == null)
+                              SizedBox(
+                                width: double.infinity,
+                                child: FButton(
+                                  onPress: viewModel.isLoading
+                                      ? null
+                                      : _handleVerifyCode,
+                                  child: viewModel.isLoading
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Text('Verificar Código'),
+                                ),
+                              ),
+
+                            if (_resetToken != null) ...[
+                              FTextField(
+                                control: FTextFieldControl.managed(
+                                  controller: _passwordController,
+                                ),
+                                label: const Text('Nova Senha'),
+                                hint: 'Mínimo 8 caracteres',
+                                obscureText: true,
+                                enabled: !viewModel.isLoading,
+                              ),
+                              const SizedBox(height: 24),
+                              SizedBox(
+                                width: double.infinity,
+                                child: FButton(
+                                  onPress: viewModel.isLoading
+                                      ? null
+                                      : _handleResetPassword,
+                                  child: viewModel.isLoading
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Text('Definir Nova Senha'),
+                                ),
+                              ),
+                            ],
+
+                            const SizedBox(height: 16),
+
+                            FButton(
+                              style: FButtonStyle.ghost(),
+                              onPress: () => context.go('/auth/login'),
+                              child: const Text('Voltar ao Login'),
                             ),
                           ],
-
-                          const SizedBox(height: 16),
-
-                          FButton(
-                            style: FButtonStyle.ghost(),
-                            onPress: () =>
-                                widget.coordinator.replace(LoginRoute()),
-                            child: const Text('Voltar ao Login'),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   ),
                 ),
               ),
             ),
-          ),
         ),
       ),
     );

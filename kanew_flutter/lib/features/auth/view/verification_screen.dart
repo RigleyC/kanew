@@ -1,23 +1,22 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
-import 'package:provider/provider.dart';
-import 'package:zenrouter/zenrouter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_theme.dart';
-import '../viewmodel/auth_viewmodel.dart';
-import '../../../core/auth/auth_service.dart' as app_auth;
+import '../../../core/di/injection.dart';
+import '../viewmodel/auth_controller.dart';
 
 /// Screen for entering email verification code.
-/// After verification, navigates to SetPasswordScreen to complete signup.
+///
+/// After successful verification, navigates to [SetPasswordScreen] to complete signup.
 class VerificationScreen extends StatefulWidget {
-  final Coordinator coordinator;
   final String email;
   final String accountRequestId;
 
   const VerificationScreen({
     super.key,
-    required this.coordinator,
     required this.email,
     required this.accountRequestId,
   });
@@ -29,12 +28,16 @@ class VerificationScreen extends StatefulWidget {
 class _VerificationScreenState extends State<VerificationScreen> {
   final _codeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  late String _accountRequestId;
+  late UuidValue _accountRequestId;
 
   @override
   void initState() {
     super.initState();
-    _accountRequestId = widget.accountRequestId;
+    _accountRequestId = UuidValue.fromString(widget.accountRequestId);
+    developer.log(
+      'Verification screen initialized - email: ${widget.email}',
+      name: 'verification_screen',
+    );
   }
 
   @override
@@ -43,6 +46,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
     super.dispose();
   }
 
+  /// Handles verification code submission.
   Future<void> _handleVerifyCode() async {
     if (_codeController.text.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -54,8 +58,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
       return;
     }
 
-    final viewModel = context.read<AuthViewModel>();
-    await viewModel.verifyCode(
+    final viewModel = getIt<AuthController>();
+    await viewModel.verifyRegistrationCode(
       accountRequestId: _accountRequestId,
       code: _codeController.text.trim(),
     );
@@ -72,22 +76,19 @@ class _VerificationScreenState extends State<VerificationScreen> {
             backgroundColor: Colors.green,
           ),
         );
-
-        // Check if user is already authenticated (e.g. from login flow)
-        final isAuthenticated = await app_auth.AuthService.isAuthenticated();
-        if (isAuthenticated) {
-          // Navigate to home directly
-          widget.coordinator.replace(HomeRoute());
-        } else {
-          // Continue to set password (signup flow)
-          widget.coordinator.push(
-            SetPasswordRoute(
-              email: widget.email,
-              registrationToken: state.registrationToken,
-            ),
+        developer.log(
+          'Code verified, navigating to set password',
+          name: 'verification_screen',
+        );
+        if (mounted) {
+          context.go(
+            '/auth/set-password',
+            extra: {
+              'email': widget.email,
+              'token': state.registrationToken,
+            },
           );
         }
-        break;
 
       case AuthError():
         ScaffoldMessenger.of(context).showSnackBar(
@@ -96,23 +97,29 @@ class _VerificationScreenState extends State<VerificationScreen> {
             backgroundColor: Colors.red,
           ),
         );
-        break;
+        developer.log(
+          'Verification failed',
+          name: 'verification_screen',
+          level: 1000,
+          error: state.message,
+        );
 
       default:
         break;
     }
   }
 
+  /// Handles resend verification code request.
   Future<void> _handleResendCode() async {
-    final viewModel = context.read<AuthViewModel>();
-    await viewModel.resendCode(email: widget.email);
+    final viewModel = getIt<AuthController>();
+    await viewModel.resendVerificationCode(email: widget.email);
 
     if (!mounted) return;
 
     final state = viewModel.state;
 
     switch (state) {
-      case AuthVerificationCodeSent():
+      case AuthNeedsVerification():
         setState(() {
           _accountRequestId = state.accountRequestId;
         });
@@ -122,7 +129,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        break;
+        developer.log(
+          'Verification code resent - newRequestId: ${state.accountRequestId}',
+          name: 'verification_screen',
+        );
 
       case AuthError():
         ScaffoldMessenger.of(context).showSnackBar(
@@ -131,7 +141,12 @@ class _VerificationScreenState extends State<VerificationScreen> {
             backgroundColor: Colors.red,
           ),
         );
-        break;
+        developer.log(
+          'Failed to resend code',
+          name: 'verification_screen',
+          level: 1000,
+          error: state.message,
+        );
 
       default:
         break;
@@ -146,7 +161,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.authGradient),
+        decoration: BoxDecoration(color: colorScheme.surface),
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -157,103 +172,105 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   padding: const EdgeInsets.all(32),
                   child: Form(
                     key: _formKey,
-                    child: Consumer<AuthViewModel>(
-                      builder: (context, viewModel, _) => Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.verified_user_rounded,
-                            size: 64,
-                            color: AppTheme.accentColor,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Verificação',
-                            style: typography.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
+                    child: ListenableBuilder(
+                      listenable: getIt<AuthController>(),
+                      builder: (context, _) {
+                        final viewModel = getIt<AuthController>();
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.verified_user_rounded,
+                              size: 64,
+                              color: colorScheme.primary,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Digite o código enviado para:',
-                            style: typography.bodySmall?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.6),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            widget.email,
-                            style: typography.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 32),
-
-                          // Code field
-                          FTextField(
-                            control: FTextFieldControl.managed(
-                              controller: _codeController,
-                            ),
-                            label: const Text('Código de Verificação'),
-                            hint: 'Digite o código do console do servidor',
-                            enabled: !viewModel.isLoading,
-                            keyboardType: TextInputType.text,
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Verify button
-                          SizedBox(
-                            width: double.infinity,
-                            child: FButton(
-                              onPress: viewModel.isLoading
-                                  ? null
-                                  : _handleVerifyCode,
-                              child: viewModel.isLoading
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text('Verificar Código'),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Resend code button
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Não recebeu?',
-                                style: typography.bodySmall?.copyWith(
-                                  color: colorScheme.onSurface.withOpacity(0.5),
-                                ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Verificação',
+                              style: typography.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
-                              FButton(
-                                style: FButtonStyle.ghost(),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Digite o código enviado para:',
+                              style: typography.bodySmall?.copyWith(
+                                color: colorScheme.onSurface
+                                    .withValues(alpha: 0.6),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              widget.email,
+                              style: typography.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 32),
+
+                            FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: _codeController,
+                              ),
+                              label: const Text('Código de Verificação'),
+                              hint: 'Digite o código do console do servidor',
+                              enabled: !viewModel.isLoading,
+                              keyboardType: TextInputType.text,
+                            ),
+                            const SizedBox(height: 24),
+
+                            SizedBox(
+                              width: double.infinity,
+                              child: FButton(
                                 onPress: viewModel.isLoading
                                     ? null
-                                    : _handleResendCode,
-                                child: const Text('Reenviar código'),
+                                    : _handleVerifyCode,
+                                child: viewModel.isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text('Verificar Código'),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
+                            ),
+                            const SizedBox(height: 16),
 
-                          // Back button
-                          FButton(
-                            style: FButtonStyle.ghost(),
-                            onPress: () => widget.coordinator.pop(),
-                            child: const Text('Voltar'),
-                          ),
-                        ],
-                      ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Não recebeu?',
+                                  style: typography.bodySmall?.copyWith(
+                                    color: colorScheme.onSurface
+                                        .withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                FButton(
+                                  style: FButtonStyle.ghost(),
+                                  onPress: viewModel.isLoading
+                                      ? null
+                                      : _handleResendCode,
+                                  child: const Text('Reenviar código'),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+
+                            FButton(
+                              style: FButtonStyle.ghost(),
+                              onPress: () => context.pop(),
+                              child: const Text('Voltar'),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
