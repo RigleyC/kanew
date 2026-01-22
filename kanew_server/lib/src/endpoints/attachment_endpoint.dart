@@ -84,12 +84,8 @@ class AttachmentEndpoint extends Endpoint {
       session,
       cardId: cardId,
       actorId: numericUserId,
-      type: ActivityType.update,
-      details: jsonEncode({
-        'action': 'attachment_added',
-        'attachmentId': result.id,
-        'fileName': fileName
-      }),
+      type: ActivityType.attachmentAdded,
+      details: 'adicionou o anexo "$fileName"',
     );
 
     return result;
@@ -227,15 +223,7 @@ class AttachmentEndpoint extends Endpoint {
     await ActivityService.log(
       session,
       cardId: cardId,
-      actorId: numericUserId,
-      type: ActivityType.update, // Should ideally be ActivityType.attachmentAdded if available
-      details: jsonEncode({
-        'action': 'attachment_added',
-        'attachmentId': result.id,
-        'fileName': fileName
-      }),
-    );
-
+      details: 'adicionou o anexo "$fileName"',
     return result;
   }
 
@@ -326,12 +314,8 @@ class AttachmentEndpoint extends Endpoint {
       session,
       cardId: attachment.cardId,
       actorId: numericUserId,
-      type: ActivityType.update, // Should ideally be ActivityType.attachmentDeleted
-      details: jsonEncode({
-        'action': 'attachment_deleted',
-        'attachmentId': attachment.id,
-        'fileName': attachment.fileName
-      }),
+      type: ActivityType.attachmentDeleted,
+      details: 'removeu o anexo "${attachment.fileName}"',
     );
   }
 }

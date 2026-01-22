@@ -244,6 +244,7 @@ Future<void> load() async {
 - Valide se sua proposta também segue boas práticas de mercado, as vezes a sua solução pode ser complexa e outra pessoa na internet já resolveu o problema de forma mais simples.
 - Você pode usar os MCPs disponíveis como do dart, serverpod etc. caso ele nao tire sua dúvida, busque na internet em documentações oficiais ou forums, github etc.
 
+
 ---
 
 ## Checklist de entrega de feature

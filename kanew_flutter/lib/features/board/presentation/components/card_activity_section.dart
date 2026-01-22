@@ -208,6 +208,8 @@ class _ActivityItem extends StatelessWidget {
       case ActivityType.archive: return Icons.archive_outlined;
       case ActivityType.restore: return Icons.restore;
       case ActivityType.comment: return Icons.comment_outlined;
+      case ActivityType.attachmentAdded: return Icons.attach_file;
+      case ActivityType.attachmentDeleted: return Icons.delete_outline;
     }
   }
 
@@ -220,6 +222,8 @@ class _ActivityItem extends StatelessWidget {
       case ActivityType.archive: return 'arquivou este cartão';
       case ActivityType.restore: return 'restaurou este cartão';
       case ActivityType.comment: return 'comentou';
+      case ActivityType.attachmentAdded: return activity.details ?? 'adicionou um anexo';
+      case ActivityType.attachmentDeleted: return activity.details ?? 'removeu um anexo';
     }
   }
 }

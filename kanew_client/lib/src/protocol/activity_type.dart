@@ -19,7 +19,9 @@ enum ActivityType implements _i1.SerializableModel {
   move,
   comment,
   archive,
-  restore;
+  restore,
+  attachmentAdded,
+  attachmentDeleted;
 
   static ActivityType fromJson(String name) {
     switch (name) {
@@ -37,6 +39,10 @@ enum ActivityType implements _i1.SerializableModel {
         return ActivityType.archive;
       case 'restore':
         return ActivityType.restore;
+      case 'attachmentAdded':
+        return ActivityType.attachmentAdded;
+      case 'attachmentDeleted':
+        return ActivityType.attachmentDeleted;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "ActivityType"',

@@ -8,3 +8,5 @@ values:
   - comment
   - archive
   - restore
+  - attachmentAdded
+  - attachmentDeleted
