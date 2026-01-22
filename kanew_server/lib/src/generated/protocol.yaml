@@ -1,19 +1,68 @@
 emailIdp:
-  - finishRegistration:
+  - isEmailRegistered:
   - login:
   - startRegistration:
   - verifyRegistrationCode:
+  - finishRegistration:
   - startPasswordReset:
   - verifyPasswordResetCode:
   - finishPasswordReset:
 jwtRefresh:
   - refreshAccessToken:
-auth:
-  - login:
-  - startSignup:
-  - verifyCode:
-  - finishSignup:
-  - resendCode:
+activity:
+  - getLog:
+attachment:
+  - uploadFile:
+  - getUploadDescription:
+  - verifyUpload:
+  - listAttachments:
+  - deleteAttachment:
+board:
+  - getBoards:
+  - getBoardsByWorkspaceSlug:
+  - getBoard:
+  - getBoardBySlug:
+  - createBoard:
+  - createBoardByWorkspaceSlug:
+  - updateBoard:
+  - deleteBoard:
+card:
+  - getCards:
+  - getCardsByBoard:
+  - getCard:
+  - createCard:
+  - updateCard:
+  - moveCard:
+  - deleteCard:
+  - toggleComplete:
+cardList:
+  - getLists:
+  - createList:
+  - updateList:
+  - reorderLists:
+  - deleteList:
+  - archiveList:
+checklist:
+  - getChecklists:
+  - getItems:
+  - createChecklist:
+  - updateChecklist:
+  - deleteChecklist:
+  - addItem:
+  - updateItem:
+  - deleteItem:
+comment:
+  - getComments:
+  - createComment:
+  - deleteComment:
+label:
+  - getLabels:
+  - createLabel:
+  - updateLabel:
+  - deleteLabel:
+  - attachLabel:
+  - detachLabel:
+  - getCardLabels:
 workspace:
   - getWorkspaces:
   - getWorkspace:

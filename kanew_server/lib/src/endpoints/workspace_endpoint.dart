@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/permission_service.dart';
+import '../services/auth_helper.dart';
 import '../utils/slug_generator.dart';
 
 /// Endpoint for managing workspaces
@@ -11,9 +12,8 @@ class WorkspaceEndpoint extends Endpoint {
 
   /// Gets all workspaces for authenticated user
   Future<List<Workspace>> getWorkspaces(Session session) async {
-    final authenticated = await session.authenticated;
-    final userId = authenticated!.userIdentifier;
-    final numericUserId = _parseUserIdToInt(userId);
+    // Removed await as getAuthenticatedUserId is synchronous
+    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
     final members = await WorkspaceMember.db.find(
       session,
@@ -43,9 +43,7 @@ class WorkspaceEndpoint extends Endpoint {
     Session session,
     String slug,
   ) async {
-    final authenticated = await session.authenticated;
-    final userId = authenticated!.userIdentifier;
-    final numericUserId = _parseUserIdToInt(userId);
+    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
     final workspace = await Workspace.db.findFirstRow(
       session,
@@ -76,9 +74,7 @@ class WorkspaceEndpoint extends Endpoint {
     String title,
     String? slug,
   ) async {
-    final authenticated = await session.authenticated;
-    final userId = authenticated!.userIdentifier;
-    final numericUserId = _parseUserIdToInt(userId);
+    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
     String finalSlug;
     if (slug != null && slug.isNotEmpty) {
@@ -144,9 +140,7 @@ class WorkspaceEndpoint extends Endpoint {
     String title,
     String? slug,
   ) async {
-    final authenticated = await session.authenticated;
-    final userId = authenticated!.userIdentifier;
-    final numericUserId = _parseUserIdToInt(userId);
+    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
     final hasPermission = await PermissionService.hasPermission(
       session,
@@ -198,9 +192,7 @@ class WorkspaceEndpoint extends Endpoint {
 
   /// Soft deletes a workspace
   Future<void> deleteWorkspace(Session session, int workspaceId) async {
-    final authenticated = await session.authenticated;
-    final userId = authenticated!.userIdentifier;
-    final numericUserId = _parseUserIdToInt(userId);
+    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
     final workspace = await Workspace.db.findById(session, workspaceId);
 
@@ -222,18 +214,5 @@ class WorkspaceEndpoint extends Endpoint {
     session.log(
       '[WorkspaceEndpoint] Soft deleted workspace "${workspace.title}"',
     );
-  }
-
-  /// Parses a user ID string to an integer
-  /// The Serverpod auth system uses UUIDs internally, but we store numeric user IDs
-  int _parseUserIdToInt(String userId) {
-    // Try to parse as int directly first
-    final parsed = int.tryParse(userId);
-    if (parsed != null) {
-      return parsed;
-    }
-
-    // If it's a UUID, convert to a deterministic int hash
-    return userId.hashCode.abs();
   }
 }
