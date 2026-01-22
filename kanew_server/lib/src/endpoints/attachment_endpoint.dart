@@ -223,7 +223,11 @@ class AttachmentEndpoint extends Endpoint {
     await ActivityService.log(
       session,
       cardId: cardId,
+      actorId: numericUserId,
+      type: ActivityType.attachmentAdded,
       details: 'adicionou o anexo "$fileName"',
+    );
+
     return result;
   }
 
