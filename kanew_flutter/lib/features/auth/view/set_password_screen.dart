@@ -1,21 +1,22 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
-import 'package:provider/provider.dart';
-import 'package:zenrouter/zenrouter.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_theme.dart';
-import '../viewmodel/auth_viewmodel.dart';
+import '../../../core/di/injection.dart';
+import '../viewmodel/auth_controller.dart';
 
 /// Screen for setting name and password after email verification.
+///
+/// Completes the signup flow by setting user credentials.
+/// On success, navigates to home screen.
 class SetPasswordScreen extends StatefulWidget {
-  final Coordinator coordinator;
   final String email;
   final String registrationToken;
 
   const SetPasswordScreen({
     super.key,
-    required this.coordinator,
     required this.email,
     required this.registrationToken,
   });
@@ -38,22 +39,12 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     super.dispose();
   }
 
+  /// Validates password and completes signup.
   Future<void> _handleFinishSignup() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final name = _nameController.text.trim();
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
-
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, digite seu nome'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
 
     if (password.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -75,10 +66,9 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
       return;
     }
 
-    final viewModel = context.read<AuthViewModel>();
-    await viewModel.finishSignup(
+    final viewModel = getIt<AuthController>();
+    await viewModel.finishRegistration(
       registrationToken: widget.registrationToken,
-      name: name,
       password: password,
     );
 
@@ -87,16 +77,20 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     final state = viewModel.state;
 
     switch (state) {
-      case AuthRegistrationComplete():
+      case AuthAuthenticated():
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Conta criada com sucesso!'),
             backgroundColor: Colors.green,
           ),
         );
-        // Navigate to home, replacing the entire auth stack
-        widget.coordinator.replace(HomeRoute());
-        break;
+        developer.log(
+          'Signup completed, navigating to home',
+          name: 'set_password_screen',
+        );
+        if (mounted) {
+          context.go('/');
+        }
 
       case AuthError():
         ScaffoldMessenger.of(context).showSnackBar(
@@ -105,7 +99,12 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
             backgroundColor: Colors.red,
           ),
         );
-        break;
+        developer.log(
+          'Failed to complete signup',
+          name: 'set_password_screen',
+          level: 1000,
+          error: state.message,
+        );
 
       default:
         break;
@@ -120,7 +119,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.authGradient),
+        decoration: BoxDecoration(color: colorScheme.surface),
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -131,107 +130,96 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                   padding: const EdgeInsets.all(32),
                   child: Form(
                     key: _formKey,
-                    child: Consumer<AuthViewModel>(
-                      builder: (context, viewModel, _) => Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.person_add_rounded,
-                            size: 64,
-                            color: AppTheme.accentColor,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Finalize seu Cadastro',
-                            style: typography.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
+                    child: ListenableBuilder(
+                      listenable: getIt<AuthController>(),
+                      builder: (context, _) {
+                        final viewModel = getIt<AuthController>();
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.person_add_rounded,
+                              size: 64,
+                              color: colorScheme.primary,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Defina seu nome e senha',
-                            style: typography.bodySmall?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.6),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Finalize seu Cadastro',
+                              style: typography.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            widget.email,
-                            style: typography.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
+                            const SizedBox(height: 8),
+                            Text(
+                              'Defina sua senha',
+                              style: typography.bodySmall?.copyWith(
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 32),
+                            const SizedBox(height: 8),
+                            Text(
+                              widget.email,
+                              style: typography.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 32),
 
-                          // Name field
-                          FTextField(
-                            control: FTextFieldControl.managed(
-                              controller: _nameController,
+                            FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: _passwordController,
+                              ),
+                              label: const Text('Senha'),
+                              hint: 'Mínimo 8 caracteres',
+                              obscureText: true,
+                              enabled: !viewModel.isLoading,
                             ),
-                            label: const Text('Nome Completo'),
-                            hint: 'Digite seu nome',
-                            enabled: !viewModel.isLoading,
-                            keyboardType: TextInputType.name,
-                            textCapitalization: TextCapitalization.words,
-                          ),
-                          const SizedBox(height: 16),
+                            const SizedBox(height: 16),
 
-                          // Password field
-                          FTextField(
-                            control: FTextFieldControl.managed(
-                              controller: _passwordController,
+                            FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: _confirmPasswordController,
+                              ),
+                              label: const Text('Confirmar Senha'),
+                              hint: 'Digite a senha novamente',
+                              obscureText: true,
+                              enabled: !viewModel.isLoading,
                             ),
-                            label: const Text('Senha'),
-                            hint: 'Mínimo 8 caracteres',
-                            obscureText: true,
-                            enabled: !viewModel.isLoading,
-                          ),
-                          const SizedBox(height: 16),
+                            const SizedBox(height: 24),
 
-                          // Confirm password field
-                          FTextField(
-                            control: FTextFieldControl.managed(
-                              controller: _confirmPasswordController,
+                            SizedBox(
+                              width: double.infinity,
+                              child: FButton(
+                                onPress: viewModel.isLoading
+                                    ? null
+                                    : _handleFinishSignup,
+                                child: viewModel.isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text('Criar Conta'),
+                              ),
                             ),
-                            label: const Text('Confirmar Senha'),
-                            hint: 'Digite a senha novamente',
-                            obscureText: true,
-                            enabled: !viewModel.isLoading,
-                          ),
-                          const SizedBox(height: 24),
+                            const SizedBox(height: 16),
 
-                          // Finish signup button
-                          SizedBox(
-                            width: double.infinity,
-                            child: FButton(
-                              onPress: viewModel.isLoading
-                                  ? null
-                                  : _handleFinishSignup,
-                              child: viewModel.isLoading
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text('Criar Conta'),
+                            FButton(
+                              style: FButtonStyle.ghost(),
+                              onPress: () => context.pop(),
+                              child: const Text('Voltar'),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Back button
-                          FButton(
-                            style: FButtonStyle.ghost(),
-                            onPress: () => widget.coordinator.pop(),
-                            child: const Text('Voltar'),
-                          ),
-                        ],
-                      ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),

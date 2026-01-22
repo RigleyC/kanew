@@ -1,36 +1,27 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
-import 'package:provider/provider.dart';
-import 'package:zenrouter/zenrouter.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_theme.dart';
-import '../viewmodel/auth_viewmodel.dart';
+import '../../../core/di/injection.dart';
+import '../viewmodel/auth_controller.dart';
 
+/// Screen for user authentication.
+///
+/// Provides login form with email and password fields.
+/// Handles login state changes and navigates accordingly.
 class LoginScreen extends StatefulWidget {
-  final Coordinator coordinator;
-  final String? email;
-
-  const LoginScreen({
-    super.key,
-    required this.coordinator,
-    this.email,
-  });
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  late final TextEditingController _emailController;
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
-  @override
-  void initState() {
-    super.initState();
-    _emailController = TextEditingController(text: widget.email);
-  }
 
   @override
   void dispose() {
@@ -39,61 +30,57 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  /// Handles login form submission.
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
     final email = _emailController.text.trim();
     final password = _passwordController.text;
-    final viewModel = context.read<AuthViewModel>();
+    final viewModel = getIt<AuthController>();
 
     await viewModel.login(email: email, password: password);
 
     if (!mounted) return;
 
-    // Handle state changes
     final state = viewModel.state;
 
     switch (state) {
-      case AuthLoginSuccess():
-        // Wait for session to be registered securely
-        int retries = 0;
-        while (!await AuthService.isAuthenticated() && retries < 5) {
-          await Future.delayed(const Duration(milliseconds: 100));
-          retries++;
+      case AuthAuthenticated():
+        developer.log(
+          'Login successful, navigating to home',
+          name: 'login_screen',
+        );
+        if (mounted) {
+          context.go('/');
         }
 
-        if (await AuthService.isAuthenticated()) {
-          widget.coordinator.replace(HomeRoute());
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Falha ao registrar sessão. Tente novamente.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        break;
-
-      case AuthAccountNotFound():
-        // Show message and offer to sign up
+      case AuthAccountNotFoundError():
+        developer.log(
+          'Account not found: $email',
+          name: 'login_screen',
+        );
         _showAccountNotFoundDialog(email);
-        break;
 
-      case AuthEmailNotVerified():
-        // Navigate to verification screen
+      case AuthEmailNotVerifiedError():
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Email não verificado. Código enviado!'),
             backgroundColor: Colors.orange,
           ),
         );
-        widget.coordinator.push(
-          VerificationRoute(
-            email: email,
-            accountRequestId: state.accountRequestId ?? '',
-          ),
+        developer.log(
+          'Email not verified, navigating to verification',
+          name: 'login_screen',
         );
-        break;
+        if (mounted && state.accountRequestId != null) {
+          context.go(
+            '/auth/verification',
+            extra: {
+              'email': email,
+              'accountRequestId': state.accountRequestId.toString(),
+            },
+          );
+        }
 
       case AuthError():
         ScaffoldMessenger.of(context).showSnackBar(
@@ -102,13 +89,19 @@ class _LoginScreenState extends State<LoginScreen> {
             backgroundColor: Colors.red,
           ),
         );
-        break;
+        developer.log(
+          'Login failed',
+          name: 'login_screen',
+          level: 1000,
+          error: state.message,
+        );
 
       default:
         break;
     }
   }
 
+  /// Shows dialog for account not found.
   void _showAccountNotFoundDialog(String email) {
     showDialog(
       context: context,
@@ -126,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              widget.coordinator.push(SignupRoute());
+              context.go('/auth/signup');
             },
             child: const Text('Criar conta'),
           ),
@@ -137,9 +130,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.authGradient),
+        decoration: BoxDecoration(color: colorScheme.surface),
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -150,104 +145,96 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.all(32),
                   child: Form(
                     key: _formKey,
-                    child: Consumer<AuthViewModel>(
-                      builder: (context, viewModel, _) => Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Logo
-                          Icon(
-                            Icons.dashboard_rounded,
-                            size: 64,
-                            color: AppTheme.accentColor,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Kanew',
-                            style: context.theme.typography.xl2.copyWith(
-                              fontWeight: FontWeight.bold,
+                    child: ListenableBuilder(
+                      listenable: getIt<AuthController>(),
+                      builder: (context, _) {
+                        final viewModel = getIt<AuthController>();
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.dashboard_rounded,
+                              size: 64,
+                              color: colorScheme.primary,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Bem-vindo de volta!',
-                            style: context.theme.typography.sm.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withOpacity(0.5),
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-
-                          // Email field
-                          FTextField(
-                            control: FTextFieldControl.managed(
-                              controller: _emailController,
-                            ),
-                            label: const Text('Email'),
-                            hint: 'Digite seu email',
-                            keyboardType: TextInputType.emailAddress,
-                            enabled: !viewModel.isLoading,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Password field
-                          FTextField(
-                            control: FTextFieldControl.managed(
-                              controller: _passwordController,
-                            ),
-                            label: const Text('Senha'),
-                            hint: 'Digite sua senha',
-                            obscureText: true,
-                            enabled: !viewModel.isLoading,
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Login button
-                          SizedBox(
-                            width: double.infinity,
-                            child: FButton(
-                              onPress: viewModel.isLoading
-                                  ? null
-                                  : _handleLogin,
-                              child: viewModel.isLoading
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text('Entrar'),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Sign up link
-                          FButton(
-                            style: FButtonStyle.ghost(),
-                            onPress: () =>
-                                widget.coordinator.push(SignupRoute()),
-                            child: const Text('Criar uma conta'),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Forgot password link
-                          FButton(
-                            style: FButtonStyle.ghost(),
-                            onPress: () =>
-                                widget.coordinator.push(ForgotPasswordRoute()),
-                            child: Text(
-                              'Esqueceu a senha?',
-                              style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withOpacity(0.5),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Kanew',
+                              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Bem-vindo de volta!',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurface.withValues(alpha: 0.5),
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+
+                            FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: _emailController,
+                              ),
+                              label: const Text('Email'),
+                              hint: 'Digite seu email',
+                              keyboardType: TextInputType.emailAddress,
+                              enabled: !viewModel.isLoading,
+                            ),
+                            const SizedBox(height: 16),
+
+                            FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: _passwordController,
+                              ),
+                              label: const Text('Senha'),
+                              hint: 'Digite sua senha',
+                              obscureText: true,
+                              enabled: !viewModel.isLoading,
+                            ),
+                            const SizedBox(height: 24),
+
+                            SizedBox(
+                              width: double.infinity,
+                              child: FButton(
+                                onPress: viewModel.isLoading
+                                    ? null
+                                    : _handleLogin,
+                                child: viewModel.isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text('Entrar'),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            FButton(
+                              style: FButtonStyle.ghost(),
+                              onPress: () => context.go('/auth/signup'),
+                              child: const Text('Criar uma conta'),
+                            ),
+                            const SizedBox(height: 8),
+
+                            FButton(
+                              style: FButtonStyle.ghost(),
+                              onPress: () => context.go('/auth/forgot-password'),
+                              child: Text(
+                                'Esqueceu a senha?',
+                                style: TextStyle(
+                                  color: colorScheme.onSurface.withValues(alpha: 0.5),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),

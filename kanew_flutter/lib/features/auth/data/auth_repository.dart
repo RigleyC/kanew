@@ -1,83 +1,202 @@
 import 'package:kanew_client/kanew_client.dart';
+import 'package:serverpod_auth_core_flutter/serverpod_auth_core_flutter.dart';
 
-/// Repository interface for authentication operations.
-///
-/// This abstraction allows for easy testing and dependency injection.
+import '../domain/auth_exception.dart';
+
 abstract class AuthRepository {
-  /// Attempts to log in a user with email and password.
-  Future<AuthResult> login({
+  /// Attempts to log in with email and password.
+  ///
+  /// Returns [AuthSuccess] on successful authentication.
+  /// Throws [AuthInvalidCredentialsException] if credentials are wrong.
+  /// Throws [AuthNetworkException] on connection errors.
+  Future<AuthSuccess> login({
     required String email,
     required String password,
   });
 
-  /// Starts the signup process for a new user.
-  Future<AuthResult> startSignup({required String email});
+  /// Starts the registration process.
+  ///
+  /// Returns accountRequestId to use in [verifyRegistrationCode].
+  /// Throws [AuthAccountExistsException] if account already exists.
+  Future<UuidValue> startRegistration({required String email});
 
   /// Verifies the registration code.
-  Future<AuthResult> verifyCode({
-    required String accountRequestId,
+  ///
+  /// Returns registrationToken to use in [finishRegistration].
+  /// Throws [AuthCodeInvalidException] if code is wrong.
+  /// Throws [AuthCodeExpiredException] if code has expired.
+  Future<String> verifyRegistrationCode({
+    required UuidValue accountRequestId,
     required String code,
   });
 
-  /// Finishes the signup process, creating the user account.
-  Future<AuthResult> finishSignup({
+  /// Finishes registration and creates the user account.
+  ///
+  /// Returns [AuthSuccess] with session info.
+  Future<AuthSuccess> finishRegistration({
     required String registrationToken,
-    required String name,
     required String password,
   });
 
-  /// Resends the verification code for a pending registration.
-  Future<AuthResult> resendCode({required String email});
+  /// Starts password reset flow.
+  ///
+  /// Returns passwordResetRequestId to use in [verifyPasswordResetCode].
+  Future<UuidValue> startPasswordReset({required String email});
+
+  /// Verifies password reset code.
+  ///
+  /// Returns finishPasswordResetToken to use in [finishPasswordReset].
+  Future<String> verifyPasswordResetCode({
+    required UuidValue requestId,
+    required String code,
+  });
+
+  /// Finishes password reset with new password.
+  Future<void> finishPasswordReset({
+    required String token,
+    required String newPassword,
+  });
 }
 
-/// Implementation of [AuthRepository] using Serverpod client.
+/// Implementation of [AuthRepository] using Serverpod EmailIdp endpoints.
 class AuthRepositoryImpl implements AuthRepository {
   final Client _client;
 
   AuthRepositoryImpl({required Client client}) : _client = client;
 
   @override
-  Future<AuthResult> login({
+  Future<AuthSuccess> login({
     required String email,
     required String password,
   }) async {
-    return _client.auth.login(
-      email: email,
-      password: password,
-    );
+    try {
+      return await _client.emailIdp.login(
+        email: email.trim().toLowerCase(),
+        password: password,
+      );
+    } catch (e) {
+      final errorMsg = e.toString().toLowerCase();
+      if (errorMsg.contains('invalid') ||
+          errorMsg.contains('incorrect') ||
+          errorMsg.contains('wrong') ||
+          errorMsg.contains('password')) {
+        throw const AuthInvalidCredentialsException();
+      }
+      throw AuthNetworkException(e.toString());
+    }
   }
 
   @override
-  Future<AuthResult> startSignup({required String email}) async {
-    return _client.auth.startSignup(email: email);
+  Future<UuidValue> startRegistration({required String email}) async {
+    try {
+      final normalizedEmail = email.trim().toLowerCase();
+
+      final isRegistered = await _client.emailIdp.isEmailRegistered(
+        email: normalizedEmail,
+      );
+
+      if (isRegistered) {
+        throw const AuthAccountExistsException();
+      }
+
+      return await _client.emailIdp.startRegistration(
+        email: normalizedEmail,
+      );
+    } on AuthAccountExistsException {
+      rethrow;
+    } catch (e) {
+      final errorMsg = e.toString().toLowerCase();
+      if (errorMsg.contains('exists') ||
+          errorMsg.contains('already') ||
+          errorMsg.contains('registered')) {
+        throw const AuthAccountExistsException();
+      }
+      throw AuthNetworkException(e.toString());
+    }
   }
 
   @override
-  Future<AuthResult> verifyCode({
-    required String accountRequestId,
+  Future<String> verifyRegistrationCode({
+    required UuidValue accountRequestId,
     required String code,
   }) async {
-    return _client.auth.verifyCode(
-      accountRequestId: accountRequestId,
-      code: code,
-    );
+    try {
+      return await _client.emailIdp.verifyRegistrationCode(
+        accountRequestId: accountRequestId,
+        verificationCode: code.trim(),
+      );
+    } catch (e) {
+      final errorMsg = e.toString().toLowerCase();
+      if (errorMsg.contains('expired')) {
+        throw const AuthCodeExpiredException();
+      }
+      if (errorMsg.contains('invalid') || errorMsg.contains('code')) {
+        throw const AuthCodeInvalidException();
+      }
+      throw AuthNetworkException(e.toString());
+    }
   }
 
   @override
-  Future<AuthResult> finishSignup({
+  Future<AuthSuccess> finishRegistration({
     required String registrationToken,
-    required String name,
     required String password,
   }) async {
-    return _client.auth.finishSignup(
-      registrationToken: registrationToken,
-      name: name,
-      password: password,
-    );
+    try {
+      return await _client.emailIdp.finishRegistration(
+        registrationToken: registrationToken,
+        password: password,
+      );
+    } catch (e) {
+      throw AuthNetworkException(e.toString());
+    }
   }
 
   @override
-  Future<AuthResult> resendCode({required String email}) async {
-    return _client.auth.resendCode(email: email);
+  Future<UuidValue> startPasswordReset({required String email}) async {
+    try {
+      return await _client.emailIdp.startPasswordReset(
+        email: email.trim().toLowerCase(),
+      );
+    } catch (e) {
+      throw AuthNetworkException(e.toString());
+    }
+  }
+
+  @override
+  Future<String> verifyPasswordResetCode({
+    required UuidValue requestId,
+    required String code,
+  }) async {
+    try {
+      return await _client.emailIdp.verifyPasswordResetCode(
+        passwordResetRequestId: requestId,
+        verificationCode: code.trim(),
+      );
+    } catch (e) {
+      final errorMsg = e.toString().toLowerCase();
+      if (errorMsg.contains('expired')) {
+        throw const AuthCodeExpiredException();
+      }
+      if (errorMsg.contains('invalid') || errorMsg.contains('code')) {
+        throw const AuthCodeInvalidException();
+      }
+      throw AuthNetworkException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> finishPasswordReset({
+    required String token,
+    required String newPassword,
+  }) async {
+    try {
+      await _client.emailIdp.finishPasswordReset(
+        finishPasswordResetToken: token,
+        newPassword: newPassword,
+      );
+    } catch (e) {
+      throw AuthNetworkException(e.toString());
+    }
   }
 }

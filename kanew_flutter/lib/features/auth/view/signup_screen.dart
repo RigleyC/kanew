@@ -1,17 +1,18 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
-import 'package:kanew_client/kanew_client.dart';
-import 'package:provider/provider.dart';
-import 'package:zenrouter/zenrouter.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_theme.dart';
-import '../viewmodel/auth_viewmodel.dart';
+import '../../../core/di/injection.dart';
+import '../viewmodel/auth_controller.dart';
 
+/// Screen for starting the signup process.
+///
+/// Collects user's email and initiates verification.
+/// On success, navigates to verification screen.
 class SignupScreen extends StatefulWidget {
-  final Coordinator coordinator;
-
-  const SignupScreen({super.key, required this.coordinator});
+  const SignupScreen({super.key});
 
   @override
   State<SignupScreen> createState() => _SignupScreenState();
@@ -27,6 +28,7 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
+  /// Starts the signup process.
   Future<void> _handleStartRegistration() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -41,15 +43,15 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    final viewModel = context.read<AuthViewModel>();
-    await viewModel.startSignup(email: email);
+    final viewModel = getIt<AuthController>();
+    await viewModel.startRegistration(email: email);
 
     if (!mounted) return;
 
     final state = viewModel.state;
 
     switch (state) {
-      case AuthVerificationCodeSent():
+      case AuthNeedsVerification():
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -59,90 +61,58 @@ class _SignupScreenState extends State<SignupScreen> {
             duration: Duration(seconds: 4),
           ),
         );
-        widget.coordinator.push(
-          VerificationRoute(
-            email: email,
-            accountRequestId: state.accountRequestId,
-          ),
+        developer.log(
+          'Verification code sent - email: $email, requestId: ${state.accountRequestId}',
+          name: 'signup_screen',
         );
-        break;
+        if (mounted) {
+          context.go(
+            '/auth/verification',
+            extra: {
+              'email': email,
+              'accountRequestId': state.accountRequestId.toString(),
+            },
+          );
+        }
 
-      case AuthEmailNotVerified():
+      case AuthAccountExistsError():
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Conta pendente. Código reenviado!'),
+          SnackBar(
+            content: Text(state.message),
             backgroundColor: Colors.orange,
           ),
         );
-        widget.coordinator.push(
-          VerificationRoute(
-            email: email,
-            accountRequestId: state.accountRequestId ?? '',
-          ),
+        developer.log(
+          'Account already exists',
+          name: 'signup_screen',
         );
-        break;
 
       case AuthError():
-        if (state.status == AuthStatus.accountAlreadyExists) {
-          _showAccountExistsDialog();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        break;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.message),
+            backgroundColor: Colors.red,
+          ),
+        );
+        developer.log(
+          'Signup failed',
+          name: 'signup_screen',
+          level: 1000,
+          error: state.message,
+        );
 
       default:
         break;
     }
   }
 
-  void _showAccountExistsDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Conta já existe'),
-        content: Text(
-          'O email "${_emailController.text.trim()}" já está cadastrado. '
-          'Deseja fazer login ou verificar o cadastro pendente?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              widget.coordinator.replace(
-                LoginRoute(email: _emailController.text.trim()),
-              );
-            },
-            child: const Text('Fazer login'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // Try to resend code to see if it's a pending account
-              context.read<AuthViewModel>().resendCode(
-                email: _emailController.text.trim(),
-              );
-            },
-            child: const Text('Verificar cadastro'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.authGradient),
+        decoration: BoxDecoration(color: colorScheme.surface),
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -153,101 +123,93 @@ class _SignupScreenState extends State<SignupScreen> {
                   padding: const EdgeInsets.all(32),
                   child: Form(
                     key: _formKey,
-                    child: Consumer<AuthViewModel>(
-                      builder: (context, viewModel, _) => Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Logo
-                          Icon(
-                            Icons.dashboard_rounded,
-                            size: 64,
-                            color: AppTheme.accentColor,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Kanew',
-                            style: context.theme.typography.xl2.copyWith(
-                              fontWeight: FontWeight.bold,
+                    child: ListenableBuilder(
+                      listenable: getIt<AuthController>(),
+                      builder: (context, _) {
+                        final viewModel = getIt<AuthController>();
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.dashboard_rounded,
+                              size: 64,
+                              color: colorScheme.primary,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Crie sua conta',
-                            style: context.theme.typography.sm.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withOpacity(0.5),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Kanew',
+                              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
-                          ),
-                          const SizedBox(height: 32),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Crie sua conta',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurface.withValues(alpha: 0.5),
+                                  ),
+                            ),
+                            const SizedBox(height: 32),
 
-                          // Email field
-                          FTextField(
-                            label: const Text('Email'),
-                            control: FTextFieldControl.managed(
-                              controller: _emailController,
+                            FTextField(
+                              label: const Text('Email'),
+                              control: FTextFieldControl.managed(
+                                controller: _emailController,
+                              ),
+                              keyboardType: TextInputType.emailAddress,
+                              autocorrect: false,
+                              hint: 'Digite seu email',
+                              enabled: !viewModel.isLoading,
                             ),
-                            keyboardType: TextInputType.emailAddress,
-                            autocorrect: false,
-                            hint: 'Digite seu email',
-                            enabled: !viewModel.isLoading,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Você definirá sua senha após verificar o email',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface.withOpacity(0.5),
-                                ),
-                          ),
-                          const SizedBox(height: 24),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Você definirá sua senha após verificar o email',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurface.withValues(alpha: 0.5),
+                                  ),
+                            ),
+                            const SizedBox(height: 24),
 
-                          // Continue button
-                          SizedBox(
-                            width: double.infinity,
-                            child: FButton(
-                              style: FButtonStyle.primary(),
-                              onPress: viewModel.isLoading
-                                  ? null
-                                  : _handleStartRegistration,
-                              child: viewModel.isLoading
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
+                            SizedBox(
+                              width: double.infinity,
+                              child: FButton(
+                                style: FButtonStyle.primary(),
+                                onPress: viewModel.isLoading
+                                    ? null
+                                    : _handleStartRegistration,
+                                child: viewModel.isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text('Continuar'),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Já tem uma conta?',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onSurface.withValues(alpha: 0.7),
                                       ),
-                                    )
-                                  : const Text('Continuar'),
+                                ),
+                                FButton(
+                                  style: FButtonStyle.ghost(),
+                                  onPress: () => context.pop(),
+                                  child: const Text('Entrar'),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Login link
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Já tem uma conta?',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withOpacity(0.7),
-                                    ),
-                              ),
-                              FButton(
-                                style: FButtonStyle.ghost(),
-                                onPress: () => widget.coordinator.pop(),
-                                child: const Text('Entrar'),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
