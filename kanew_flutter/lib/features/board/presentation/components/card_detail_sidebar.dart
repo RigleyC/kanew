@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart' hide Card;
-import 'package:forui/forui.dart';
 import 'package:kanew_client/kanew_client.dart';
-import '../../../../core/constants/label_colors.dart';
+import '../../../../core/widgets/add_button.dart';
 import '../../../../core/widgets/calendar/calendar.dart';
-import '../components/label_picker.dart';
+import '../../../../core/widgets/searchable_list_content.dart';
+import 'label_chip.dart';
+import 'label_picker.dart';
+import 'sidebar_popover.dart';
+import 'sidebar_section.dart';
 
-class CardDetailSidebar extends StatefulWidget {
+class CardDetailSidebar extends StatelessWidget {
   final Card card;
   final String listName;
-  final List<CardList> boardLists; 
+  final List<CardList> boardLists;
   final List<LabelDef> labels;
   final List<LabelDef> boardLabels;
   final VoidCallback onAddChecklist;
   final Function(DateTime) onDueDateChanged;
   final Function(int) onToggleLabel;
   final Function(String, String) onCreateLabel;
-  final Function(int) onListChanged; 
+  final Function(int) onListChanged;
 
   const CardDetailSidebar({
     super.key,
@@ -31,291 +34,154 @@ class CardDetailSidebar extends StatefulWidget {
     required this.onListChanged,
   });
 
-  @override
-  State<CardDetailSidebar> createState() => _CardDetailSidebarState();
-}
-
-class _CardDetailSidebarState extends State<CardDetailSidebar>
-    with SingleTickerProviderStateMixin {
-  late final FPopoverController _calendarController;
-
-  @override
-  void initState() {
-    super.initState();
-    _calendarController = FPopoverController(vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _calendarController.dispose();
-    super.dispose();
-  }
-
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 
+  CardList get _currentList => boardLists.firstWhere(
+        (l) => l.id == card.listId,
+        orElse: () => boardLists.first,
+      );
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
+      spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // List Dropdown
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Lista',
-              style: TextStyle(
-                fontSize: 12,
-                color: colorScheme.onSurfaceVariant,
-              ),
+        // Lista
+        SidebarSection(
+          title: 'Lista',
+          trailing: SidebarPopover(
+            anchor: Icon(
+              Icons.keyboard_arrow_down,
+              size: 16,
+              color: colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(height: 4),
-            MenuAnchor(
-              builder: (context, controller, child) {
-                return InkWell(
-                  onTap: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(4),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            widget.listName,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: colorScheme.onSurface,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.keyboard_arrow_down,
-                          size: 16,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-              menuChildren: widget.boardLists.map((list) {
-                final isSelected = list.id == widget.card.listId;
-                return MenuItemButton(
-                  onPressed: () => widget.onListChanged(list.id!),
-                  leadingIcon: isSelected
-                      ? Icon(Icons.check, size: 16, color: colorScheme.primary)
-                      : const SizedBox(width: 16),
-                  child: Text(
-                    list.title,
-                    style: TextStyle(
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                );
-              }).toList(),
+            contentBuilder: (close) => SearchableListContent<CardList>(
+              items: boardLists,
+              selectedItems: [_currentList],
+              labelBuilder: (l) => l.title,
+              onSelect: (l) => onListChanged(l.id!),
+              onClose: close,
+              closeOnSelect: true,
+              isEqual: (a, b) => a.id == b.id,
+              searchHint: 'Buscar lista...',
             ),
-          ],
-        ),
-        const SizedBox(height: 20),
-
-        // Labels
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Etiquetas',
-              style: TextStyle(
-                fontSize: 12,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: [
-                ...widget.labels.map(
-                  (label) => Chip(
-                    label: Text(
-                      label.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    backgroundColor: LabelColors.parseHex(label.colorHex),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    side: BorderSide.none,
-                  ),
-                ),
-                MenuAnchor(
-                  alignmentOffset: const Offset(-280, 0),
-                  builder: (context, controller, child) {
-                    return InkWell(
-                      onTap: () {
-                        if (controller.isOpen) {
-                          controller.close();
-                        } else {
-                          controller.open();
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(4),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Icon(Icons.add, size: 16),
-                      ),
-                    );
-                  },
-                  menuChildren: [
-                    LabelPicker(
-                      boardLabels: widget.boardLabels,
-                      selectedLabels: widget.labels,
-                      onToggleLabel: (id) {
-                        widget.onToggleLabel(id);
-                      },
-                      onCreateLabel: widget.onCreateLabel,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-
-        // Checklists
-        _SidebarItem(
-          label: 'Checklist',
-          action: '+ Adicionar checklist',
-          onTap: widget.onAddChecklist,
-        ),
-        const SizedBox(height: 20),
-
-        // Members (stub)
-        _SidebarItem(
-          label: 'Membros',
-          action: '+ Adicionar membro',
-          onTap: () {
-            // TODO: Implement members
-          },
-        ),
-        const SizedBox(height: 20),
-
-        // Due date
-        FPopover(
-          control: FPopoverControl.managed(controller: _calendarController),
-          child: _SidebarItem(
-            label: 'Data de\nvencimento',
-            value: widget.card.dueDate != null
-                ? _formatDate(widget.card.dueDate!)
-                : null,
-            action: widget.card.dueDate == null
-                ? '+ Definir data de vencimento'
-                : null,
-            onTap: _calendarController.toggle,
-            valueOnTap: _calendarController.toggle,
           ),
-          popoverBuilder: (context, _) => KanewCalendar(
-            initialDate: widget.card.dueDate ?? DateTime.now(),
-            firstDate: DateTime.now().subtract(const Duration(days: 365)),
-            lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-            onDateSelected: (date) {
-              widget.onDueDateChanged(date);
-              _calendarController.hide();
+          child: Text(
+            _currentList.title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: colorScheme.onSurface,
+            ),
+          ),
+        ),
+
+        // Etiquetas
+        SidebarSection(
+          title: 'Etiquetas',
+          trailing: SidebarPopover(
+            anchor: const AddButton(),
+            contentBuilder: (_) => LabelPicker(
+              boardLabels: boardLabels,
+              selectedLabels: labels,
+              onToggleLabel: onToggleLabel,
+              onCreateLabel: onCreateLabel,
+            ),
+          ),
+          placeholder: Text(
+            'Nenhuma etiqueta',
+            style: TextStyle(
+              fontSize: 14,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          child: labels.isNotEmpty
+              ? Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: labels
+                      .map((l) => LabelChip(name: l.name, colorHex: l.colorHex))
+                      .toList(),
+                )
+              : null,
+        ),
+
+        // Checklist
+        SidebarSection(
+          title: 'Checklist',
+          trailing: GestureDetector(
+            onTap: onAddChecklist,
+            child: const AddButton(),
+          ),
+          placeholder: Text(
+            'Nenhum checklist',
+            style: TextStyle(
+              fontSize: 14,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+
+        // Membros
+        SidebarSection(
+          title: 'Membros',
+          trailing: GestureDetector(
+            onTap: () {
+              // TODO: Implement members
             },
+            child: const AddButton(),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SidebarItem extends StatelessWidget {
-  final String label;
-  final String? value;
-  final String? action;
-  final VoidCallback? onTap;
-  final VoidCallback? valueOnTap;
-
-  const _SidebarItem({
-    required this.label,
-    this.value,
-    this.action,
-    this.onTap,
-    this.valueOnTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 4),
-        if (value != null)
-          InkWell(
-            onTap: valueOnTap,
-            borderRadius: BorderRadius.circular(4),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                value!,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-            ),
-          )
-        else if (action != null)
-          InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(4),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                action!,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: colorScheme.primary,
-                ),
-              ),
+          placeholder: Text(
+            'Nenhum membro',
+            style: TextStyle(
+              fontSize: 14,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
+        ),
+
+        // Data de vencimento
+        SidebarSection(
+          title: 'Data de vencimento',
+          trailing: SidebarPopover(
+            anchor: Icon(
+              Icons.edit_calendar_outlined,
+              size: 16,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            contentBuilder: (close) => KanewCalendar(
+              initialDate: card.dueDate ?? DateTime.now(),
+              firstDate: DateTime.now().subtract(const Duration(days: 365)),
+              lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+              onDateSelected: (date) {
+                onDueDateChanged(date);
+                close();
+              },
+            ),
+          ),
+          placeholder: Text(
+            'Sem data definida',
+            style: TextStyle(
+              fontSize: 14,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          child: card.dueDate != null
+              ? Text(
+                  _formatDate(card.dueDate!),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: colorScheme.onSurface,
+                  ),
+                )
+              : null,
+        ),
       ],
     );
   }
