@@ -53,7 +53,7 @@ class _CardCommentInputState extends State<CardCommentInput> {
                   color: colorScheme.primary.withValues(alpha: 0.1),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
-                )
+                ),
               ]
             : [],
       ),

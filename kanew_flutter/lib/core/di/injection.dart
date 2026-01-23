@@ -4,7 +4,6 @@ import 'package:kanew_client/kanew_client.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
 
-
 import '../../config/app_config.dart';
 import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/viewmodel/auth_controller.dart';
@@ -30,7 +29,6 @@ final GetIt getIt = GetIt.instance;
 
 /// Initializes all dependencies
 Future<void> setupDependencies() async {
-
   // App configuration
   final config = await AppConfig.loadConfig();
   getIt.registerSingleton<AppConfig>(config);
@@ -164,7 +162,6 @@ Future<void> setupDependencies() async {
     ),
   );
 }
-
 
 /// Gets the Serverpod client
 Client get client => getIt<Client>();

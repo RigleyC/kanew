@@ -138,15 +138,19 @@ class _SignupScreenState extends State<SignupScreen> {
                             const SizedBox(height: 16),
                             Text(
                               'Kanew',
-                              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                              style: Theme.of(context).textTheme.displaySmall
+                                  ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Crie sua conta',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurface.withValues(alpha: 0.5),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: colorScheme.onSurface.withValues(
+                                      alpha: 0.5,
+                                    ),
                                   ),
                             ),
                             const SizedBox(height: 32),
@@ -164,8 +168,11 @@ class _SignupScreenState extends State<SignupScreen> {
                             const SizedBox(height: 8),
                             Text(
                               'Você definirá sua senha após verificar o email',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurface.withValues(alpha: 0.5),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurface.withValues(
+                                      alpha: 0.5,
+                                    ),
                                   ),
                             ),
                             const SizedBox(height: 24),
@@ -196,8 +203,11 @@ class _SignupScreenState extends State<SignupScreen> {
                               children: [
                                 Text(
                                   'Já tem uma conta?',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: colorScheme.onSurface.withValues(
+                                          alpha: 0.7,
+                                        ),
                                       ),
                                 ),
                                 FButton(

@@ -85,12 +85,14 @@ class _KanbanBoardState extends State<KanbanBoard> {
     try {
       _adapter.sync(widget.controller.lists, widget.controller.allCards);
     } catch (e, s) {
-      developer.log('Error syncing board data',
-          error: e, stackTrace: s, name: 'kanban_board');
+      developer.log(
+        'Error syncing board data',
+        error: e,
+        stackTrace: s,
+        name: 'kanban_board',
+      );
     }
   }
-
-  
 
   // ============================================================
   // DRAG & DROP CALLBACKS
@@ -156,8 +158,8 @@ class _KanbanBoardState extends State<KanbanBoard> {
               boardScrollController: _scrollController,
               groupConstraints: const BoxConstraints.tightFor(width: 280),
               config: AppFlowyBoardConfig(
-                groupBackgroundColor:
-                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                groupBackgroundColor: colorScheme.surfaceContainerHighest
+                    .withValues(alpha: 0.5),
                 stretchGroupHeight: false,
                 groupCornerRadius: 12,
                 groupBodyPadding: const EdgeInsets.all(8),

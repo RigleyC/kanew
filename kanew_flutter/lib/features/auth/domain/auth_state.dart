@@ -99,14 +99,14 @@ sealed class AuthError extends AuthState {
 class AuthAccountNotFoundError extends AuthError {
   final String email;
   const AuthAccountNotFoundError(this.email)
-      : super('Conta não encontrada para este email');
+    : super('Conta não encontrada para este email');
 }
 
 /// Account already exists during signup.
 class AuthAccountExistsError extends AuthError {
   final String email;
   const AuthAccountExistsError(this.email)
-      : super('Este email já está cadastrado');
+    : super('Este email já está cadastrado');
 }
 
 /// Invalid credentials during login.
@@ -138,13 +138,13 @@ class AuthCodeExpiredError extends AuthError {
 /// Session registration failed.
 class AuthSessionError extends AuthError {
   const AuthSessionError()
-      : super('Falha ao registrar sessão. Tente novamente.');
+    : super('Falha ao registrar sessão. Tente novamente.');
 }
 
 /// Network/connection error.
 class AuthNetworkError extends AuthError {
   const AuthNetworkError([String? details])
-      : super(details ?? 'Erro de conexão');
+    : super(details ?? 'Erro de conexão');
 }
 
 /// Generic/unknown error.

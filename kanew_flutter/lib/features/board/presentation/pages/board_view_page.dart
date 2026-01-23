@@ -63,7 +63,10 @@ class _BoardViewPageState extends State<BoardViewPage> {
                 children: [
                   Icon(Icons.error_outline, size: 48, color: colorScheme.error),
                   const SizedBox(height: 16),
-                  Text(_localError!, style: TextStyle(color: colorScheme.error)),
+                  Text(
+                    _localError!,
+                    style: TextStyle(color: colorScheme.error),
+                  ),
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: context.pop,
@@ -77,22 +80,22 @@ class _BoardViewPageState extends State<BoardViewPage> {
 
         final board = _controller.board;
         if (board == null && !_controller.isLoading) {
-           // Only show not found if done loading
-           if (_controller.error != null) {
-              return _buildNotFoundPage(context, colorScheme);
-           }
-           // Initial loading state
-           return Scaffold(
-             backgroundColor: colorScheme.surface,
-             body: const Center(child: CircularProgressIndicator()),
-           );
+          // Only show not found if done loading
+          if (_controller.error != null) {
+            return _buildNotFoundPage(context, colorScheme);
+          }
+          // Initial loading state
+          return Scaffold(
+            backgroundColor: colorScheme.surface,
+            body: const Center(child: CircularProgressIndicator()),
+          );
         }
-        
+
         if (board == null) {
-           return Scaffold(
-             backgroundColor: colorScheme.surface,
-             body: const Center(child: CircularProgressIndicator()),
-           );
+          return Scaffold(
+            backgroundColor: colorScheme.surface,
+            body: const Center(child: CircularProgressIndicator()),
+          );
         }
 
         return Scaffold(

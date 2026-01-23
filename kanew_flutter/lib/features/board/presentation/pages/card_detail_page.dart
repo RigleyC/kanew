@@ -65,12 +65,12 @@ class _CardDetailPageState extends State<CardDetailPage> {
   }
 
   String _getListName(int listId) {
-    return _controller.list?.title ?? 'Lista'; 
+    return _controller.list?.title ?? 'Lista';
   }
 
   void _showAddChecklistDialog(BuildContext context) {
     final titleController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -114,7 +114,6 @@ class _CardDetailPageState extends State<CardDetailPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final provider = SidebarProvider.maybeOf(context);
     final isMobile = provider?.isMobile ?? false;
-    
 
     return ListenableBuilder(
       listenable: _controller,
@@ -129,14 +128,14 @@ class _CardDetailPageState extends State<CardDetailPage> {
         }
 
         if (card == null) {
-           // Only show not found if not loading
-           if (_controller.isLoading) {
-             return Scaffold(
+          // Only show not found if not loading
+          if (_controller.isLoading) {
+            return Scaffold(
               backgroundColor: colorScheme.surface,
               body: const Center(child: CircularProgressIndicator()),
             );
-           }
-           return _buildNotFoundPage(context, colorScheme);
+          }
+          return _buildNotFoundPage(context, colorScheme);
         }
 
         return Scaffold(
@@ -182,30 +181,30 @@ class _CardDetailPageState extends State<CardDetailPage> {
           width: 280,
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-              child: CardDetailSidebar(
-                card: card,
-                listName: _getListName(card.listId),
-                boardLists: _controller.boardLists,
-                labels: _controller.labels,
-                boardLabels: _controller.boardLabels,
-                onAddChecklist: () => _showAddChecklistDialog(context),
-                onDueDateChanged: (date) {
-                  _controller.updateCard(dueDate: date);
-                },
-                onToggleLabel: (labelId) {
-                  if (_controller.labels.any((l) => l.id == labelId)) {
-                    _controller.detachLabel(labelId);
-                  } else {
-                    _controller.attachLabel(labelId);
-                  }
-                },
-                onCreateLabel: (name, color) {
-                  _controller.createLabel(name, color);
-                },
-                onListChanged: (newListId) {
-                  _controller.moveCardToList(newListId);
-                },
-              ),
+            child: CardDetailSidebar(
+              card: card,
+              listName: _getListName(card.listId),
+              boardLists: _controller.boardLists,
+              labels: _controller.labels,
+              boardLabels: _controller.boardLabels,
+              onAddChecklist: () => _showAddChecklistDialog(context),
+              onDueDateChanged: (date) {
+                _controller.updateCard(dueDate: date);
+              },
+              onToggleLabel: (labelId) {
+                if (_controller.labels.any((l) => l.id == labelId)) {
+                  _controller.detachLabel(labelId);
+                } else {
+                  _controller.attachLabel(labelId);
+                }
+              },
+              onCreateLabel: (name, color) {
+                _controller.createLabel(name, color);
+              },
+              onListChanged: (newListId) {
+                _controller.moveCardToList(newListId);
+              },
+            ),
           ),
         ),
       ],
@@ -271,11 +270,13 @@ class _CardDetailPageState extends State<CardDetailPage> {
 
         // Checklists
         if (_controller.checklists.isNotEmpty) ...[
-          ..._controller.checklists.map((checklist) => ChecklistWidget(
-            checklist: checklist,
-            items: _controller.getItemsForChecklist(checklist.id!),
-            controller: _controller,
-          )),
+          ..._controller.checklists.map(
+            (checklist) => ChecklistWidget(
+              checklist: checklist,
+              items: _controller.getItemsForChecklist(checklist.id!),
+              controller: _controller,
+            ),
+          ),
           const SizedBox(height: 32),
         ],
 

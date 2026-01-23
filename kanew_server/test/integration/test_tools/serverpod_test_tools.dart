@@ -1376,6 +1376,37 @@ class _CardEndpoint {
       }
     });
   }
+
+  _i3.Future<_i11.CardDetail?> getCardDetailByUuid(
+    _i1.TestSessionBuilder sessionBuilder,
+    String uuid,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'card',
+            method: 'getCardDetailByUuid',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'card',
+          methodName: 'getCardDetailByUuid',
+          parameters: _i1.testObjectToJson({'uuid': uuid}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i11.CardDetail?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _CardListEndpoint {

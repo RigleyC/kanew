@@ -17,7 +17,9 @@ class ActivityRepository {
       return Right(logs);
     } catch (e, s) {
       developer.log('Error fetching activity log', error: e, stackTrace: s);
-      return Left(ServerFailure('Failed to fetch activity log', originalError: e));
+      return Left(
+        ServerFailure('Failed to fetch activity log', originalError: e),
+      );
     }
   }
 }

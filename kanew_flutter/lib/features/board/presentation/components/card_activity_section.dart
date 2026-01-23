@@ -21,12 +21,12 @@ class CardActivitySection extends StatelessWidget {
     // Actually, Trello mixes them. But for now let's show Comments then Activities, or mixed?
     // The controller fetches them separately.
     // Let's render a single list sorted by date.
-    
+
     final mixedList = [
       ...activities.map((a) => _TimelineItem(activity: a)),
       ...comments.map((c) => _TimelineItem(comment: c)),
     ];
-    
+
     mixedList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return Column(
@@ -73,9 +73,9 @@ class CardActivitySection extends StatelessWidget {
 class _TimelineItem {
   final CardActivity? activity;
   final Comment? comment;
-  
+
   _TimelineItem({this.activity, this.comment});
-  
+
   DateTime get createdAt => activity?.createdAt ?? comment!.createdAt;
 }
 
@@ -171,7 +171,11 @@ class _ActivityItem extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12, left: 4),
       child: Row(
         children: [
-          Icon(_getActivityIcon(activity.type), size: 18, color: colorScheme.onSurfaceVariant),
+          Icon(
+            _getActivityIcon(activity.type),
+            size: 18,
+            color: colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: RichText(
@@ -187,7 +191,8 @@ class _ActivityItem extends StatelessWidget {
                   ),
                   TextSpan(text: details),
                   TextSpan(
-                    text: ' · ${timeago.format(activity.createdAt, locale: 'pt_BR')}',
+                    text:
+                        ' · ${timeago.format(activity.createdAt, locale: 'pt_BR')}',
                     style: TextStyle(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
@@ -201,29 +206,47 @@ class _ActivityItem extends StatelessWidget {
 
   IconData _getActivityIcon(ActivityType type) {
     switch (type) {
-      case ActivityType.create: return Icons.add_circle_outline;
-      case ActivityType.update: return Icons.edit_outlined;
-      case ActivityType.move: return Icons.arrow_forward;
-      case ActivityType.delete: return Icons.delete_outline;
-      case ActivityType.archive: return Icons.archive_outlined;
-      case ActivityType.restore: return Icons.restore;
-      case ActivityType.comment: return Icons.comment_outlined;
-      case ActivityType.attachmentAdded: return Icons.attach_file;
-      case ActivityType.attachmentDeleted: return Icons.delete_outline;
+      case ActivityType.create:
+        return Icons.add_circle_outline;
+      case ActivityType.update:
+        return Icons.edit_outlined;
+      case ActivityType.move:
+        return Icons.arrow_forward;
+      case ActivityType.delete:
+        return Icons.delete_outline;
+      case ActivityType.archive:
+        return Icons.archive_outlined;
+      case ActivityType.restore:
+        return Icons.restore;
+      case ActivityType.comment:
+        return Icons.comment_outlined;
+      case ActivityType.attachmentAdded:
+        return Icons.attach_file;
+      case ActivityType.attachmentDeleted:
+        return Icons.delete_outline;
     }
   }
 
   String _getActivityDetails(CardActivity activity) {
     switch (activity.type) {
-      case ActivityType.create: return 'criou este cartão';
-      case ActivityType.update: return activity.details ?? 'atualizou este cartão';
-      case ActivityType.move: return 'moveu este cartão';
-      case ActivityType.delete: return 'excluiu este cartão';
-      case ActivityType.archive: return 'arquivou este cartão';
-      case ActivityType.restore: return 'restaurou este cartão';
-      case ActivityType.comment: return 'comentou';
-      case ActivityType.attachmentAdded: return activity.details ?? 'adicionou um anexo';
-      case ActivityType.attachmentDeleted: return activity.details ?? 'removeu um anexo';
+      case ActivityType.create:
+        return 'criou este cartão';
+      case ActivityType.update:
+        return activity.details ?? 'atualizou este cartão';
+      case ActivityType.move:
+        return 'moveu este cartão';
+      case ActivityType.delete:
+        return 'excluiu este cartão';
+      case ActivityType.archive:
+        return 'arquivou este cartão';
+      case ActivityType.restore:
+        return 'restaurou este cartão';
+      case ActivityType.comment:
+        return 'comentou';
+      case ActivityType.attachmentAdded:
+        return activity.details ?? 'adicionou um anexo';
+      case ActivityType.attachmentDeleted:
+        return activity.details ?? 'removeu um anexo';
     }
   }
 }

@@ -4,7 +4,7 @@ import '../widgets/attachment_card.dart';
 import '../../../../core/utils/ui_helpers.dart';
 
 /// Section that displays and manages card attachments.
-/// 
+///
 /// Shows a list of attachments with upload button and feedback.
 class CardAttachmentSection extends StatelessWidget {
   final CardDetailPageController controller;
@@ -16,12 +16,12 @@ class CardAttachmentSection extends StatelessWidget {
 
   Future<void> _handleUpload() async {
     final result = await controller.uploadAttachment();
-    
+
     if (result == null) {
       // User cancelled - no feedback needed
       return;
     }
-    
+
     if (result) {
       showSuccessToast(title: 'Arquivo enviado com sucesso!');
     } else {

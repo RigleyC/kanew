@@ -72,14 +72,14 @@ Future<void> showConfirmDialog({
         FButton(
           style: FButtonStyle.outline(),
           onPress: () {
-           context.pop();
+            context.pop();
             onCancel?.call();
           },
           child: Text(cancelText),
         ),
         FButton(
           onPress: () {
-          context.pop();
+            context.pop();
             onConfirm();
           },
           child: Text(confirmText),
@@ -114,7 +114,7 @@ Future<void> showInfoDialog({
       actions: [
         FButton(
           onPress: () {
-          context.pop();
+            context.pop();
             onDismiss?.call();
           },
           child: Text(buttonText),

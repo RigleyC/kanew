@@ -160,16 +160,20 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 16),
                             Text(
                               'Kanew',
-                              style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.displaySmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Bem-vindo de volta!',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurface.withValues(alpha: 0.5),
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: colorScheme.onSurface.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                  ),
                             ),
                             const SizedBox(height: 32),
 
@@ -224,11 +228,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             FButton(
                               style: FButtonStyle.ghost(),
-                              onPress: () => context.go('/auth/forgot-password'),
+                              onPress: () =>
+                                  context.go('/auth/forgot-password'),
                               child: Text(
                                 'Esqueceu a senha?',
                                 style: TextStyle(
-                                  color: colorScheme.onSurface.withValues(alpha: 0.5),
+                                  color: colorScheme.onSurface.withValues(
+                                    alpha: 0.5,
+                                  ),
                                 ),
                               ),
                             ),

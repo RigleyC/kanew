@@ -66,7 +66,9 @@ class LabelRepository {
       return Right(labels);
     } catch (e, s) {
       developer.log('Error fetching card labels', error: e, stackTrace: s);
-      return Left(ServerFailure('Failed to fetch card labels', originalError: e));
+      return Left(
+        ServerFailure('Failed to fetch card labels', originalError: e),
+      );
     }
   }
 }

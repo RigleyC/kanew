@@ -91,8 +91,8 @@ class _BoardsPageState extends State<BoardsPage> {
           Text(
             'Boards',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const Spacer(),
           KanbnButton(
@@ -162,8 +162,8 @@ class _BoardsPageState extends State<BoardsPage> {
           Text(
             'Nenhum board ainda',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -199,7 +199,9 @@ class _BoardsPageState extends State<BoardsPage> {
                 board: board,
                 onTap: () {
                   controller.selectBoard(board);
-                  context.go(RoutePaths.boardView(widget.workspaceSlug, board.slug));
+                  context.go(
+                    RoutePaths.boardView(widget.workspaceSlug, board.slug),
+                  );
                 },
               ),
             ),

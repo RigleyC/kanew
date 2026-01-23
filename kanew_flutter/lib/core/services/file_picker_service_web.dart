@@ -57,12 +57,14 @@ class FilePickerServiceImpl implements FilePickerService {
         try {
           final bytes = await _readFileAsBytes(file);
           if (bytes != null) {
-            pickedFiles.add(PickedFile(
-              name: file.name,
-              bytes: bytes,
-              mimeType: file.type.isNotEmpty ? file.type : null,
-              size: file.size,
-            ));
+            pickedFiles.add(
+              PickedFile(
+                name: file.name,
+                bytes: bytes,
+                mimeType: file.type.isNotEmpty ? file.type : null,
+                size: file.size,
+              ),
+            );
           }
         } catch (_) {
           // Skip files that fail to read
@@ -86,7 +88,7 @@ class FilePickerServiceImpl implements FilePickerService {
 
     reader.onLoadEnd.listen((event) {
       final result = reader.result;
-      
+
       if (result is ByteBuffer) {
         // This is the actual type returned by readAsArrayBuffer
         completer.complete(result.asUint8List());

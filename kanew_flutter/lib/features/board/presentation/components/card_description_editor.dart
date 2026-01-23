@@ -29,7 +29,8 @@ class _CardDescriptionEditorState extends State<CardDescriptionEditor> {
   @override
   void didUpdateWidget(covariant CardDescriptionEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.initialDescription != oldWidget.initialDescription && !_isEditing) {
+    if (widget.initialDescription != oldWidget.initialDescription &&
+        !_isEditing) {
       _controller.text = widget.initialDescription ?? '';
     }
   }
@@ -43,9 +44,9 @@ class _CardDescriptionEditorState extends State<CardDescriptionEditor> {
   }
 
   void _onFocusChange() {
-    // Note: In the original code, description also saved on blur. 
-    // However, it also had explicit Save/Cancel buttons. 
-    // Usually if there are buttons, we might not want auto-save on blur 
+    // Note: In the original code, description also saved on blur.
+    // However, it also had explicit Save/Cancel buttons.
+    // Usually if there are buttons, we might not want auto-save on blur
     // to avoid accidental saves or weird UI jumps, but the original code had it:
     // "if (!_descriptionFocusNode.hasFocus && _isEditingDescription) { _saveDescription(); }"
     // I will keep it consistent with original behavior.
@@ -74,7 +75,6 @@ class _CardDescriptionEditorState extends State<CardDescriptionEditor> {
 
     if (_isEditing) {
       return Column(
-        
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextField(

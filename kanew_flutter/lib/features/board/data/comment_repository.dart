@@ -21,7 +21,10 @@ class CommentRepository {
     }
   }
 
-  Future<Either<Failure, Comment>> createComment(int cardId, String content) async {
+  Future<Either<Failure, Comment>> createComment(
+    int cardId,
+    String content,
+  ) async {
     try {
       final comment = await _client.comment.createComment(cardId, content);
       return Right(comment);

@@ -36,6 +36,5 @@ class RoutePaths {
     String workspaceSlug,
     String boardSlug,
     String cardUuid,
-  ) =>
-      '/w/$workspaceSlug/boards/$boardSlug/c/$cardUuid';
+  ) => '/w/$workspaceSlug/boards/$boardSlug/c/$cardUuid';
 }

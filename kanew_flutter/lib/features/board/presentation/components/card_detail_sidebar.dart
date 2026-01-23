@@ -34,7 +34,8 @@ class CardDetailSidebar extends StatefulWidget {
   State<CardDetailSidebar> createState() => _CardDetailSidebarState();
 }
 
-class _CardDetailSidebarState extends State<CardDetailSidebar> with SingleTickerProviderStateMixin {
+class _CardDetailSidebarState extends State<CardDetailSidebar>
+    with SingleTickerProviderStateMixin {
   late final FPopoverController _calendarController;
 
   @override
@@ -122,13 +123,15 @@ class _CardDetailSidebarState extends State<CardDetailSidebar> with SingleTicker
                 final isSelected = list.id == widget.card.listId;
                 return MenuItemButton(
                   onPressed: () => widget.onListChanged(list.id!),
-                  leadingIcon: isSelected 
-                      ? Icon(Icons.check, size: 16, color: colorScheme.primary) 
+                  leadingIcon: isSelected
+                      ? Icon(Icons.check, size: 16, color: colorScheme.primary)
                       : const SizedBox(width: 16),
                   child: Text(
                     list.title,
                     style: TextStyle(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                 );
@@ -154,20 +157,22 @@ class _CardDetailSidebarState extends State<CardDetailSidebar> with SingleTicker
               spacing: 4,
               runSpacing: 4,
               children: [
-                ...widget.labels.map((label) => Chip(
-                  label: Text(
-                    label.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                ...widget.labels.map(
+                  (label) => Chip(
+                    label: Text(
+                      label.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                    backgroundColor: _parseColor(label.colorHex),
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    side: BorderSide.none,
                   ),
-                  backgroundColor: _parseColor(label.colorHex),
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                  side: BorderSide.none,
-                )),
+                ),
                 MenuAnchor(
                   builder: (context, controller, child) {
                     return InkWell(
@@ -180,7 +185,10 @@ class _CardDetailSidebarState extends State<CardDetailSidebar> with SingleTicker
                       },
                       borderRadius: BorderRadius.circular(4),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(4),
@@ -229,8 +237,12 @@ class _CardDetailSidebarState extends State<CardDetailSidebar> with SingleTicker
           control: FPopoverControl.managed(controller: _calendarController),
           child: _SidebarItem(
             label: 'Data de\nvencimento',
-            value: widget.card.dueDate != null ? _formatDate(widget.card.dueDate!) : null,
-            action: widget.card.dueDate == null ? '+ Definir data de vencimento' : null,
+            value: widget.card.dueDate != null
+                ? _formatDate(widget.card.dueDate!)
+                : null,
+            action: widget.card.dueDate == null
+                ? '+ Definir data de vencimento'
+                : null,
             onTap: _calendarController.toggle,
             valueOnTap: _calendarController.toggle,
           ),

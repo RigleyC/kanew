@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 
 import 'file_picker_service_stub.dart'
-    if (dart.library.html) 'file_picker_service_web.dart' as impl;
+    if (dart.library.html) 'file_picker_service_web.dart'
+    as impl;
 
 /// Represents a picked file with its data.
 class PickedFile {

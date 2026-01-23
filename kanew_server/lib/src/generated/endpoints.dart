@@ -953,11 +953,11 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['card'] as _i7.CardEndpoint)
-                  .getCardDetailByUuid(
-                session,
-                params['uuid'],
-              ),
+              ) async =>
+                  (endpoints['card'] as _i7.CardEndpoint).getCardDetailByUuid(
+                    session,
+                    params['uuid'],
+                  ),
         ),
       },
     );

@@ -47,7 +47,8 @@ class _ChecklistWidgetState extends State<ChecklistWidget> {
       builder: (context) => AlertDialog(
         title: const Text('Excluir checklist?'),
         content: const Text(
-            'Todos os itens desta checklist serão excluídos permanentemente.'),
+          'Todos os itens desta checklist serão excluídos permanentemente.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -95,13 +96,13 @@ class _ChecklistWidgetState extends State<ChecklistWidget> {
                 ),
               ),
               if (widget.items.isNotEmpty)
-                 Text(
-                   '${(progress * 100).toInt()}%',
-                   style: TextStyle(
-                     fontSize: 12,
-                     color: colorScheme.onSurfaceVariant,
-                   ),
-                 ),
+                Text(
+                  '${(progress * 100).toInt()}%',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
               const SizedBox(width: 8),
               PopupMenuButton(
                 icon: const Icon(Icons.more_horiz),
@@ -114,30 +115,32 @@ class _ChecklistWidgetState extends State<ChecklistWidget> {
               ),
             ],
           ),
-          
+
           // Progress bar
           if (items.isNotEmpty) ...[
-             const SizedBox(height: 8),
-             ClipRRect(
-               borderRadius: BorderRadius.circular(4),
-               child: LinearProgressIndicator(
-                 value: progress,
-                 minHeight: 6,
-                 backgroundColor: colorScheme.surfaceContainerHighest,
-                 valueColor: AlwaysStoppedAnimation(colorScheme.primary),
-               ),
-             ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 6,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                valueColor: AlwaysStoppedAnimation(colorScheme.primary),
+              ),
+            ),
           ],
-          
+
           const SizedBox(height: 16),
-          
+
           // Items
-          ...items.map((item) => ChecklistItemWidget(
-            item: item,
-            controller: widget.controller,
-            checklistId: widget.checklist.id!,
-          )),
-          
+          ...items.map(
+            (item) => ChecklistItemWidget(
+              item: item,
+              controller: widget.controller,
+              checklistId: widget.checklist.id!,
+            ),
+          ),
+
           // Add Item Button/Input
           if (_isAddingItem)
             Padding(
@@ -152,7 +155,10 @@ class _ChecklistWidgetState extends State<ChecklistWidget> {
                       decoration: const InputDecoration(
                         hintText: 'Adicionar um item',
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         isDense: true,
                       ),
                       onSubmitted: (_) => _submitItem(),
@@ -214,7 +220,7 @@ class _ChecklistItemWidgetState extends State<ChecklistItemWidget> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
@@ -241,8 +247,12 @@ class _ChecklistItemWidgetState extends State<ChecklistItemWidget> {
               child: Text(
                 widget.item.title,
                 style: TextStyle(
-                  decoration: widget.item.isChecked ? TextDecoration.lineThrough : null,
-                  color: widget.item.isChecked ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
+                  decoration: widget.item.isChecked
+                      ? TextDecoration.lineThrough
+                      : null,
+                  color: widget.item.isChecked
+                      ? colorScheme.onSurfaceVariant
+                      : colorScheme.onSurface,
                 ),
               ),
             ),
@@ -250,7 +260,10 @@ class _ChecklistItemWidgetState extends State<ChecklistItemWidget> {
               IconButton(
                 icon: const Icon(Icons.close, size: 18),
                 onPressed: () {
-                  widget.controller.deleteItem(widget.checklistId, widget.item.id!);
+                  widget.controller.deleteItem(
+                    widget.checklistId,
+                    widget.item.id!,
+                  );
                 },
                 color: colorScheme.onSurfaceVariant,
                 padding: EdgeInsets.zero,

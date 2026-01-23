@@ -34,7 +34,9 @@ class BoardDataAdapter {
     // 2. Add new groups or update existing ones
     for (final cardList in lists) {
       final groupId = cardList.id.toString();
-      final cardsForList = allCards.where((c) => c.listId == cardList.id).toList();
+      final cardsForList = allCards
+          .where((c) => c.listId == cardList.id)
+          .toList();
 
       if (!currentGroupIds.contains(groupId)) {
         // Add new group
@@ -107,15 +109,15 @@ class BoardDataAdapter {
     // Get the moved item at the destination index
     // Note: AppFlowyBoard has already updated the UI model at this point
     if (toIndex < items.length && toIndex >= 0) {
-       final movedItem = items[toIndex];
-       if (movedItem is CardBoardItem) {
-         controller.moveCard(
-           movedItem.card.id!,
-           toListId,
-           afterRank: afterRank,
-           beforeRank: beforeRank,
-         );
-       }
+      final movedItem = items[toIndex];
+      if (movedItem is CardBoardItem) {
+        controller.moveCard(
+          movedItem.card.id!,
+          toListId,
+          afterRank: afterRank,
+          beforeRank: beforeRank,
+        );
+      }
     }
   }
 }

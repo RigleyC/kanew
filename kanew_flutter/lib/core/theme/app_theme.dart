@@ -77,7 +77,6 @@ class AppTheme {
           borderSide: const BorderSide(color: Color(0xFFDC2626), width: 2),
         ),
       ),
-      
 
       // Cards (Card.tsx)
       // Classes: rounded-md border border-light-200 bg-light-50

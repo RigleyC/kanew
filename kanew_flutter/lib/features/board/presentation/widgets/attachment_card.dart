@@ -3,7 +3,7 @@ import 'package:kanew_client/kanew_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Widget that displays an individual attachment item.
-/// 
+///
 /// Shows file icon, name, size, and delete button.
 /// Tapping opens the file URL in browser.
 class AttachmentCard extends StatelessWidget {

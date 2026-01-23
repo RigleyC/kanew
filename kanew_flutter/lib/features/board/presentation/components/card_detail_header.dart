@@ -26,8 +26,7 @@ class CardDetailHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final workspaceVM = getIt<WorkspaceController>();
-    final workspaceName =
-        workspaceVM.currentWorkspace?.title ?? workspaceSlug;
+    final workspaceName = workspaceVM.currentWorkspace?.title ?? workspaceSlug;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

@@ -27,8 +27,8 @@ class AuthController extends ChangeNotifier {
   AuthController({
     required AuthRepository repository,
     required FlutterAuthSessionManager authManager,
-  })  : _repository = repository,
-        _authManager = authManager;
+  }) : _repository = repository,
+       _authManager = authManager;
 
   // ============================================================
   // GETTERS
@@ -44,7 +44,8 @@ class AuthController extends ChangeNotifier {
   bool get isLoading => _state is AuthLoading;
 
   /// Error message if in error state
-  String? get errorMessage => _state is AuthError ? (_state as AuthError).message : null;
+  String? get errorMessage =>
+      _state is AuthError ? (_state as AuthError).message : null;
 
   /// Checks if user is currently authenticated
   bool get isAuthenticated => _authManager.isAuthenticated;
@@ -155,10 +156,12 @@ class AuthController extends ChangeNotifier {
         email: _currentEmail!,
       );
 
-      _setState(AuthNeedsVerification(
-        email: _currentEmail!,
-        accountRequestId: accountRequestId,
-      ));
+      _setState(
+        AuthNeedsVerification(
+          email: _currentEmail!,
+          accountRequestId: accountRequestId,
+        ),
+      );
       _logStateChange('Start registration');
     } on AuthAccountExistsException {
       _setState(AuthAccountExistsError(_currentEmail!));
@@ -190,10 +193,12 @@ class AuthController extends ChangeNotifier {
         code: code.trim(),
       );
 
-      _setState(AuthCodeVerified(
-        email: _currentEmail ?? '',
-        registrationToken: registrationToken,
-      ));
+      _setState(
+        AuthCodeVerified(
+          email: _currentEmail ?? '',
+          registrationToken: registrationToken,
+        ),
+      );
       _logStateChange('Verify registration code');
     } on AuthCodeInvalidException {
       _setState(const AuthInvalidCodeError());
@@ -259,10 +264,12 @@ class AuthController extends ChangeNotifier {
         email: email.trim().toLowerCase(),
       );
 
-      _setState(AuthNeedsVerification(
-        email: email,
-        accountRequestId: accountRequestId,
-      ));
+      _setState(
+        AuthNeedsVerification(
+          email: email,
+          accountRequestId: accountRequestId,
+        ),
+      );
       _logStateChange('Resend verification code');
     } on AuthNetworkException catch (e) {
       _setState(AuthNetworkError(e.message));
@@ -291,10 +298,12 @@ class AuthController extends ChangeNotifier {
         email: _currentEmail!,
       );
 
-      _setState(AuthPasswordResetCodeSent(
-        email: _currentEmail!,
-        requestId: requestId,
-      ));
+      _setState(
+        AuthPasswordResetCodeSent(
+          email: _currentEmail!,
+          requestId: requestId,
+        ),
+      );
       _logStateChange('Start password reset');
     } on AuthNetworkException catch (e) {
       _setState(AuthNetworkError(e.message));
@@ -323,10 +332,12 @@ class AuthController extends ChangeNotifier {
         code: code.trim(),
       );
 
-      _setState(AuthPasswordResetVerified(
-        email: _currentEmail ?? '',
-        token: token,
-      ));
+      _setState(
+        AuthPasswordResetVerified(
+          email: _currentEmail ?? '',
+          token: token,
+        ),
+      );
       _logStateChange('Verify password reset code');
     } on AuthCodeInvalidException {
       _setState(const AuthInvalidCodeError());

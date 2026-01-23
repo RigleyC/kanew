@@ -18,7 +18,7 @@ class CardDetailPageController extends ChangeNotifier {
   final AttachmentRepository _attachmentRepo;
   final FilePickerService _filePicker;
   final BoardStore _boardStore;
-  
+
   Card? _card;
   CardList? _list;
   List<Checklist> _checklists = [];
@@ -30,11 +30,11 @@ class CardDetailPageController extends ChangeNotifier {
   List<Attachment> _attachments = [];
   List<CardList> _boardLists = [];
   List<WorkspaceMember> _members = [];
-  
+
   bool _isLoading = false;
   bool _isUploading = false;
   String? _error;
-  
+
   CardDetailPageController({
     required CardRepository repository,
     required ChecklistRepository checklistRepo,
@@ -52,7 +52,7 @@ class CardDetailPageController extends ChangeNotifier {
        _attachmentRepo = attachmentRepo,
        _filePicker = filePicker,
        _boardStore = boardStore;
-  
+
   Card? get selectedCard => _card;
   CardList? get list => _list;
   List<Checklist> get checklists => _checklists;
@@ -71,14 +71,14 @@ class CardDetailPageController extends ChangeNotifier {
   List<ChecklistItem> getItemsForChecklist(int checklistId) {
     return _checklistItems[checklistId] ?? [];
   }
-  
+
   Future<void> load(String cardUuid) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     final result = await _repository.getCardDetailByUuid(cardUuid);
-    
+
     result.fold(
       (f) => _error = f.message,
       (detail) {
@@ -88,7 +88,7 @@ class CardDetailPageController extends ChangeNotifier {
           _boardLists = detail.boardLists;
           _members = detail.members;
           _boardLabels = detail.boardLabels;
-          
+
           // Checklists and items
           _checklists = detail.checklists.map((c) => c.checklist).toList();
           _checklistItems.clear();
@@ -97,7 +97,7 @@ class CardDetailPageController extends ChangeNotifier {
               _checklistItems[c.checklist.id!] = c.items;
             }
           }
-          
+
           _attachments = detail.attachments;
           _labels = detail.cardLabels;
           _comments = detail.recentComments;
@@ -107,11 +107,11 @@ class CardDetailPageController extends ChangeNotifier {
         }
       },
     );
-    
+
     _isLoading = false;
     notifyListeners();
   }
-  
+
   Future<void> _loadActivities(int cardId) async {
     final result = await _activityRepo.getLog(cardId);
     result.fold(
@@ -122,7 +122,7 @@ class CardDetailPageController extends ChangeNotifier {
 
   Future<void> createComment(String content) async {
     if (_card == null) return;
-    
+
     final result = await _commentRepo.createComment(_card!.id!, content);
     result.fold(
       (f) => _error = f.message,
@@ -148,7 +148,7 @@ class CardDetailPageController extends ChangeNotifier {
 
   Future<void> createChecklist(String title) async {
     if (_card == null) return;
-    
+
     final result = await _checklistRepo.createChecklist(_card!.id!, title);
     result.fold(
       (f) => _error = f.message,
@@ -189,15 +189,18 @@ class CardDetailPageController extends ChangeNotifier {
     // Optimistic update
     final items = _checklistItems[checklistId];
     if (items == null) return;
-    
+
     final index = items.indexWhere((i) => i.id == itemId);
     if (index == -1) return;
-    
+
     final oldItem = items[index];
     items[index] = oldItem.copyWith(isChecked: isChecked);
     notifyListeners();
-    
-    final result = await _checklistRepo.updateItem(itemId, isChecked: isChecked);
+
+    final result = await _checklistRepo.updateItem(
+      itemId,
+      isChecked: isChecked,
+    );
     result.fold(
       (f) {
         // Revert
@@ -217,11 +220,11 @@ class CardDetailPageController extends ChangeNotifier {
     // Optimistic update
     final items = _checklistItems[checklistId];
     if (items == null) return;
-    
+
     final originalItems = List<ChecklistItem>.from(items);
     items.removeWhere((i) => i.id == itemId);
     notifyListeners();
-    
+
     final result = await _checklistRepo.deleteItem(itemId);
     result.fold(
       (f) {
@@ -236,7 +239,7 @@ class CardDetailPageController extends ChangeNotifier {
 
   Future<void> attachLabel(int labelId) async {
     if (_card == null) return;
-    
+
     // Check if already attached locally
     if (_labels.any((l) => l.id == labelId)) return;
 
@@ -271,13 +274,14 @@ class CardDetailPageController extends ChangeNotifier {
         _error = f.message;
         notifyListeners();
       },
-      (_) => _loadActivities(_card!.id!), // Reload activity to show label removed
+      (_) =>
+          _loadActivities(_card!.id!), // Reload activity to show label removed
     );
   }
 
   Future<void> createLabel(String name, String colorHex) async {
     if (_card == null) return;
-    
+
     final result = await _labelRepo.createLabel(_card!.boardId, name, colorHex);
     result.fold(
       (f) => _error = f.message,
@@ -288,15 +292,15 @@ class CardDetailPageController extends ChangeNotifier {
       },
     );
   }
-  
+
   /// Result of the last upload operation.
   /// null = no upload yet, true = success, false = failed
   bool? _lastUploadResult;
   String? _lastUploadError;
-  
+
   bool? get lastUploadResult => _lastUploadResult;
   String? get lastUploadError => _lastUploadError;
-  
+
   /// Uploads an attachment and returns success status.
   /// Returns: true if upload succeeded, false if failed, null if cancelled
   Future<bool?> uploadAttachment() async {
@@ -304,18 +308,21 @@ class CardDetailPageController extends ChangeNotifier {
 
     _lastUploadResult = null;
     _lastUploadError = null;
-    
+
     final file = await _filePicker.pickFile();
-    
+
     if (file == null) return null; // User cancelled
-    
+
     _isUploading = true;
     notifyListeners();
-    
-    final uploadResult = await _attachmentRepo.uploadAttachment(_card!.id!, file);
-    
+
+    final uploadResult = await _attachmentRepo.uploadAttachment(
+      _card!.id!,
+      file,
+    );
+
     _isUploading = false;
-    
+
     return uploadResult.fold(
       (f) {
         _lastUploadError = f.message;
@@ -326,7 +333,7 @@ class CardDetailPageController extends ChangeNotifier {
       (attachment) {
         _attachments.insert(0, attachment);
         _lastUploadResult = true;
-        _loadActivities(_card!.id!); 
+        _loadActivities(_card!.id!);
         notifyListeners();
         return true;
       },
@@ -335,7 +342,7 @@ class CardDetailPageController extends ChangeNotifier {
 
   Future<void> deleteAttachment(int attachmentId) async {
     if (_card == null) return;
-    
+
     // Optimistic update
     final originalList = List<Attachment>.from(_attachments);
     _attachments.removeWhere((a) => a.id == attachmentId);
@@ -351,23 +358,27 @@ class CardDetailPageController extends ChangeNotifier {
       (_) => _loadActivities(_card!.id!),
     );
   }
-  
+
   Future<Card?> updateCard({
     String? title,
     String? description,
     DateTime? dueDate,
   }) async {
     if (_card == null || _card?.id == null) return null;
-    
+
     final result = await _repository.updateCard(
       _card!.id!,
       title: title,
       description: description,
       dueDate: dueDate,
     );
-    
+
     return result.fold(
-      (f) { _error = f.message; notifyListeners(); return null; },
+      (f) {
+        _error = f.message;
+        notifyListeners();
+        return null;
+      },
       (card) {
         _card = card;
         _boardStore.updateCard(card); // Update store!
@@ -384,18 +395,18 @@ class CardDetailPageController extends ChangeNotifier {
 
   Future<void> moveCardToList(int newListId) async {
     if (_card == null) return;
-    
+
     // Optimistic update
     final oldList = _list;
     final newList = _boardLists.firstWhere((l) => l.id == newListId);
-    
+
     _list = newList;
     _card = _card!.copyWith(listId: newListId);
     _boardStore.updateCard(_card!); // Update store!
     notifyListeners();
 
     final result = await _repository.moveCard(_card!.id!, newListId);
-    
+
     result.fold(
       (f) {
         // Revert

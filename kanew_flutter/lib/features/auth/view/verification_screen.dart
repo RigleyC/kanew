@@ -195,8 +195,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
                             Text(
                               'Digite o código enviado para:',
                               style: typography.bodySmall?.copyWith(
-                                color: colorScheme.onSurface
-                                    .withValues(alpha: 0.6),
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -248,8 +249,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                 Text(
                                   'Não recebeu?',
                                   style: typography.bodySmall?.copyWith(
-                                    color: colorScheme.onSurface
-                                        .withValues(alpha: 0.5),
+                                    color: colorScheme.onSurface.withValues(
+                                      alpha: 0.5,
+                                    ),
                                   ),
                                 ),
                                 FButton(

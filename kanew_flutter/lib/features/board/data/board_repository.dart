@@ -17,8 +17,9 @@ class BoardRepository {
       name: 'board_repository',
     );
     try {
-      final boards =
-          await _client.board.getBoardsByWorkspaceSlug(workspaceSlug);
+      final boards = await _client.board.getBoardsByWorkspaceSlug(
+        workspaceSlug,
+      );
       developer.log(
         'BoardRepository.getBoardsByWorkspaceSlug success: ${boards.length} boards',
         name: 'board_repository',
@@ -64,8 +65,10 @@ class BoardRepository {
       name: 'board_repository',
     );
     try {
-      final board =
-          await _client.board.createBoardByWorkspaceSlug(workspaceSlug, title);
+      final board = await _client.board.createBoardByWorkspaceSlug(
+        workspaceSlug,
+        title,
+      );
       developer.log(
         'BoardRepository.createBoardByWorkspaceSlug success: ${board.title} (${board.slug})',
         name: 'board_repository',

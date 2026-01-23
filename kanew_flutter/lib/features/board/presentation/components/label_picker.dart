@@ -32,7 +32,12 @@ class _LabelPickerState extends State<LabelPicker> {
     final nameController = TextEditingController();
     // Default colors
     final colors = [
-      '#2196F3', '#4CAF50', '#F44336', '#FF9800', '#9C27B0', '#E91E63'
+      '#2196F3',
+      '#4CAF50',
+      '#F44336',
+      '#FF9800',
+      '#9C27B0',
+      '#E91E63',
     ];
     String selectedColor = colors[0];
 
@@ -62,10 +67,17 @@ class _LabelPickerState extends State<LabelPicker> {
                         decoration: BoxDecoration(
                           color: _parseColor(color),
                           shape: BoxShape.circle,
-                          border: isSelected ? Border.all(width: 3, color: Colors.white) : null,
-                          boxShadow: isSelected ? [
-                            const BoxShadow(color: Colors.black26, blurRadius: 4),
-                          ] : null,
+                          border: isSelected
+                              ? Border.all(width: 3, color: Colors.white)
+                              : null,
+                          boxShadow: isSelected
+                              ? [
+                                  const BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 4,
+                                  ),
+                                ]
+                              : null,
                         ),
                       ),
                     );
@@ -89,7 +101,7 @@ class _LabelPickerState extends State<LabelPicker> {
               ),
             ],
           );
-        }
+        },
       ),
     );
   }
@@ -122,8 +134,10 @@ class _LabelPickerState extends State<LabelPicker> {
             child: SingleChildScrollView(
               child: Column(
                 children: widget.boardLabels.map((label) {
-                  final isSelected = widget.selectedLabels.any((l) => l.id == label.id);
-                  
+                  final isSelected = widget.selectedLabels.any(
+                    (l) => l.id == label.id,
+                  );
+
                   return InkWell(
                     onTap: () => widget.onToggleLabel(label.id!),
                     child: Padding(
@@ -133,7 +147,9 @@ class _LabelPickerState extends State<LabelPicker> {
                           Expanded(
                             child: Container(
                               height: 32,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               decoration: BoxDecoration(
                                 color: _parseColor(label.colorHex),
                                 borderRadius: BorderRadius.circular(4),

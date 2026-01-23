@@ -157,130 +157,130 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
-              child: FCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Form(
-                    key: _formKey,
-                    child: ListenableBuilder(
-                      listenable: getIt<AuthController>(),
-                      builder: (context, _) {
-                        final viewModel = getIt<AuthController>();
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.lock_reset_rounded,
-                              size: 64,
-                              color: theme.colorScheme.primary,
+            child: FCard(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Form(
+                  key: _formKey,
+                  child: ListenableBuilder(
+                    listenable: getIt<AuthController>(),
+                    builder: (context, _) {
+                      final viewModel = getIt<AuthController>();
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.lock_reset_rounded,
+                            size: 64,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Redefinir Senha',
+                            style: typography.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Redefinir Senha',
-                              style: typography.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _resetToken == null
+                                ? 'Verifique o código do email'
+                                : 'Defina sua nova senha',
+                            style: typography.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _resetToken == null
-                                  ? 'Verifique o código do email'
-                                  : 'Defina sua nova senha',
-                              style: typography.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.6,
-                                ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 32),
+
+                          Text(
+                            'Redefinindo para:\n${widget.email}',
+                            textAlign: TextAlign.center,
+                            style: typography.bodyMedium,
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Code field
+                          FTextField(
+                            control: FTextFieldControl.managed(
+                              controller: _codeController,
+                            ),
+                            label: const Text('Código de Verificação'),
+                            hint: 'Digite o código do email',
+                            enabled:
+                                _resetToken == null && !viewModel.isLoading,
+                            keyboardType: TextInputType.text,
+                          ),
+                          const SizedBox(height: 16),
+
+                          if (_resetToken == null)
+                            SizedBox(
+                              width: double.infinity,
+                              child: FButton(
+                                onPress: viewModel.isLoading
+                                    ? null
+                                    : _handleVerifyCode,
+                                child: viewModel.isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text('Verificar Código'),
                               ),
-                              textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 32),
 
-                            Text(
-                              'Redefinindo para:\n${widget.email}',
-                              textAlign: TextAlign.center,
-                              style: typography.bodyMedium,
-                            ),
-                            const SizedBox(height: 24),
-
-                            // Code field
+                          if (_resetToken != null) ...[
                             FTextField(
                               control: FTextFieldControl.managed(
-                                controller: _codeController,
+                                controller: _passwordController,
                               ),
-                              label: const Text('Código de Verificação'),
-                              hint: 'Digite o código do email',
-                              enabled:
-                                  _resetToken == null && !viewModel.isLoading,
-                              keyboardType: TextInputType.text,
+                              label: const Text('Nova Senha'),
+                              hint: 'Mínimo 8 caracteres',
+                              obscureText: true,
+                              enabled: !viewModel.isLoading,
                             ),
-                            const SizedBox(height: 16),
-
-                            if (_resetToken == null)
-                              SizedBox(
-                                width: double.infinity,
-                                child: FButton(
-                                  onPress: viewModel.isLoading
-                                      ? null
-                                      : _handleVerifyCode,
-                                  child: viewModel.isLoading
-                                      ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : const Text('Verificar Código'),
-                                ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              child: FButton(
+                                onPress: viewModel.isLoading
+                                    ? null
+                                    : _handleResetPassword,
+                                child: viewModel.isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text('Definir Nova Senha'),
                               ),
-
-                            if (_resetToken != null) ...[
-                              FTextField(
-                                control: FTextFieldControl.managed(
-                                  controller: _passwordController,
-                                ),
-                                label: const Text('Nova Senha'),
-                                hint: 'Mínimo 8 caracteres',
-                                obscureText: true,
-                                enabled: !viewModel.isLoading,
-                              ),
-                              const SizedBox(height: 24),
-                              SizedBox(
-                                width: double.infinity,
-                                child: FButton(
-                                  onPress: viewModel.isLoading
-                                      ? null
-                                      : _handleResetPassword,
-                                  child: viewModel.isLoading
-                                      ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : const Text('Definir Nova Senha'),
-                                ),
-                              ),
-                            ],
-
-                            const SizedBox(height: 16),
-
-                            FButton(
-                              style: FButtonStyle.ghost(),
-                              onPress: () => context.go('/auth/login'),
-                              child: const Text('Voltar ao Login'),
                             ),
                           ],
-                        );
-                      },
-                    ),
+
+                          const SizedBox(height: 16),
+
+                          FButton(
+                            style: FButtonStyle.ghost(),
+                            onPress: () => context.go('/auth/login'),
+                            child: const Text('Voltar ao Login'),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
             ),
+          ),
         ),
       ),
     );

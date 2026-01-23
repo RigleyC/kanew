@@ -28,7 +28,12 @@ final appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/',
   debugLogDiagnostics: false,
-  refreshListenable: getIt<AuthController>(),
+  // Use Listenable.merge to listen to both auth and workspace state changes
+  // This is the recommended approach per AGENTS.md
+  refreshListenable: Listenable.merge([
+    getIt<AuthController>(),
+    getIt<WorkspaceController>(),
+  ]),
   redirect: (context, state) {
     final authViewModel = getIt<AuthController>();
     final workspaceViewModel = getIt<WorkspaceController>();
@@ -63,7 +68,10 @@ final appRouter = GoRouter(
       // Check for redirect param
       final redirect = state.uri.queryParameters['redirect'];
       if (redirect != null && redirect.isNotEmpty) {
-        developer.log('Redirecting to preserved route: $redirect', name: 'app_router');
+        developer.log(
+          'Redirecting to preserved route: $redirect',
+          name: 'app_router',
+        );
         return redirect;
       }
 
@@ -79,10 +87,12 @@ final appRouter = GoRouter(
 
     // 3. Authenticated on root → redirect to first workspace
     if (isAuthenticated && path == '/') {
+      // If workspaces are loading, stay on loading screen
       if (workspaceViewModel.isLoading) {
         return null; // Stay on loading screen
       }
 
+      // If we have workspaces, redirect to the first one
       if (workspaceViewModel.hasWorkspaces) {
         final slug = workspaceViewModel.workspaces.first.slug;
         developer.log(
@@ -92,8 +102,9 @@ final appRouter = GoRouter(
         return RoutePaths.workspaceBoards(slug);
       }
 
-      // Stay on root if still loading workspaces
-      return null;
+      // If no workspaces and not loading, trigger loading
+      // The builder will handle calling loadWorkspaces()
+      return null; // Stay on root to trigger loading
     }
 
     return null;
@@ -135,10 +146,18 @@ final appRouter = GoRouter(
         listenable: getIt<WorkspaceController>(),
         builder: (context, child) {
           final viewModel = getIt<WorkspaceController>();
-          
-          // Trigger workspace loading if not already done
-          if (!viewModel.hasWorkspaces && !viewModel.isLoading) {
+          final authViewModel = getIt<AuthController>();
+
+          // Only trigger workspace loading if authenticated and not already loading/loaded
+          // This prevents multiple simultaneous load calls
+          if (authViewModel.isAuthenticated &&
+              !viewModel.hasWorkspaces &&
+              !viewModel.isLoading) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
+              developer.log(
+                'Triggering workspace load from root route',
+                name: 'app_router',
+              );
               viewModel.loadWorkspaces();
             });
           }
@@ -148,19 +167,53 @@ final appRouter = GoRouter(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Carregando...',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  if (viewModel.error != null) ...[
-                    const SizedBox(height: 16),
+                  if (viewModel.isLoading) ...[
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 24),
                     Text(
-                      viewModel.error!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
+                      'Carregando...',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ] else if (viewModel.error != null) ...[
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Erro ao carregar',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Text(
+                        viewModel.error!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                       ),
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      onPressed: () {
+                        developer.log(
+                          'Retrying workspace load',
+                          name: 'app_router',
+                        );
+                        viewModel.loadWorkspaces();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Tentar novamente'),
+                    ),
+                  ] else ...[
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Carregando...',
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ],
                 ],

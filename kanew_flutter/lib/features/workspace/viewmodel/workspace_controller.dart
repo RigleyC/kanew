@@ -3,13 +3,8 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:kanew_client/kanew_client.dart';
 
-
 import '../data/workspace_repository.dart';
 
-/// Controller for workspace management.
-///
-/// Handles loading, creating, and selecting workspaces for authenticated user.
-/// Extends [ChangeNotifier] to notify listeners of state changes.
 class WorkspaceController extends ChangeNotifier {
   final WorkspaceRepository _repository;
 
@@ -74,7 +69,18 @@ class WorkspaceController extends ChangeNotifier {
   }
 
   /// Loads all workspaces for authenticated user from server.
+  ///
+  /// Safe to call multiple times - will only load if not already loading.
   Future<void> loadWorkspaces() async {
+    // Prevent multiple simultaneous loads
+    if (_isLoading) {
+      developer.log(
+        'Workspaces already loading, skipping duplicate call',
+        name: 'workspace_controller',
+      );
+      return;
+    }
+
     developer.log('Loading workspaces', name: 'workspace_controller');
     _setLoading(true);
     _setError(null);

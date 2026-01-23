@@ -11,7 +11,7 @@ class BoardsPageController extends ChangeNotifier {
   String? _workspaceSlug;
 
   BoardsPageController({required BoardRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   List<Board> get boards => _boards;
   bool get isLoading => _isLoading;

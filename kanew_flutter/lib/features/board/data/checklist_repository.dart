@@ -103,7 +103,10 @@ class ChecklistRepository {
     String title,
   ) async {
     try {
-      final checklist = await _client.checklist.updateChecklist(checklistId, title);
+      final checklist = await _client.checklist.updateChecklist(
+        checklistId,
+        title,
+      );
       return Right(checklist);
     } catch (e, s) {
       return Left(

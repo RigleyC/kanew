@@ -119,7 +119,7 @@ class KanbnButton extends StatelessWidget {
           s = 40;
           break;
         case ButtonSize.md:
-        s = 36;
+          s = 36;
           break;
       }
       return EdgeInsets.all((s - 24) / 2).copyWith(top: 0, bottom: 0);
@@ -133,7 +133,7 @@ class KanbnButton extends StatelessWidget {
       case ButtonSize.lg:
         return const EdgeInsets.symmetric(horizontal: 16, vertical: 12);
       case ButtonSize.md:
-      return const EdgeInsets.symmetric(horizontal: 12, vertical: 8);
+        return const EdgeInsets.symmetric(horizontal: 12, vertical: 8);
     }
   }
 

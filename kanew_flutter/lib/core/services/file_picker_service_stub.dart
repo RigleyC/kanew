@@ -53,12 +53,14 @@ class FilePickerServiceImpl implements FilePickerService {
       for (final file in result.files) {
         final bytes = file.bytes;
         if (bytes != null) {
-          pickedFiles.add(PickedFile(
-            name: file.name,
-            bytes: bytes,
-            mimeType: _getMimeType(file.name),
-            size: file.size,
-          ));
+          pickedFiles.add(
+            PickedFile(
+              name: file.name,
+              bytes: bytes,
+              mimeType: _getMimeType(file.name),
+              size: file.size,
+            ),
+          );
         }
       }
 
