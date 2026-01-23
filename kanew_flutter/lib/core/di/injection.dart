@@ -19,7 +19,9 @@ import '../../features/board/data/attachment_repository.dart';
 import '../../features/board/presentation/controllers/boards_page_controller.dart';
 import '../../features/board/presentation/controllers/board_view_controller.dart';
 import '../../features/board/presentation/controllers/card_detail_controller.dart';
+import '../../features/board/presentation/store/board_store.dart';
 import '../../features/workspace/data/workspace_repository.dart';
+
 import '../../features/workspace/viewmodel/workspace_controller.dart';
 import '../services/file_picker_service.dart';
 
@@ -127,9 +129,13 @@ Future<void> setupDependencies() async {
     () => AttachmentRepository(client: getIt<Client>()),
   );
 
+  getIt.registerLazySingleton<BoardStore>(
+    () => BoardStore(),
+  );
 
   // ============================================================
   // PAGE CONTROLLERS (Factories)
+
   // ============================================================
 
   getIt.registerFactory<BoardsPageController>(
@@ -141,6 +147,7 @@ Future<void> setupDependencies() async {
       boardRepo: getIt<BoardRepository>(),
       listRepo: getIt<ListRepository>(),
       cardRepo: getIt<CardRepository>(),
+      boardStore: getIt<BoardStore>(),
     ),
   );
 
@@ -153,9 +160,11 @@ Future<void> setupDependencies() async {
       labelRepo: getIt<LabelRepository>(),
       attachmentRepo: getIt<AttachmentRepository>(),
       filePicker: getIt<FilePickerService>(),
+      boardStore: getIt<BoardStore>(),
     ),
   );
 }
+
 
 /// Gets the Serverpod client
 Client get client => getIt<Client>();

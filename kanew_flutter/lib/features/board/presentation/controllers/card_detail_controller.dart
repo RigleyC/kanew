@@ -7,6 +7,7 @@ import '../../data/comment_repository.dart';
 import '../../data/activity_repository.dart';
 import '../../data/label_repository.dart';
 import '../../data/attachment_repository.dart';
+import '../store/board_store.dart';
 
 class CardDetailPageController extends ChangeNotifier {
   final CardRepository _repository;
@@ -16,6 +17,7 @@ class CardDetailPageController extends ChangeNotifier {
   final LabelRepository _labelRepo;
   final AttachmentRepository _attachmentRepo;
   final FilePickerService _filePicker;
+  final BoardStore _boardStore;
   
   Card? _card;
   CardList? _list;
@@ -41,13 +43,15 @@ class CardDetailPageController extends ChangeNotifier {
     required LabelRepository labelRepo,
     required AttachmentRepository attachmentRepo,
     required FilePickerService filePicker,
+    required BoardStore boardStore,
   }) : _repository = repository,
        _checklistRepo = checklistRepo,
        _commentRepo = commentRepo,
        _activityRepo = activityRepo,
        _labelRepo = labelRepo,
        _attachmentRepo = attachmentRepo,
-       _filePicker = filePicker;
+       _filePicker = filePicker,
+       _boardStore = boardStore;
   
   Card? get selectedCard => _card;
   CardList? get list => _list;
@@ -366,6 +370,7 @@ class CardDetailPageController extends ChangeNotifier {
       (f) { _error = f.message; notifyListeners(); return null; },
       (card) {
         _card = card;
+        _boardStore.updateCard(card); // Update store!
         notifyListeners();
         return card;
       },
@@ -386,6 +391,7 @@ class CardDetailPageController extends ChangeNotifier {
     
     _list = newList;
     _card = _card!.copyWith(listId: newListId);
+    _boardStore.updateCard(_card!); // Update store!
     notifyListeners();
 
     final result = await _repository.moveCard(_card!.id!, newListId);
@@ -395,12 +401,14 @@ class CardDetailPageController extends ChangeNotifier {
         // Revert
         _list = oldList;
         _card = _card!.copyWith(listId: oldList?.id ?? 0);
+        _boardStore.updateCard(_card!); // Revert store!
         _error = f.message;
         notifyListeners();
       },
       (card) {
         // Update with server data just in case
         _card = card;
+        _boardStore.updateCard(card); // Confirm store!
         _loadActivities(card.id!);
         notifyListeners();
       },

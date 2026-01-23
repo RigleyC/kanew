@@ -3,15 +3,14 @@ import 'package:kanew_client/kanew_client.dart';
 import '../../data/board_repository.dart';
 import '../../data/list_repository.dart';
 import '../../data/card_repository.dart';
+import '../store/board_store.dart';
 
 class BoardViewPageController extends ChangeNotifier {
   final BoardRepository _boardRepo;
   final ListRepository _listRepo;
   final CardRepository _cardRepo;
+  final BoardStore _boardStore;
   
-  Board? _board;
-  List<CardList> _lists = [];
-  List<Card> _allCards = [];
   bool _isLoading = false;
   String? _error;
   
@@ -19,31 +18,47 @@ class BoardViewPageController extends ChangeNotifier {
     required BoardRepository boardRepo,
     required ListRepository listRepo,
     required CardRepository cardRepo,
+    required BoardStore boardStore,
   }) : _boardRepo = boardRepo,
        _listRepo = listRepo,
-       _cardRepo = cardRepo;
+       _cardRepo = cardRepo,
+       _boardStore = boardStore {
+    _boardStore.addListener(notifyListeners);
+  }
+
+  @override
+  void dispose() {
+    _boardStore.removeListener(notifyListeners);
+    super.dispose();
+  }
   
-  // Getters
-  Board? get board => _board;
-  List<CardList> get lists => _lists;
-  List<Card> get allCards => _allCards;
+  // Getters delegating to Store
+  Board? get board => _boardStore.board;
+  List<CardList> get lists => _boardStore.lists;
+  List<Card> get allCards => _boardStore.allCards;
   bool get isLoading => _isLoading;
   String? get error => _error;
   
   List<Card> getCardsForList(int listId) {
-    return _allCards.where((c) => c.listId == listId).toList();
+    return _boardStore.getCardsForList(listId);
   }
   
   // Load board using slugs only (no workspaceId needed)
   Future<void> load(String workspaceSlug, String boardSlug) async {
+    // Prevent reload if already loaded same board
+    if (_boardStore.board?.slug == boardSlug) {
+      return;
+    }
+
     _isLoading = true;
     _error = null;
+    _boardStore.clear(); // Reset store for new board
     notifyListeners();
     
     try {
       // Usa o novo endpoint baseado em slug
-      _board = await _boardRepo.getBoardBySlug(workspaceSlug, boardSlug);
-      if (_board == null) {
+      final board = await _boardRepo.getBoardBySlug(workspaceSlug, boardSlug);
+      if (board == null) {
         _error = 'Board nao encontrado';
         _isLoading = false;
         notifyListeners();
@@ -52,19 +67,27 @@ class BoardViewPageController extends ChangeNotifier {
       
       // Carregar lists e cards em paralelo
       final results = await Future.wait([
-        _listRepo.getLists(_board!.id!),
-        _cardRepo.getCardsByBoard(_board!.id!),
+        _listRepo.getLists(board.id!),
+        _cardRepo.getCardsByBoard(board.id!),
       ]);
       
+      List<CardList> lists = [];
+      List<Card> cards = [];
+
       results[0].fold(
         (f) => _error = f.message,
-        (lists) => _lists = lists as List<CardList>,
+        (l) => lists = l as List<CardList>,
       );
       
       results[1].fold(
         (f) => _error = f.message,
-        (cards) => _allCards = cards as List<Card>,
+        (c) => cards = c as List<Card>,
       );
+
+      if (_error == null) {
+        _boardStore.initData(board: board, lists: lists, cards: cards);
+      }
+
     } catch (e) {
       _error = 'Erro ao carregar board';
     } finally {
@@ -75,12 +98,22 @@ class BoardViewPageController extends ChangeNotifier {
 
   /// Recarrega apenas os cards do board (mais leve que reload completo)
   Future<void> reloadCards() async {
-    if (_board == null) return;
+    if (board == null) return;
     
-    final result = await _cardRepo.getCardsByBoard(_board!.id!);
+    final result = await _cardRepo.getCardsByBoard(board!.id!);
     result.fold(
       (f) => _error = f.message,
-      (cards) => _allCards = cards,
+      (cards) {
+        // We could implement a bulk setCards in store, but for now we rely on initData or manual sync
+        // Ideally we should have setCards in store. Let's assume we just want to refresh cards.
+        // For now, let's reuse initData preserving board and lists, or add setCards to store.
+        // Since we didn't add setCards, let's just re-init.
+        _boardStore.initData(
+          board: board!,
+          lists: lists,
+          cards: cards,
+        );
+      },
     );
     notifyListeners();
   }
@@ -88,8 +121,7 @@ class BoardViewPageController extends ChangeNotifier {
   Future<Board?> updateBoard(int boardId, String title) async {
      try {
       final updatedBoard = await _boardRepo.updateBoard(boardId, title);
-      _board = updatedBoard;
-      notifyListeners();
+      _boardStore.updateBoard(updatedBoard);
       return updatedBoard;
     } catch (e) {
       _error = 'Erro ao atualizar board';
@@ -100,12 +132,15 @@ class BoardViewPageController extends ChangeNotifier {
   
   // List operations
   Future<CardList?> createList(String title) async {
-    if (_board == null) return null;
+    if (board == null) return null;
     
-    final result = await _listRepo.createList(_board!.id!, title);
+    final result = await _listRepo.createList(board!.id!, title);
     return result.fold(
       (f) { _error = f.message; notifyListeners(); return null; },
-      (list) { _lists.add(list); notifyListeners(); return list; },
+      (list) { 
+        _boardStore.addList(list);
+        return list; 
+      },
     );
   }
   
@@ -114,9 +149,7 @@ class BoardViewPageController extends ChangeNotifier {
     return result.fold(
       (f) { _error = f.message; notifyListeners(); return false; },
       (_) { 
-        _lists.removeWhere((l) => l.id == listId);
-        _allCards.removeWhere((c) => c.listId == listId);
-        notifyListeners();
+        _boardStore.removeList(listId);
         return true;
       },
     );
@@ -124,26 +157,31 @@ class BoardViewPageController extends ChangeNotifier {
   
   Future<bool> moveList(int fromIndex, int toIndex) async {
     // 1. Local Reorder
-    if (fromIndex < 0 || fromIndex >= _lists.length || toIndex < 0 || toIndex >= _lists.length) {
+    if (fromIndex < 0 || fromIndex >= lists.length || toIndex < 0 || toIndex >= lists.length) {
       return false;
     }
 
-    final movedList = _lists.removeAt(fromIndex);
-    _lists.insert(toIndex, movedList);
-    notifyListeners(); // Optimistic update UI
+    final currentLists = List<CardList>.from(lists);
+    final movedList = currentLists.removeAt(fromIndex);
+    currentLists.insert(toIndex, movedList);
+    
+    _boardStore.setLists(currentLists); // Optimistic update UI
 
     // 2. API Call
-    final orderedIds = _lists.map((l) => l.id!).toList();
+    final orderedIds = currentLists.map((l) => l.id!).toList();
     return reorderLists(orderedIds);
   }
   
   Future<bool> reorderLists(List<int> orderedIds) async {
-    if (_board == null) return false;
+    if (board == null) return false;
     
-    final result = await _listRepo.reorderLists(_board!.id!, orderedIds);
+    final result = await _listRepo.reorderLists(board!.id!, orderedIds);
     return result.fold(
       (f) { _error = f.message; notifyListeners(); return false; },
-      (lists) { _lists = lists; notifyListeners(); return true; },
+      (lists) { 
+        _boardStore.setLists(lists);
+        return true; 
+      },
     );
   }
   
@@ -152,19 +190,23 @@ class BoardViewPageController extends ChangeNotifier {
     final result = await _cardRepo.createCard(listId, title);
     return result.fold(
       (f) { _error = f.message; notifyListeners(); return null; },
-      (card) { _allCards.add(card); notifyListeners(); return card; },
+      (card) { 
+        _boardStore.addCard(card);
+        return card; 
+      },
     );
   }
   
   Future<Card?> moveCard(int cardId, int toListId, {String? afterRank, String? beforeRank}) async {
     // 1. Optimistic Update
-    final index = _allCards.indexWhere((c) => c.id == cardId);
+    final index = allCards.indexWhere((c) => c.id == cardId);
     if (index == -1) return null;
 
-    final originalCard = _allCards[index];
+    final originalCard = allCards[index];
+    final updatedCard = originalCard.copyWith(listId: toListId);
+    
     // Update local state immediately
-    _allCards[index] = originalCard.copyWith(listId: toListId);
-    notifyListeners();
+    _boardStore.updateCard(updatedCard);
 
     // 2. Call API
     final result = await _cardRepo.moveCard(cardId, toListId, afterRank: afterRank, beforeRank: beforeRank);
@@ -172,19 +214,14 @@ class BoardViewPageController extends ChangeNotifier {
     return result.fold(
       (f) { 
         // 3. Revert on error
-        final revertIndex = _allCards.indexWhere((c) => c.id == cardId);
-        if (revertIndex != -1) {
-          _allCards[revertIndex] = originalCard;
-        }
+        _boardStore.updateCard(originalCard);
         _error = f.message; 
         notifyListeners(); 
         return null; 
       },
       (card) {
         // 4. Confirm update
-        final confirmIndex = _allCards.indexWhere((c) => c.id == cardId);
-        if (confirmIndex != -1) _allCards[confirmIndex] = card;
-        notifyListeners();
+        _boardStore.updateCard(card);
         return card;
       },
     );
@@ -195,8 +232,7 @@ class BoardViewPageController extends ChangeNotifier {
     return result.fold(
       (f) { _error = f.message; notifyListeners(); return false; },
       (_) {
-        _allCards.removeWhere((c) => c.id == cardId);
-        notifyListeners();
+        _boardStore.removeCard(cardId);
         return true;
       },
     );
@@ -204,15 +240,5 @@ class BoardViewPageController extends ChangeNotifier {
 
   void selectCard(Card card) {
     // Just a placeholder if needed for navigation or local state
-  }
-
-  /// Atualiza um card localmente sem chamar a API
-  /// Usado para sincronizar mudanças vindas de outras páginas
-  void updateCardLocally(Card updatedCard) {
-    final index = _allCards.indexWhere((c) => c.id == updatedCard.id);
-    if (index != -1) {
-      _allCards[index] = updatedCard;
-      notifyListeners();
-    }
   }
 }

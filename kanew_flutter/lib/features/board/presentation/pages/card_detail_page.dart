@@ -182,26 +182,30 @@ class _CardDetailPageState extends State<CardDetailPage> {
           width: 280,
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            child: CardDetailSidebar(
-              card: card,
-              listName: _getListName(card.listId),
-              labels: _controller.labels,
-              boardLabels: _controller.boardLabels,
-              onAddChecklist: () => _showAddChecklistDialog(context),
-              onDueDateChanged: (date) {
-                _controller.updateCard(dueDate: date);
-              },
-              onToggleLabel: (labelId) {
-                if (_controller.labels.any((l) => l.id == labelId)) {
-                  _controller.detachLabel(labelId);
-                } else {
-                  _controller.attachLabel(labelId);
-                }
-              },
-              onCreateLabel: (name, color) {
-                _controller.createLabel(name, color);
-              },
-            ),
+              child: CardDetailSidebar(
+                card: card,
+                listName: _getListName(card.listId),
+                boardLists: _controller.boardLists,
+                labels: _controller.labels,
+                boardLabels: _controller.boardLabels,
+                onAddChecklist: () => _showAddChecklistDialog(context),
+                onDueDateChanged: (date) {
+                  _controller.updateCard(dueDate: date);
+                },
+                onToggleLabel: (labelId) {
+                  if (_controller.labels.any((l) => l.id == labelId)) {
+                    _controller.detachLabel(labelId);
+                  } else {
+                    _controller.attachLabel(labelId);
+                  }
+                },
+                onCreateLabel: (name, color) {
+                  _controller.createLabel(name, color);
+                },
+                onListChanged: (newListId) {
+                  _controller.moveCardToList(newListId);
+                },
+              ),
           ),
         ),
       ],
