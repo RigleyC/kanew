@@ -5,13 +5,14 @@ import '../controllers/board_view_controller.dart';
 
 /// Adapter for Card to work with AppFlowyBoard
 class CardBoardItem extends AppFlowyGroupItem {
-  final Card card;
+  Card card;
 
   CardBoardItem(this.card);
 
   @override
   String get id => card.id.toString();
 }
+
 
 /// Adapter to synchronize Domain Data (Kanew) with UI Data (AppFlowyBoard)
 class BoardDataAdapter {
@@ -76,9 +77,16 @@ class BoardDataAdapter {
       final cardId = card.id.toString();
       if (!currentIds.contains(cardId)) {
         boardController.addGroupItem(groupId, CardBoardItem(card));
+      } else {
+        // Update existing item if needed
+        final existingItem = currentItems.firstWhere((i) => i.id == cardId);
+        if (existingItem is CardBoardItem && existingItem.card != card) {
+          existingItem.card = card;
+        }
       }
     }
   }
+
 
   /// Handles drag and drop movement within the same group or between groups
   void handleMoveCard(
