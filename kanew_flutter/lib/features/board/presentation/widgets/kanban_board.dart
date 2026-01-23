@@ -6,12 +6,14 @@ import 'package:go_router/go_router.dart';
 import 'package:kanew_client/kanew_client.dart';
 
 import '../../../../core/router/route_paths.dart';
+import '../../../../core/di/injection.dart';
 import '../components/add_list_card.dart';
 import '../components/board_group_footer.dart';
 import '../components/board_group_header.dart';
 import '../controllers/board_view_controller.dart';
 import '../dialogs/add_card_dialog.dart';
 import '../dialogs/add_list_dialog.dart';
+import '../store/board_filter_store.dart';
 import '../utils/board_data_adapter.dart';
 import 'kanban_card.dart';
 
@@ -37,6 +39,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
   late final AppFlowyBoardController _boardController;
   late final AppFlowyBoardScrollController _scrollController;
   late final BoardDataAdapter _adapter;
+  late final BoardFilterStore _filterStore;
 
   @override
   void initState() {
@@ -50,12 +53,14 @@ class _KanbanBoardState extends State<KanbanBoard> {
     );
 
     _adapter = BoardDataAdapter(_boardController);
+    _filterStore = getIt<BoardFilterStore>();
 
     // Initial Sync
     _sync();
 
     // Listen for changes
     widget.controller.addListener(_onControllerChanged);
+    _filterStore.addListener(_onFilterChanged);
   }
 
   @override
@@ -71,6 +76,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
   @override
   void dispose() {
     widget.controller.removeListener(_onControllerChanged);
+    _filterStore.removeListener(_onFilterChanged);
     _boardController.dispose();
     super.dispose();
   }
@@ -81,9 +87,19 @@ class _KanbanBoardState extends State<KanbanBoard> {
     }
   }
 
+  void _onFilterChanged() {
+    if (mounted) {
+      _sync();
+    }
+  }
+
   void _sync() {
     try {
-      _adapter.sync(widget.controller.lists, widget.controller.allCards);
+      _adapter.sync(
+        widget.controller.lists,
+        widget.controller.allCards,
+        filterStore: _filterStore,
+      );
     } catch (e, s) {
       developer.log(
         'Error syncing board data',

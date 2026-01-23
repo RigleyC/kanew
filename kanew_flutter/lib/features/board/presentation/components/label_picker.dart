@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kanew_client/kanew_client.dart';
+import '../../../../core/constants/label_colors.dart';
+
+enum _PickerState { list, selectColor }
 
 class LabelPicker extends StatefulWidget {
   final List<LabelDef> boardLabels;
@@ -20,173 +23,270 @@ class LabelPicker extends StatefulWidget {
 }
 
 class _LabelPickerState extends State<LabelPicker> {
-  Color _parseColor(String hex) {
-    hex = hex.replaceAll('#', '');
-    if (hex.length == 6) {
-      hex = 'FF$hex';
-    }
-    return Color(int.parse(hex, radix: 16));
+  final _searchController = TextEditingController();
+  _PickerState _state = _PickerState.list;
+  String _pendingLabelName = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
-  void _showCreateLabelDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    // Default colors
-    final colors = [
-      '#2196F3',
-      '#4CAF50',
-      '#F44336',
-      '#FF9800',
-      '#9C27B0',
-      '#E91E63',
-    ];
-    String selectedColor = colors[0];
+  List<LabelDef> get _filteredLabels {
+    final query = _searchController.text.toLowerCase().trim();
+    if (query.isEmpty) return widget.boardLabels;
+    return widget.boardLabels
+        .where((l) => l.name.toLowerCase().contains(query))
+        .toList();
+  }
 
-    showDialog(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: const Text('Criar etiqueta'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Nome'),
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  children: colors.map((color) {
-                    final isSelected = selectedColor == color;
-                    return GestureDetector(
-                      onTap: () => setState(() => selectedColor = color),
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: _parseColor(color),
-                          shape: BoxShape.circle,
-                          border: isSelected
-                              ? Border.all(width: 3, color: Colors.white)
-                              : null,
-                          boxShadow: isSelected
-                              ? [
-                                  const BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 4,
-                                  ),
-                                ]
-                              : null,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancelar'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  if (nameController.text.isNotEmpty) {
-                    widget.onCreateLabel(nameController.text, selectedColor);
-                    Navigator.pop(dialogContext); // Only pop the dialog
-                  }
-                },
-                child: const Text('Criar'),
-              ),
-            ],
-          );
-        },
-      ),
+  bool get _showCreateOption {
+    final query = _searchController.text.trim();
+    if (query.isEmpty) return false;
+    // Show create if no exact match
+    return !widget.boardLabels.any(
+      (l) => l.name.toLowerCase() == query.toLowerCase(),
     );
+  }
+
+  void _startCreateLabel() {
+    setState(() {
+      _pendingLabelName = _searchController.text.trim();
+      _state = _PickerState.selectColor;
+    });
+  }
+
+  void _selectColor(String colorHex) {
+    widget.onCreateLabel(_pendingLabelName, colorHex);
+    setState(() {
+      _state = _PickerState.list;
+      _pendingLabelName = '';
+      _searchController.clear();
+    });
+  }
+
+  void _cancelColorSelection() {
+    setState(() {
+      _state = _PickerState.list;
+      _pendingLabelName = '';
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
-      width: 300,
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Etiquetas',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            decoration: const InputDecoration(
-              hintText: 'Procurar etiquetas...',
-              isDense: true,
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      width: 280,
+      padding: const EdgeInsets.all(12),
+      child: _state == _PickerState.selectColor
+          ? _buildColorPicker(colorScheme)
+          : _buildLabelList(colorScheme),
+    );
+  }
+
+  Widget _buildLabelList(ColorScheme colorScheme) {
+    final filtered = _filteredLabels;
+    final hasLabels = widget.selectedLabels.isNotEmpty;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Search input
+        TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: hasLabels ? 'Change or add labels...' : 'Add labels...',
+            isDense: true,
+            border: const OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 10,
             ),
           ),
-          const SizedBox(height: 8),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 200),
-            child: SingleChildScrollView(
-              child: Column(
-                children: widget.boardLabels.map((label) {
-                  final isSelected = widget.selectedLabels.any(
-                    (l) => l.id == label.id,
-                  );
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 8),
 
-                  return InkWell(
-                    onTap: () => widget.onToggleLabel(label.id!),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              height: 32,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _parseColor(label.colorHex),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                label.name,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                          if (isSelected)
-                            const Padding(
-                              padding: EdgeInsets.only(left: 8),
-                              child: Icon(Icons.check, size: 16),
-                            ),
-                        ],
-                      ),
+        // Labels list
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 200),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ...filtered.map((label) => _buildLabelItem(label, colorScheme)),
+
+                // Create option
+                if (_showCreateOption) ...[
+                  const Divider(height: 16),
+                  _buildCreateOption(colorScheme),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLabelItem(LabelDef label, ColorScheme colorScheme) {
+    final isSelected = widget.selectedLabels.any((l) => l.id == label.id);
+    final labelColor = LabelColors.parseHex(label.colorHex);
+
+    return InkWell(
+      onTap: () => widget.onToggleLabel(label.id!),
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            // Checkbox indicator
+            Container(
+              width: 20,
+              height: 20,
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? colorScheme.primary : Colors.transparent,
+                border: Border.all(
+                  color: isSelected
+                      ? colorScheme.primary
+                      : colorScheme.outlineVariant,
+                ),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: isSelected
+                  ? Icon(
+                      Icons.check,
+                      size: 14,
+                      color: colorScheme.onPrimary,
+                    )
+                  : null,
+            ),
+
+            // Color dot
+            Container(
+              width: 12,
+              height: 12,
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: labelColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+
+            // Label name
+            Expanded(
+              child: Text(
+                label.name,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCreateOption(ColorScheme colorScheme) {
+    return InkWell(
+      onTap: _startCreateLabel,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(
+              Icons.add,
+              size: 18,
+              color: colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Create new label: ',
+              style: TextStyle(
+                fontSize: 14,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            Text(
+              '"${_searchController.text.trim()}"',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildColorPicker(ColorScheme colorScheme) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        Row(
+          children: [
+            InkWell(
+              onTap: _cancelColorSelection,
+              borderRadius: BorderRadius.circular(4),
+              child: const Icon(Icons.arrow_back, size: 18),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Pick a color for "$_pendingLabelName"',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Color options
+        ...LabelColors.options.map(
+          (option) => InkWell(
+            onTap: () => _selectColor(option.hex),
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: option.color,
+                      shape: BoxShape.circle,
                     ),
-                  );
-                }).toList(),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    option.name,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          const Divider(),
-          TextButton(
-            onPressed: () {
-              // Show create label dialog
-              _showCreateLabelDialog(context);
-            },
-            child: const Text('Criar uma nova etiqueta'),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

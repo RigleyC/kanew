@@ -137,9 +137,7 @@ final appRouter = GoRouter(
     ),
   ),
   routes: [
-    // ================================================================
-    // ROOT ROUTE - Loading screen while workspaces load
-    // ================================================================
+
     GoRoute(
       path: '/',
       builder: (context, state) => ListenableBuilder(
@@ -149,7 +147,6 @@ final appRouter = GoRouter(
           final authViewModel = getIt<AuthController>();
 
           // Only trigger workspace loading if authenticated and not already loading/loaded
-          // This prevents multiple simultaneous load calls
           if (authViewModel.isAuthenticated &&
               !viewModel.hasWorkspaces &&
               !viewModel.isLoading) {

@@ -19,6 +19,7 @@ import '../../features/board/presentation/controllers/boards_page_controller.dar
 import '../../features/board/presentation/controllers/board_view_controller.dart';
 import '../../features/board/presentation/controllers/card_detail_controller.dart';
 import '../../features/board/presentation/store/board_store.dart';
+import '../../features/board/presentation/store/board_filter_store.dart';
 import '../../features/workspace/data/workspace_repository.dart';
 
 import '../../features/workspace/viewmodel/workspace_controller.dart';
@@ -129,6 +130,10 @@ Future<void> setupDependencies() async {
 
   getIt.registerLazySingleton<BoardStore>(
     () => BoardStore(),
+  );
+
+  getIt.registerLazySingleton<BoardFilterStore>(
+    () => BoardFilterStore(),
   );
 
   // ============================================================

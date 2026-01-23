@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart' hide Card;
 import 'package:forui/forui.dart';
 import 'package:kanew_client/kanew_client.dart';
+import '../../../../core/constants/label_colors.dart';
 import '../../../../core/widgets/calendar/calendar.dart';
 import '../components/label_picker.dart';
 
 class CardDetailSidebar extends StatefulWidget {
   final Card card;
   final String listName;
-  final List<CardList> boardLists; // New prop
+  final List<CardList> boardLists; 
   final List<LabelDef> labels;
   final List<LabelDef> boardLabels;
   final VoidCallback onAddChecklist;
   final Function(DateTime) onDueDateChanged;
   final Function(int) onToggleLabel;
   final Function(String, String) onCreateLabel;
-  final Function(int) onListChanged; // New prop
+  final Function(int) onListChanged; 
 
   const CardDetailSidebar({
     super.key,
@@ -52,14 +53,6 @@ class _CardDetailSidebarState extends State<CardDetailSidebar>
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
-
-  Color _parseColor(String hex) {
-    hex = hex.replaceAll('#', '');
-    if (hex.length == 6) {
-      hex = 'FF$hex';
-    }
-    return Color(int.parse(hex, radix: 16));
   }
 
   @override
@@ -167,13 +160,14 @@ class _CardDetailSidebarState extends State<CardDetailSidebar>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    backgroundColor: _parseColor(label.colorHex),
+                    backgroundColor: LabelColors.parseHex(label.colorHex),
                     padding: EdgeInsets.zero,
                     visualDensity: VisualDensity.compact,
                     side: BorderSide.none,
                   ),
                 ),
                 MenuAnchor(
+                  alignmentOffset: const Offset(-280, 0),
                   builder: (context, controller, child) {
                     return InkWell(
                       onTap: () {

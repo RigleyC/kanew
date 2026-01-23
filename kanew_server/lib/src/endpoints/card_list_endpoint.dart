@@ -225,6 +225,27 @@ class CardListEndpoint extends Endpoint {
       throw Exception('User does not have permission to modify this board');
     }
 
+    // Soft delete all cards in this list (cascade)
+    final cardsInList = await Card.db.find(
+      session,
+      where: (c) => c.listId.equals(listId) & c.deletedAt.equals(null),
+    );
+
+    for (final card in cardsInList) {
+      await Card.db.updateRow(
+        session,
+        card.copyWith(
+          deletedAt: DateTime.now(),
+          deletedBy: numericUserId,
+        ),
+      );
+    }
+
+    session.log(
+      '[CardListEndpoint] Soft deleted ${cardsInList.length} cards from list $listId',
+    );
+
+    // Soft delete the list itself
     final updated = cardList.copyWith(
       deletedAt: DateTime.now(),
       deletedBy: numericUserId,

@@ -2,6 +2,7 @@ import 'package:appflowy_board/appflowy_board.dart';
 import 'package:kanew_client/kanew_client.dart';
 
 import '../controllers/board_view_controller.dart';
+import '../store/board_filter_store.dart';
 
 /// Adapter for Card to work with AppFlowyBoard
 class CardBoardItem extends AppFlowyGroupItem {
@@ -13,7 +14,6 @@ class CardBoardItem extends AppFlowyGroupItem {
   String get id => card.id.toString();
 }
 
-
 /// Adapter to synchronize Domain Data (Kanew) with UI Data (AppFlowyBoard)
 class BoardDataAdapter {
   final AppFlowyBoardController boardController;
@@ -21,7 +21,17 @@ class BoardDataAdapter {
   BoardDataAdapter(this.boardController);
 
   /// Synchronizes the board state with the provided lists and cards.
-  void sync(List<CardList> lists, List<Card> allCards) {
+  /// If [filterStore] is provided, only cards that pass the filter are shown.
+  void sync(
+    List<CardList> lists,
+    List<Card> allCards, {
+    BoardFilterStore? filterStore,
+  }) {
+    // Apply filters if provided
+    final filteredCards = filterStore != null
+        ? filterStore.filterCards(allCards)
+        : allCards;
+
     final currentGroupIds = List<String>.from(boardController.groupIds);
     final newGroupIds = lists.map((l) => l.id.toString()).toSet();
 
@@ -35,7 +45,7 @@ class BoardDataAdapter {
     // 2. Add new groups or update existing ones
     for (final cardList in lists) {
       final groupId = cardList.id.toString();
-      final cardsForList = allCards
+      final cardsForList = filteredCards
           .where((c) => c.listId == cardList.id)
           .toList();
 
@@ -86,7 +96,6 @@ class BoardDataAdapter {
       }
     }
   }
-
 
   /// Handles drag and drop movement within the same group or between groups
   void handleMoveCard(

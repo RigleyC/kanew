@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:kanew_client/kanew_client.dart';
 
+import '../../../../core/di/injection.dart';
+import '../store/board_filter_store.dart';
+import 'filter_popover.dart';
+
 /// Board Header - displays board title and actions
 ///
 /// Shows the board title (editable inline), back button, and action menu.
@@ -112,6 +116,13 @@ class _BoardHeaderState extends State<BoardHeader> {
                 ? _buildEditableTitle()
                 : _buildTitle(colorScheme),
           ),
+
+          // Filter button
+          FilterPopover(
+            filterStore: getIt<BoardFilterStore>(),
+          ),
+
+          const SizedBox(width: 8),
 
           // Actions menu
           _buildActionsMenu(colorScheme),
