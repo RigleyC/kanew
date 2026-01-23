@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kanew_client/kanew_client.dart';
 import '../../../../core/constants/label_colors.dart';
+import '../../../../core/widgets/searchable_list_content.dart';
 
 enum _PickerState { list, selectColor }
 
@@ -23,36 +24,19 @@ class LabelPicker extends StatefulWidget {
 }
 
 class _LabelPickerState extends State<LabelPicker> {
-  final _searchController = TextEditingController();
   _PickerState _state = _PickerState.list;
   String _pendingLabelName = '';
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  List<LabelDef> get _filteredLabels {
-    final query = _searchController.text.toLowerCase().trim();
-    if (query.isEmpty) return widget.boardLabels;
-    return widget.boardLabels
-        .where((l) => l.name.toLowerCase().contains(query))
-        .toList();
-  }
-
-  bool get _showCreateOption {
-    final query = _searchController.text.trim();
+  bool _showCreateOption(String query) {
     if (query.isEmpty) return false;
-    // Show create if no exact match
     return !widget.boardLabels.any(
       (l) => l.name.toLowerCase() == query.toLowerCase(),
     );
   }
 
-  void _startCreateLabel() {
+  void _startCreateLabel(String labelName) {
     setState(() {
-      _pendingLabelName = _searchController.text.trim();
+      _pendingLabelName = labelName;
       _state = _PickerState.selectColor;
     });
   }
@@ -62,7 +46,6 @@ class _LabelPickerState extends State<LabelPicker> {
     setState(() {
       _state = _PickerState.list;
       _pendingLabelName = '';
-      _searchController.clear();
     });
   }
 
@@ -75,218 +58,160 @@ class _LabelPickerState extends State<LabelPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    if (_state == _PickerState.selectColor) {
+      return _ColorPicker(
+        pendingLabelName: _pendingLabelName,
+        onSelectColor: _selectColor,
+        onCancel: _cancelColorSelection,
+      );
+    }
 
-    return Container(
-      width: 280,
-      padding: const EdgeInsets.all(12),
-      child: _state == _PickerState.selectColor
-          ? _buildColorPicker(colorScheme)
-          : _buildLabelList(colorScheme),
-    );
-  }
-
-  Widget _buildLabelList(ColorScheme colorScheme) {
-    final filtered = _filteredLabels;
     final hasLabels = widget.selectedLabels.isNotEmpty;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Search input
-        TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: hasLabels ? 'Change or add labels...' : 'Add labels...',
-            isDense: true,
-            border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 10,
-            ),
-          ),
-          onChanged: (_) => setState(() {}),
-        ),
-        const SizedBox(height: 8),
-
-        // Labels list
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 200),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ...filtered.map((label) => _buildLabelItem(label, colorScheme)),
-
-                // Create option
-                if (_showCreateOption) ...[
-                  const Divider(height: 16),
-                  _buildCreateOption(colorScheme),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ],
+    return SearchableListContent<LabelDef>(
+      items: widget.boardLabels,
+      selectedItems: widget.selectedLabels,
+      labelBuilder: (l) => l.name,
+      leadingBuilder: (l) => _ColorDot(colorHex: l.colorHex),
+      onSelect: (l) => widget.onToggleLabel(l.id!),
+      searchHint: hasLabels ? 'Change or add labels...' : 'Add labels...',
+      isEqual: (a, b) => a.id == b.id,
+      footerBuilder: (query) => _showCreateOption(query)
+          ? _CreateLabelOption(
+              labelName: query,
+              onTap: () => _startCreateLabel(query),
+            )
+          : null,
     );
   }
+}
 
-  Widget _buildLabelItem(LabelDef label, ColorScheme colorScheme) {
-    final isSelected = widget.selectedLabels.any((l) => l.id == label.id);
-    final labelColor = LabelColors.parseHex(label.colorHex);
+class _ColorDot extends StatelessWidget {
+  final String colorHex;
 
-    return InkWell(
-      onTap: () => widget.onToggleLabel(label.id!),
-      borderRadius: BorderRadius.circular(6),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            // Checkbox indicator
-            Container(
-              width: 20,
-              height: 20,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? colorScheme.primary : Colors.transparent,
-                border: Border.all(
-                  color: isSelected
-                      ? colorScheme.primary
-                      : colorScheme.outlineVariant,
-                ),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: isSelected
-                  ? Icon(
-                      Icons.check,
-                      size: 14,
-                      color: colorScheme.onPrimary,
-                    )
-                  : null,
-            ),
+  const _ColorDot({required this.colorHex});
 
-            // Color dot
-            Container(
-              width: 12,
-              height: 12,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: labelColor,
-                shape: BoxShape.circle,
-              ),
-            ),
-
-            // Label name
-            Expanded(
-              child: Text(
-                label.name,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-            ),
-          ],
-        ),
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: LabelColors.parseHex(colorHex),
       ),
     );
   }
+}
 
-  Widget _buildCreateOption(ColorScheme colorScheme) {
+class _CreateLabelOption extends StatelessWidget {
+  final String labelName;
+  final VoidCallback onTap;
+
+  const _CreateLabelOption({
+    required this.labelName,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return InkWell(
-      onTap: _startCreateLabel,
-      borderRadius: BorderRadius.circular(6),
+      overlayColor: WidgetStateProperty.all(Colors.transparent),
+      onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         child: Row(
           children: [
             Icon(
               Icons.add,
-              size: 18,
+              size: 14,
               color: colorScheme.primary,
             ),
             const SizedBox(width: 8),
             Text(
-              'Create new label: ',
-              style: TextStyle(
-                fontSize: 14,
-                color: colorScheme.onSurfaceVariant,
-              ),
+              'Criar nova etiqueta: ',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
             Text(
-              '"${_searchController.text.trim()}"',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurface,
-              ),
+              '"$labelName"',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildColorPicker(ColorScheme colorScheme) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header
-        Row(
-          children: [
-            InkWell(
-              onTap: _cancelColorSelection,
-              borderRadius: BorderRadius.circular(4),
-              child: const Icon(Icons.arrow_back, size: 18),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Pick a color for "$_pendingLabelName"',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                overflow: TextOverflow.ellipsis,
+class _ColorPicker extends StatelessWidget {
+  final String pendingLabelName;
+  final Function(String) onSelectColor;
+  final VoidCallback onCancel;
+
+  const _ColorPicker({
+    required this.pendingLabelName,
+    required this.onSelectColor,
+    required this.onCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 280,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              InkWell(
+                onTap: onCancel,
+                borderRadius: BorderRadius.circular(4),
+                child: const Icon(Icons.keyboard_arrow_left, size: 18),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // Color options
-        ...LabelColors.options.map(
-          (option) => InkWell(
-            onTap: () => _selectColor(option.hex),
-            borderRadius: BorderRadius.circular(6),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                children: [
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: option.color,
-                      shape: BoxShape.circle,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  "Pick a color",
+                  style: Theme.of(context).textTheme.titleMedium,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...LabelColors.options.map(
+            (option) => InkWell(
+              onTap: () => onSelectColor(option.hex),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: option.color,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    option.name,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colorScheme.onSurface,
+                    Text(
+                      option.name,
+                      style: Theme.of(context).textTheme.labelLarge,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
