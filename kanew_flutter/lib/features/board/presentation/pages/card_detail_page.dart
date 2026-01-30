@@ -13,7 +13,7 @@ import '../components/card_detail_sidebar.dart';
 import '../components/card_description_editor.dart';
 import '../components/card_comment_input.dart';
 import '../components/card_attachment_section.dart';
-import '../widgets/checklist_widget.dart';
+import '../widgets/checklist/checklist_section.dart';
 
 /// Card Detail Page - Two-column layout following kan.bn design
 ///
@@ -60,7 +60,6 @@ class _CardDetailPageState extends State<CardDetailPage> {
   }
 
   Future<void> _loadCard() async {
-    // Carrega diretamente pelo cardUuid
     await _controller.load(widget.cardUuid);
   }
 
@@ -204,6 +203,9 @@ class _CardDetailPageState extends State<CardDetailPage> {
               onListChanged: (newListId) {
                 _controller.moveCardToList(newListId);
               },
+              onPriorityChanged: (priority) {
+                _controller.updateCard(priority: priority);
+              },
             ),
           ),
         ),
@@ -244,6 +246,9 @@ class _CardDetailPageState extends State<CardDetailPage> {
             onListChanged: (newListId) {
               _controller.moveCardToList(newListId);
             },
+            onPriorityChanged: (priority) {
+              _controller.updateCard(priority: priority);
+            },
           ),
         ],
       ),
@@ -266,20 +271,24 @@ class _CardDetailPageState extends State<CardDetailPage> {
           initialDescription: card.descriptionDocument,
           onSave: (newDesc) => _controller.updateCard(description: newDesc),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 12),
+        const Divider(),
+        const SizedBox(height: 12),
 
         // Checklists
         if (_controller.checklists.isNotEmpty) ...[
-          ..._controller.checklists.map(
-            (checklist) => ChecklistWidget(
-              checklist: checklist,
-              items: _controller.getItemsForChecklist(checklist.id!),
-              controller: _controller,
-            ),
+          ChecklistSection(
+            checklists: _controller.checklists,
+            checklistItems: _controller.checklistItems,
+            onAddItem: _controller.addItem,
+            onDeleteChecklist: _controller.deleteChecklist,
+            onToggleItem: _controller.toggleItem,
+            onDeleteItem: _controller.deleteItem,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
         ],
-
+        const Divider(),
+        const SizedBox(height: 16),
         // Attachments
         CardAttachmentSection(controller: _controller),
         const SizedBox(height: 32),

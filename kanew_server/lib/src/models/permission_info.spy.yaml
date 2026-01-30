@@ -1,0 +1,5 @@
+# DTO para matriz de permissões - indica se permissão está concedida ou não
+class: PermissionInfo
+fields:
+  permission: Permission
+  granted: bool

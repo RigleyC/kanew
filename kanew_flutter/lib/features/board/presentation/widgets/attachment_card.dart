@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:kanew_client/kanew_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Widget that displays an individual attachment item.
-///
-/// Shows file icon, name, size, and delete button.
-/// Tapping opens the file URL in browser.
 class AttachmentCard extends StatelessWidget {
   final Attachment attachment;
   final VoidCallback onDelete;
@@ -25,16 +21,7 @@ class AttachmentCard extends StatelessWidget {
     }
   }
 
-  IconData _getIcon() {
-    final mime = attachment.mimeType.toLowerCase();
-    if (mime.contains('image')) return Icons.image;
-    if (mime.contains('pdf')) return Icons.picture_as_pdf;
-    if (mime.contains('zip') || mime.contains('compressed')) {
-      return Icons.folder_zip;
-    }
-    if (mime.contains('text')) return Icons.description;
-    return Icons.insert_drive_file;
-  }
+ 
 
   String _formatSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
@@ -53,45 +40,37 @@ class AttachmentCard extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           border: Border.all(color: colorScheme.outlineVariant),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: Icon(
-                _getIcon(),
-                color: colorScheme.primary,
-                size: 24,
-              ),
+              child: Image.network(attachment.fileUrl!),
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    attachment.fileName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    _formatSize(attachment.size),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  attachment.fileName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                Text(
+                  _formatSize(attachment.size),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ),
+            Spacer(),
             IconButton(
               icon: const Icon(Icons.close, size: 18),
               onPressed: onDelete,

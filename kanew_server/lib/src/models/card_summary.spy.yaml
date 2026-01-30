@@ -1,0 +1,8 @@
+class: CardSummary
+fields:
+  card: Card
+  cardLabels: List<LabelDef>
+  checklistTotal: int
+  checklistCompleted: int
+  attachmentCount: int
+  commentCount: int

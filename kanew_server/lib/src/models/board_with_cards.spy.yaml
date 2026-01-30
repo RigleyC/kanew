@@ -1,0 +1,4 @@
+class: BoardWithCards
+fields:
+  context: BoardContext
+  cards: List<CardSummary>

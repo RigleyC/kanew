@@ -195,29 +195,31 @@ class _KanbanBoardState extends State<KanbanBoard> {
               ),
               cardBuilder: (context, group, groupItem) {
                 if (groupItem is! CardBoardItem) {
-                  return const SizedBox(); // Ignore phantom items
+                  return const SizedBox();
                 }
                 final cardItem = groupItem;
                 return AppFlowyGroupCard(
                   key: ObjectKey(cardItem),
                   child: KanbanCard(
-                    card: cardItem.card,
+                    cardSummary: cardItem.cardSummary,
                     onTap: () async {
-                      widget.controller.selectCard(cardItem.card);
+                      widget.controller.selectCard(cardItem.cardSummary);
                       developer.log(
-                        'Card tapped: ${cardItem.card.title}',
+                        'Card tapped: ${cardItem.cardSummary.card.title}',
                         name: 'kanban_board',
                       );
                       context.go(
                         RoutePaths.cardDetail(
                           widget.workspaceSlug,
                           widget.boardSlug,
-                          cardItem.card.uuid.toString(),
+                          cardItem.cardSummary.card.uuid.toString(),
                         ),
                       );
                     },
                     onDelete: () async {
-                      await widget.controller.deleteCard(cardItem.card.id!);
+                      await widget.controller.deleteCard(
+                        cardItem.cardSummary.card.id!,
+                      );
                     },
                   ),
                 );

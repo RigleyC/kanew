@@ -71,30 +71,20 @@ class BoardFilterStore extends ChangeNotifier {
   /// Checks if a card passes all active filters.
   /// Within a category: OR logic (card matches ANY selected option)
   /// Between categories: AND logic (card must pass ALL categories)
-  bool passesFilter(Card card) {
-    // If no filters active, all cards pass
+  bool passesFilter(CardSummary cardSummary) {
+    final card = cardSummary.card;
     if (!hasActiveFilters) return true;
 
-    // Priority filter (OR within category)
     if (_priorities.isNotEmpty) {
       if (!_priorities.contains(card.priority)) {
         return false;
       }
     }
 
-    // Label filter would go here (requires card.labels relationship)
-    // if (_labelIds.isNotEmpty) {
-    //   final cardLabelIds = card.labels?.map((l) => l.id).toSet() ?? {};
-    //   if (_labelIds.intersection(cardLabelIds).isEmpty) {
-    //     return false;
-    //   }
-    // }
-
     return true;
   }
 
-  /// Filters a list of cards based on active filters
-  List<Card> filterCards(List<Card> cards) {
+  List<CardSummary> filterCards(List<CardSummary> cards) {
     if (!hasActiveFilters) return cards;
     return cards.where(passesFilter).toList();
   }

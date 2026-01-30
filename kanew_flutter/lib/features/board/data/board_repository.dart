@@ -55,6 +55,41 @@ class BoardRepository {
     }
   }
 
+  /// Gets board with all cards (using new optimized endpoint)
+  /// Returns BoardWithCards (context + card summaries)
+  Future<BoardWithCards> getBoardWithCards(
+    String workspaceSlug,
+    String boardSlug,
+  ) async {
+    developer.log(
+      'BoardRepository.getBoardWithCards($workspaceSlug, $boardSlug)',
+      name: 'board_repository',
+    );
+    try {
+      // First get the board to get its ID
+      final board = await getBoardBySlug(workspaceSlug, boardSlug);
+      if (board == null) {
+        throw Exception('Board not found');
+      }
+
+      // Then call the new optimized endpoint
+      final boardWithCards = await _client.card.getBoardWithCards(board.id!);
+      developer.log(
+        'BoardRepository.getBoardWithCards success: ${boardWithCards.cards.length} cards',
+        name: 'board_repository',
+      );
+      return boardWithCards;
+    } catch (e, s) {
+      developer.log(
+        'BoardRepository.getBoardWithCards error',
+        name: 'board_repository',
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
+    }
+  }
+
   /// Creates a new board by workspace slug
   Future<Board> createBoardByWorkspaceSlug(
     String workspaceSlug,

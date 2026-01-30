@@ -28,15 +28,17 @@ board:
   - deleteBoard:
 card:
   - getCards:
-  - getCardsByBoard:
+  - getCardsByBoardDetail:
   - getCard:
   - createCard:
+  - createCardDetail:
   - updateCard:
   - moveCard:
   - deleteCard:
   - toggleComplete:
   - getCardDetail:
   - getCardDetailByUuid:
+  - getBoardWithCards:
 cardList:
   - getLists:
   - createList:
@@ -57,6 +59,12 @@ comment:
   - getComments:
   - createComment:
   - deleteComment:
+invite:
+  - createInvite:
+  - getInvites:
+  - revokeInvite:
+  - getInviteByCode:
+  - acceptInvite:
 label:
   - getLabels:
   - createLabel:
@@ -65,6 +73,14 @@ label:
   - attachLabel:
   - detachLabel:
   - getCardLabels:
+member:
+  - getMembers:
+  - removeMember:
+  - updateMemberRole:
+  - getMemberPermissions:
+  - updateMemberPermissions:
+  - transferOwnership:
+  - getAllPermissions:
 workspace:
   - getWorkspaces:
   - getWorkspace:

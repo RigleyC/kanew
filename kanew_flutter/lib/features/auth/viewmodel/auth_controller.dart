@@ -9,14 +9,7 @@ import '../domain/auth_state.dart';
 
 export '../domain/auth_state.dart';
 
-/// Controller for authentication flows.
-///
-/// Follows SOLID principles:
-/// - Single Responsibility: Only manages auth state and delegates to repository
-/// - Open/Closed: States can be extended via sealed class hierarchy
-/// - Liskov Substitution: Uses abstract AuthRepository
-/// - Interface Segregation: Repository has focused methods
-/// - Dependency Inversion: Depends on abstractions (AuthRepository)
+
 class AuthController extends ChangeNotifier {
   final AuthRepository _repository;
   final FlutterAuthSessionManager _authManager;
@@ -30,29 +23,18 @@ class AuthController extends ChangeNotifier {
   }) : _repository = repository,
        _authManager = authManager;
 
-  // ============================================================
-  // GETTERS
-  // ============================================================
 
-  /// Current auth state
   AuthState get state => _state;
 
-  /// Current email being processed
   String? get currentEmail => _currentEmail;
 
-  /// Whether loading is in progress
   bool get isLoading => _state is AuthLoading;
 
-  /// Error message if in error state
   String? get errorMessage =>
       _state is AuthError ? (_state as AuthError).message : null;
 
-  /// Checks if user is currently authenticated
   bool get isAuthenticated => _authManager.isAuthenticated;
 
-  // ============================================================
-  // STATE MANAGEMENT
-  // ============================================================
 
   void _setState(AuthState newState) {
     _state = newState;
@@ -75,30 +57,18 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  /// Clears the current error state
   void clearError() {
     if (_state is AuthError) {
       _setState(const AuthInitial());
     }
   }
 
-  /// Resets the state to initial
   void reset() {
     _currentEmail = null;
     _setState(const AuthInitial());
   }
 
-  // ============================================================
-  // LOGIN
-  // ============================================================
 
-  /// Attempts to log in with email and password.
-  ///
-  /// Possible resulting states:
-  /// - [AuthAuthenticated] if login successful
-  /// - [AuthAccountNotFoundError] if no account exists
-  /// - [AuthInvalidCredentialsError] if credentials are wrong
-  /// - [AuthNetworkError] on connection errors
   Future<void> login({
     required String email,
     required String password,
@@ -112,7 +82,6 @@ class AuthController extends ChangeNotifier {
         password: password,
       );
 
-      // Explicitly register the session with the auth manager
       await _authManager.updateSignedInUser(authSuccess);
 
       if (_authManager.isAuthenticated) {
@@ -137,16 +106,7 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // ============================================================
-  // REGISTRATION
-  // ============================================================
 
-  /// Starts the registration process by sending verification code.
-  ///
-  /// Possible resulting states:
-  /// - [AuthNeedsVerification] if code was sent
-  /// - [AuthAccountExistsError] if account already exists
-  /// - [AuthNetworkError] on connection errors
   Future<void> startRegistration({required String email}) async {
     _currentEmail = email.trim().toLowerCase();
     _setState(const AuthLoading());
@@ -175,12 +135,6 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  /// Verifies the registration code.
-  ///
-  /// Possible resulting states:
-  /// - [AuthCodeVerified] if code is valid
-  /// - [AuthInvalidCodeError] if code is wrong
-  /// - [AuthCodeExpiredError] if code has expired
   Future<void> verifyRegistrationCode({
     required UuidValue accountRequestId,
     required String code,
@@ -215,11 +169,6 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  /// Finishes registration with password.
-  ///
-  /// Possible resulting states:
-  /// - [AuthAuthenticated] if registration successful
-  /// - [AuthNetworkError] on connection errors
   Future<void> finishRegistration({
     required String registrationToken,
     required String password,
@@ -232,7 +181,6 @@ class AuthController extends ChangeNotifier {
         password: password,
       );
 
-      // Explicitly register the session with the auth manager
       await _authManager.updateSignedInUser(authSuccess);
 
       if (_authManager.isAuthenticated) {
@@ -251,11 +199,6 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  /// Resends verification code.
-  ///
-  /// Possible resulting states:
-  /// - [AuthNeedsVerification] with new accountRequestId
-  /// - [AuthNetworkError] on connection errors
   Future<void> resendVerificationCode({required String email}) async {
     _setState(const AuthLoading());
 
@@ -280,15 +223,7 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // ============================================================
-  // PASSWORD RESET
-  // ============================================================
 
-  /// Starts password reset flow.
-  ///
-  /// Possible resulting states:
-  /// - [AuthPasswordResetCodeSent] if code was sent
-  /// - [AuthNetworkError] on connection errors
   Future<void> startPasswordReset({required String email}) async {
     _currentEmail = email.trim().toLowerCase();
     _setState(const AuthLoading());
@@ -314,12 +249,6 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  /// Verifies password reset code.
-  ///
-  /// Possible resulting states:
-  /// - [AuthPasswordResetVerified] with token for password change
-  /// - [AuthInvalidCodeError] if code is wrong
-  /// - [AuthCodeExpiredError] if code has expired
   Future<void> verifyPasswordResetCode({
     required UuidValue requestId,
     required String code,
@@ -354,11 +283,6 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  /// Finishes password reset with new password.
-  ///
-  /// Possible resulting states:
-  /// - [AuthInitial] if password was changed (user needs to login)
-  /// - [AuthNetworkError] on connection errors
   Future<void> finishPasswordReset({
     required String token,
     required String newPassword,
@@ -382,11 +306,7 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // ============================================================
-  // SESSION MANAGEMENT
-  // ============================================================
 
-  /// Logs out the current user
   Future<void> logout() async {
     try {
       await _authManager.signOutDevice();

@@ -6,10 +6,6 @@ import 'package:kanew_client/kanew_client.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/error/failures.dart';
 
-/// Repository for card operations
-///
-/// Returns `Either<Failure, T>` for all operations that can fail,
-/// following the pattern defined in AGENTS.md.
 class CardRepository {
   final Client _client;
 
@@ -45,22 +41,24 @@ class CardRepository {
     }
   }
 
-  /// Gets all cards for a board
-  Future<Either<Failure, List<Card>>> getCardsByBoard(int boardId) async {
+  /// Gets all cards for a board with complete details
+  Future<Either<Failure, List<CardDetail>>> getCardsByBoardDetail(
+    int boardId,
+  ) async {
     developer.log(
-      'CardRepository.getCardsByBoard($boardId)',
+      'CardRepository.getCardsByBoardDetail($boardId)',
       name: 'card_repository',
     );
     try {
-      final cards = await _client.card.getCardsByBoard(boardId);
+      final cardDetails = await _client.card.getCardsByBoardDetail(boardId);
       developer.log(
-        'CardRepository.getCardsByBoard success: ${cards.length} cards',
+        'CardRepository.getCardsByBoardDetail success: ${cardDetails.length} cards',
         name: 'card_repository',
       );
-      return Right(cards);
+      return Right(cardDetails);
     } catch (e, s) {
       developer.log(
-        'CardRepository.getCardsByBoard error: $e',
+        'CardRepository.getCardsByBoardDetail error: $e',
         name: 'card_repository',
         error: e,
         stackTrace: s,
@@ -68,6 +66,44 @@ class CardRepository {
       return Left(
         ServerFailure(
           'Erro ao carregar cards do board',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
+  }
+
+  /// Creates a new card and returns complete CardDetail
+  /// Requires: board.update permission
+  Future<Either<Failure, CardDetail>> createCardDetail(
+    int listId,
+    String title,
+  ) async {
+    developer.log(
+      'CardRepository.createCardDetail($listId, $title)',
+      name: 'card_repository',
+    );
+    try {
+      final cardDetail = await _client.card.createCardDetail(
+        listId,
+        title,
+        priority: CardPriority.none,
+      );
+      developer.log(
+        'CardRepository.createCardDetail success',
+        name: 'card_repository',
+      );
+      return Right(cardDetail);
+    } catch (e, s) {
+      developer.log(
+        'CardRepository.createCardDetail error: $e',
+        name: 'card_repository',
+        error: e,
+        stackTrace: s,
+      );
+      return Left(
+        ServerFailure(
+          'Erro ao criar card',
           originalError: e,
           stackTrace: s,
         ),

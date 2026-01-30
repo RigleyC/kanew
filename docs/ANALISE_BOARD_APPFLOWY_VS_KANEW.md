@@ -183,10 +183,10 @@ Cmd+Shift+↑      Criar card acima
 **Problemas Identificados:**
 ```dart
 // board_view_controller.dart:52-55
-// Carrega tudo de uma vez
+// Carrega tudo de uma vez (AGORA USA getCardsByBoardDetail)
 final results = await Future.wait([
   _listRepo.getLists(_board!.id!),
-  _cardRepo.getCardsByBoard(_board!.id!),
+  _cardRepo.getCardsByBoardDetail(_board!.id!), // CardDetail com todos os dados
 ]);
 
 // board_view_page.dart:193-211

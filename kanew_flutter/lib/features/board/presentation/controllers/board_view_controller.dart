@@ -34,19 +34,22 @@ class BoardViewPageController extends ChangeNotifier {
 
   // Getters delegating to Store
   Board? get board => _boardStore.board;
+  Workspace? get workspace => _boardStore.workspace;
   List<CardList> get lists => _boardStore.lists;
-  List<Card> get allCards => _boardStore.allCards;
+  List<CardSummary> get allCards => _boardStore.cards;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  List<Card> getCardsForList(int listId) {
+  List<CardSummary> getCardsForList(int listId) {
     return _boardStore.getCardsForList(listId);
   }
 
   // Load board using slugs only (no workspaceId needed)
   Future<void> load(String workspaceSlug, String boardSlug) async {
+    print('DEBUG: BoardViewPageController.load($workspaceSlug, $boardSlug)');
     // Prevent reload if already loaded same board
     if (_boardStore.board?.slug == boardSlug) {
+      print('DEBUG: Board already loaded, skipping');
       return;
     }
 
@@ -56,38 +59,19 @@ class BoardViewPageController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Usa o novo endpoint baseado em slug
-      final board = await _boardRepo.getBoardBySlug(workspaceSlug, boardSlug);
-      if (board == null) {
-        _error = 'Board nao encontrado';
-        _isLoading = false;
-        notifyListeners();
-        return;
-      }
-
-      // Carregar lists e cards em paralelo
-      final results = await Future.wait([
-        _listRepo.getLists(board.id!),
-        _cardRepo.getCardsByBoard(board.id!),
-      ]);
-
-      List<CardList> lists = [];
-      List<Card> cards = [];
-
-      results[0].fold(
-        (f) => _error = f.message,
-        (l) => lists = l as List<CardList>,
+      // Use new optimized endpoint
+      print('DEBUG: Calling getBoardWithCards($workspaceSlug, $boardSlug)');
+      final boardWithCards = await _boardRepo.getBoardWithCards(
+        workspaceSlug,
+        boardSlug,
+      );
+      print(
+        'DEBUG: BoardWithCards loaded: ${boardWithCards.cards.length} cards',
       );
 
-      results[1].fold(
-        (f) => _error = f.message,
-        (c) => cards = c as List<Card>,
-      );
-
-      if (_error == null) {
-        _boardStore.initData(board: board, lists: lists, cards: cards);
-      }
+      _boardStore.initFromBoardWithCards(boardWithCards);
     } catch (e) {
+      print('DEBUG: Error loading board: $e');
       _error = 'Erro ao carregar board';
     } finally {
       _isLoading = false;
@@ -99,21 +83,15 @@ class BoardViewPageController extends ChangeNotifier {
   Future<void> reloadCards() async {
     if (board == null) return;
 
-    final result = await _cardRepo.getCardsByBoard(board!.id!);
-    result.fold(
-      (f) => _error = f.message,
-      (cards) {
-        // We could implement a bulk setCards in store, but for now we rely on initData or manual sync
-        // Ideally we should have setCards in store. Let's assume we just want to refresh cards.
-        // For now, let's reuse initData preserving board and lists, or add setCards to store.
-        // Since we didn't add setCards, let's just re-init.
-        _boardStore.initData(
-          board: board!,
-          lists: lists,
-          cards: cards,
-        );
-      },
-    );
+    try {
+      final boardWithCards = await _boardRepo.getBoardWithCards(
+        workspace!.slug,
+        board!.slug,
+      );
+      _boardStore.initFromBoardWithCards(boardWithCards);
+    } catch (e) {
+      _error = 'Erro ao recarregar cards';
+    }
     notifyListeners();
   }
 
@@ -199,20 +177,38 @@ class BoardViewPageController extends ChangeNotifier {
     );
   }
 
-  // Card operations
-  Future<Card?> createCard(int listId, String title) async {
-    final result = await _cardRepo.createCard(listId, title);
-    return result.fold(
+  // Card operations - now work with CardSummary
+  Future<CardSummary?> createCard(int listId, String title) async {
+    final result = await _cardRepo.createCardDetail(listId, title);
+
+    CardSummary? summary;
+    result.fold(
       (f) {
         _error = f.message;
         notifyListeners();
-        return null;
       },
-      (card) {
-        _boardStore.addCard(card);
-        return card;
+      (cardDetail) {
+        // Convert CardDetail to CardSummary for the board
+        summary = CardSummary(
+          card: cardDetail.card,
+          cardLabels: cardDetail.cardLabels,
+          checklistTotal: cardDetail.checklists.fold(
+            0,
+            (sum, c) => sum + c.items.length,
+          ),
+          checklistCompleted: cardDetail.checklists.fold(
+            0,
+            (sum, c) => sum + c.items.where((i) => i.isChecked).length,
+          ),
+          attachmentCount: cardDetail.attachments.length,
+          commentCount: cardDetail.totalComments,
+        );
+        _boardStore.addCard(summary!);
+        notifyListeners();
       },
     );
+
+    return summary;
   }
 
   Future<Card?> moveCard(
@@ -222,11 +218,11 @@ class BoardViewPageController extends ChangeNotifier {
     String? beforeRank,
   }) async {
     // 1. Optimistic Update
-    final index = allCards.indexWhere((c) => c.id == cardId);
+    final index = allCards.indexWhere((c) => c.card.id == cardId);
     if (index == -1) return null;
 
-    final originalCard = allCards[index];
-    final updatedCard = originalCard.copyWith(listId: toListId);
+    final originalSummary = allCards[index];
+    final updatedCard = originalSummary.card.copyWith(listId: toListId);
 
     // Update local state immediately
     _boardStore.updateCard(updatedCard);
@@ -242,7 +238,7 @@ class BoardViewPageController extends ChangeNotifier {
     return result.fold(
       (f) {
         // 3. Revert on error
-        _boardStore.updateCard(originalCard);
+        _boardStore.updateCard(originalSummary.card);
         _error = f.message;
         notifyListeners();
         return null;
@@ -270,7 +266,7 @@ class BoardViewPageController extends ChangeNotifier {
     );
   }
 
-  void selectCard(Card card) {
+  void selectCard(CardSummary card) {
     // Just a placeholder if needed for navigation or local state
   }
 }

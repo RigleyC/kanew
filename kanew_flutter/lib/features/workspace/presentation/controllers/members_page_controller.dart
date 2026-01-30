@@ -1,0 +1,208 @@
+import 'package:flutter/foundation.dart';
+import 'package:kanew_client/kanew_client.dart';
+import '../../data/member_repository.dart';
+
+/// Controller for Members Page
+class MembersPageController extends ChangeNotifier {
+  final MemberRepository _repository;
+
+  MembersPageController({
+    required MemberRepository repository,
+  }) : _repository = repository;
+
+  // State
+  List<MemberWithUser> _members = [];
+  List<WorkspaceInvite> _invites = [];
+  List<Permission> _allPermissions = [];
+  bool _isLoading = false;
+  String? _error;
+
+  // Getters
+  List<MemberWithUser> get members => _members;
+  List<WorkspaceInvite> get invites => _invites;
+  List<Permission> get allPermissions => _allPermissions;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  /// Loads members and invites for a workspace
+  Future<void> loadData(int workspaceId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    // Load all permissions (only once)
+    if (_allPermissions.isEmpty) {
+      final permissionsResult = await _repository.getAllPermissions();
+      permissionsResult.fold(
+        (failure) => _error = failure.message,
+        (data) => _allPermissions = data,
+      );
+    }
+
+    // Load members
+    final membersResult = await _repository.getMembers(workspaceId);
+    membersResult.fold(
+      (failure) => _error = failure.message,
+      (data) => _members = data,
+    );
+
+    // Load invites
+    final invitesResult = await _repository.getInvites(workspaceId);
+    invitesResult.fold(
+      (failure) => _error = failure.message,
+      (data) => _invites = data,
+    );
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Removes a member
+  Future<bool> removeMember(int memberId) async {
+    final result = await _repository.removeMember(memberId);
+
+    return result.fold(
+      (failure) {
+        _error = failure.message;
+        notifyListeners();
+        return false;
+      },
+      (_) {
+        _members.removeWhere((m) => m.member.id == memberId);
+        notifyListeners();
+        return true;
+      },
+    );
+  }
+
+  /// Updates member role
+  Future<bool> updateMemberRole(int memberId, MemberRole newRole) async {
+    final result = await _repository.updateMemberRole(memberId, newRole);
+
+    return result.fold(
+      (failure) {
+        _error = failure.message;
+        notifyListeners();
+        return false;
+      },
+      (updated) {
+        final index = _members.indexWhere((m) => m.member.id == memberId);
+        if (index != -1) {
+          _members[index] = _members[index].copyWith(
+            member: updated,
+          );
+        }
+        notifyListeners();
+        return true;
+      },
+    );
+  }
+
+  /// Gets permissions for a member
+  Future<List<PermissionInfo>?> getMemberPermissions(int memberId) async {
+    final result = await _repository.getMemberPermissions(memberId);
+
+    return result.fold(
+      (failure) {
+        _error = failure.message;
+        notifyListeners();
+        return null;
+      },
+      (permissions) => permissions,
+    );
+  }
+
+  /// Updates member permissions
+  Future<bool> updateMemberPermissions(
+    int memberId,
+    List<int> permissionIds,
+  ) async {
+    final result = await _repository.updateMemberPermissions(
+      memberId,
+      permissionIds,
+    );
+
+    return result.fold(
+      (failure) {
+        _error = failure.message;
+        notifyListeners();
+        return false;
+      },
+      (_) {
+        notifyListeners();
+        return true;
+      },
+    );
+  }
+
+  /// Transfers ownership
+  Future<bool> transferOwnership(int workspaceId, int newOwnerId) async {
+    final result = await _repository.transferOwnership(
+      workspaceId,
+      newOwnerId,
+    );
+
+    return result.fold(
+      (failure) {
+        _error = failure.message;
+        notifyListeners();
+        return false;
+      },
+      (_) {
+        // Reload data to reflect changes
+        loadData(workspaceId);
+        return true;
+      },
+    );
+  }
+
+  /// Creates an invite
+  Future<WorkspaceInvite?> createInvite(
+    int workspaceId,
+    List<int> permissionIds, {
+    String? email,
+  }) async {
+    final result = await _repository.createInvite(
+      workspaceId,
+      permissionIds,
+      email: email,
+    );
+
+    return result.fold(
+      (failure) {
+        _error = failure.message;
+        notifyListeners();
+        return null;
+      },
+      (invite) {
+        _invites.insert(0, invite);
+        notifyListeners();
+        return invite;
+      },
+    );
+  }
+
+  /// Revokes an invite
+  Future<bool> revokeInvite(int inviteId) async {
+    final result = await _repository.revokeInvite(inviteId);
+
+    return result.fold(
+      (failure) {
+        _error = failure.message;
+        notifyListeners();
+        return false;
+      },
+      (_) {
+        _invites.removeWhere((inv) => inv.id == inviteId);
+        notifyListeners();
+        return true;
+      },
+    );
+  }
+
+  /// Clears error
+  void clearError() {
+    _error = null;
+    notifyListeners();
+  }
+}

@@ -1,0 +1,8 @@
+# DTO que junta WorkspaceMember com dados de UserInfo (serverpod_auth)
+# Usado para exibir lista de membros com nome e email
+class: MemberWithUser
+fields:
+  member: WorkspaceMember
+  userName: String
+  userEmail: String
+  userImageUrl: String?

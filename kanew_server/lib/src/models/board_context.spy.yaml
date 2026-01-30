@@ -1,0 +1,7 @@
+class: BoardContext
+fields:
+  board: Board
+  workspace: Workspace
+  lists: List<CardList>
+  labels: List<LabelDef>
+  members: List<WorkspaceMember>

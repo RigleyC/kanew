@@ -14,11 +14,13 @@ import '../viewmodel/auth_controller.dart';
 class VerificationScreen extends StatefulWidget {
   final String email;
   final String accountRequestId;
+  final String? redirect;
 
   const VerificationScreen({
     super.key,
     required this.email,
     required this.accountRequestId,
+    this.redirect,
   });
 
   @override
@@ -86,6 +88,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
             extra: {
               'email': widget.email,
               'token': state.registrationToken,
+              if (widget.redirect != null) 'redirect': widget.redirect,
             },
           );
         }

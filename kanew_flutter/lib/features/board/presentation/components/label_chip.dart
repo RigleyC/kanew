@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kanew_client/kanew_client.dart';
 import '../../../../core/constants/label_colors.dart';
 
 class LabelChip extends StatelessWidget {
@@ -14,7 +15,7 @@ class LabelChip extends StatelessWidget {
     required this.colorHex,
     this.onTap,
     this.showDelete = false,
-    this.onDelete,
+    this.onDelete, 
   });
 
   @override

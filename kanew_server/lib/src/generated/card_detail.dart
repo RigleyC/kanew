@@ -13,26 +13,18 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'card.dart' as _i2;
 import 'card_list.dart' as _i3;
-import 'board.dart' as _i4;
-import 'workspace.dart' as _i5;
+import 'checklist_with_items.dart' as _i4;
+import 'attachment.dart' as _i5;
 import 'label_def.dart' as _i6;
-import 'workspace_member.dart' as _i7;
-import 'checklist_with_items.dart' as _i8;
-import 'attachment.dart' as _i9;
-import 'comment.dart' as _i10;
-import 'card_activity.dart' as _i11;
-import 'package:kanew_server/src/generated/protocol.dart' as _i12;
+import 'comment.dart' as _i7;
+import 'card_activity.dart' as _i8;
+import 'package:kanew_server/src/generated/protocol.dart' as _i9;
 
 abstract class CardDetail
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
   CardDetail._({
     required this.card,
     required this.currentList,
-    required this.board,
-    required this.workspace,
-    required this.boardLists,
-    required this.boardLabels,
-    required this.members,
     required this.checklists,
     required this.attachments,
     required this.cardLabels,
@@ -46,54 +38,36 @@ abstract class CardDetail
   factory CardDetail({
     required _i2.Card card,
     required _i3.CardList currentList,
-    required _i4.Board board,
-    required _i5.Workspace workspace,
-    required List<_i3.CardList> boardLists,
-    required List<_i6.LabelDef> boardLabels,
-    required List<_i7.WorkspaceMember> members,
-    required List<_i8.ChecklistWithItems> checklists,
-    required List<_i9.Attachment> attachments,
+    required List<_i4.ChecklistWithItems> checklists,
+    required List<_i5.Attachment> attachments,
     required List<_i6.LabelDef> cardLabels,
-    required List<_i10.Comment> recentComments,
+    required List<_i7.Comment> recentComments,
     required int totalComments,
-    required List<_i11.CardActivity> recentActivities,
+    required List<_i8.CardActivity> recentActivities,
     required int totalActivities,
     required bool canEdit,
   }) = _CardDetailImpl;
 
   factory CardDetail.fromJson(Map<String, dynamic> jsonSerialization) {
     return CardDetail(
-      card: _i12.Protocol().deserialize<_i2.Card>(jsonSerialization['card']),
-      currentList: _i12.Protocol().deserialize<_i3.CardList>(
+      card: _i9.Protocol().deserialize<_i2.Card>(jsonSerialization['card']),
+      currentList: _i9.Protocol().deserialize<_i3.CardList>(
         jsonSerialization['currentList'],
       ),
-      board: _i12.Protocol().deserialize<_i4.Board>(jsonSerialization['board']),
-      workspace: _i12.Protocol().deserialize<_i5.Workspace>(
-        jsonSerialization['workspace'],
-      ),
-      boardLists: _i12.Protocol().deserialize<List<_i3.CardList>>(
-        jsonSerialization['boardLists'],
-      ),
-      boardLabels: _i12.Protocol().deserialize<List<_i6.LabelDef>>(
-        jsonSerialization['boardLabels'],
-      ),
-      members: _i12.Protocol().deserialize<List<_i7.WorkspaceMember>>(
-        jsonSerialization['members'],
-      ),
-      checklists: _i12.Protocol().deserialize<List<_i8.ChecklistWithItems>>(
+      checklists: _i9.Protocol().deserialize<List<_i4.ChecklistWithItems>>(
         jsonSerialization['checklists'],
       ),
-      attachments: _i12.Protocol().deserialize<List<_i9.Attachment>>(
+      attachments: _i9.Protocol().deserialize<List<_i5.Attachment>>(
         jsonSerialization['attachments'],
       ),
-      cardLabels: _i12.Protocol().deserialize<List<_i6.LabelDef>>(
+      cardLabels: _i9.Protocol().deserialize<List<_i6.LabelDef>>(
         jsonSerialization['cardLabels'],
       ),
-      recentComments: _i12.Protocol().deserialize<List<_i10.Comment>>(
+      recentComments: _i9.Protocol().deserialize<List<_i7.Comment>>(
         jsonSerialization['recentComments'],
       ),
       totalComments: jsonSerialization['totalComments'] as int,
-      recentActivities: _i12.Protocol().deserialize<List<_i11.CardActivity>>(
+      recentActivities: _i9.Protocol().deserialize<List<_i8.CardActivity>>(
         jsonSerialization['recentActivities'],
       ),
       totalActivities: jsonSerialization['totalActivities'] as int,
@@ -105,27 +79,17 @@ abstract class CardDetail
 
   _i3.CardList currentList;
 
-  _i4.Board board;
+  List<_i4.ChecklistWithItems> checklists;
 
-  _i5.Workspace workspace;
-
-  List<_i3.CardList> boardLists;
-
-  List<_i6.LabelDef> boardLabels;
-
-  List<_i7.WorkspaceMember> members;
-
-  List<_i8.ChecklistWithItems> checklists;
-
-  List<_i9.Attachment> attachments;
+  List<_i5.Attachment> attachments;
 
   List<_i6.LabelDef> cardLabels;
 
-  List<_i10.Comment> recentComments;
+  List<_i7.Comment> recentComments;
 
   int totalComments;
 
-  List<_i11.CardActivity> recentActivities;
+  List<_i8.CardActivity> recentActivities;
 
   int totalActivities;
 
@@ -137,17 +101,12 @@ abstract class CardDetail
   CardDetail copyWith({
     _i2.Card? card,
     _i3.CardList? currentList,
-    _i4.Board? board,
-    _i5.Workspace? workspace,
-    List<_i3.CardList>? boardLists,
-    List<_i6.LabelDef>? boardLabels,
-    List<_i7.WorkspaceMember>? members,
-    List<_i8.ChecklistWithItems>? checklists,
-    List<_i9.Attachment>? attachments,
+    List<_i4.ChecklistWithItems>? checklists,
+    List<_i5.Attachment>? attachments,
     List<_i6.LabelDef>? cardLabels,
-    List<_i10.Comment>? recentComments,
+    List<_i7.Comment>? recentComments,
     int? totalComments,
-    List<_i11.CardActivity>? recentActivities,
+    List<_i8.CardActivity>? recentActivities,
     int? totalActivities,
     bool? canEdit,
   });
@@ -157,11 +116,6 @@ abstract class CardDetail
       '__className__': 'CardDetail',
       'card': card.toJson(),
       'currentList': currentList.toJson(),
-      'board': board.toJson(),
-      'workspace': workspace.toJson(),
-      'boardLists': boardLists.toJson(valueToJson: (v) => v.toJson()),
-      'boardLabels': boardLabels.toJson(valueToJson: (v) => v.toJson()),
-      'members': members.toJson(valueToJson: (v) => v.toJson()),
       'checklists': checklists.toJson(valueToJson: (v) => v.toJson()),
       'attachments': attachments.toJson(valueToJson: (v) => v.toJson()),
       'cardLabels': cardLabels.toJson(valueToJson: (v) => v.toJson()),
@@ -181,15 +135,6 @@ abstract class CardDetail
       '__className__': 'CardDetail',
       'card': card.toJsonForProtocol(),
       'currentList': currentList.toJsonForProtocol(),
-      'board': board.toJsonForProtocol(),
-      'workspace': workspace.toJsonForProtocol(),
-      'boardLists': boardLists.toJson(
-        valueToJson: (v) => v.toJsonForProtocol(),
-      ),
-      'boardLabels': boardLabels.toJson(
-        valueToJson: (v) => v.toJsonForProtocol(),
-      ),
-      'members': members.toJson(valueToJson: (v) => v.toJsonForProtocol()),
       'checklists': checklists.toJson(
         valueToJson: (v) => v.toJsonForProtocol(),
       ),
@@ -221,27 +166,17 @@ class _CardDetailImpl extends CardDetail {
   _CardDetailImpl({
     required _i2.Card card,
     required _i3.CardList currentList,
-    required _i4.Board board,
-    required _i5.Workspace workspace,
-    required List<_i3.CardList> boardLists,
-    required List<_i6.LabelDef> boardLabels,
-    required List<_i7.WorkspaceMember> members,
-    required List<_i8.ChecklistWithItems> checklists,
-    required List<_i9.Attachment> attachments,
+    required List<_i4.ChecklistWithItems> checklists,
+    required List<_i5.Attachment> attachments,
     required List<_i6.LabelDef> cardLabels,
-    required List<_i10.Comment> recentComments,
+    required List<_i7.Comment> recentComments,
     required int totalComments,
-    required List<_i11.CardActivity> recentActivities,
+    required List<_i8.CardActivity> recentActivities,
     required int totalActivities,
     required bool canEdit,
   }) : super._(
          card: card,
          currentList: currentList,
-         board: board,
-         workspace: workspace,
-         boardLists: boardLists,
-         boardLabels: boardLabels,
-         members: members,
          checklists: checklists,
          attachments: attachments,
          cardLabels: cardLabels,
@@ -259,30 +194,18 @@ class _CardDetailImpl extends CardDetail {
   CardDetail copyWith({
     _i2.Card? card,
     _i3.CardList? currentList,
-    _i4.Board? board,
-    _i5.Workspace? workspace,
-    List<_i3.CardList>? boardLists,
-    List<_i6.LabelDef>? boardLabels,
-    List<_i7.WorkspaceMember>? members,
-    List<_i8.ChecklistWithItems>? checklists,
-    List<_i9.Attachment>? attachments,
+    List<_i4.ChecklistWithItems>? checklists,
+    List<_i5.Attachment>? attachments,
     List<_i6.LabelDef>? cardLabels,
-    List<_i10.Comment>? recentComments,
+    List<_i7.Comment>? recentComments,
     int? totalComments,
-    List<_i11.CardActivity>? recentActivities,
+    List<_i8.CardActivity>? recentActivities,
     int? totalActivities,
     bool? canEdit,
   }) {
     return CardDetail(
       card: card ?? this.card.copyWith(),
       currentList: currentList ?? this.currentList.copyWith(),
-      board: board ?? this.board.copyWith(),
-      workspace: workspace ?? this.workspace.copyWith(),
-      boardLists:
-          boardLists ?? this.boardLists.map((e0) => e0.copyWith()).toList(),
-      boardLabels:
-          boardLabels ?? this.boardLabels.map((e0) => e0.copyWith()).toList(),
-      members: members ?? this.members.map((e0) => e0.copyWith()).toList(),
       checklists:
           checklists ?? this.checklists.map((e0) => e0.copyWith()).toList(),
       attachments:

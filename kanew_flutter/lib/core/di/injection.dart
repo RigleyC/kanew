@@ -21,8 +21,9 @@ import '../../features/board/presentation/controllers/card_detail_controller.dar
 import '../../features/board/presentation/store/board_store.dart';
 import '../../features/board/presentation/store/board_filter_store.dart';
 import '../../features/workspace/data/workspace_repository.dart';
-
+import '../../features/workspace/data/member_repository.dart';
 import '../../features/workspace/viewmodel/workspace_controller.dart';
+import '../../features/workspace/presentation/controllers/members_page_controller.dart';
 import '../services/file_picker_service.dart';
 
 /// Global service locator instance
@@ -75,6 +76,10 @@ Future<void> setupDependencies() async {
 
   getIt.registerLazySingleton<WorkspaceRepository>(
     () => WorkspaceRepository(client: getIt<Client>()),
+  );
+
+  getIt.registerLazySingleton<MemberRepository>(
+    () => MemberRepository(client: getIt<Client>()),
   );
 
   getIt.registerLazySingleton<BoardRepository>(
@@ -164,6 +169,12 @@ Future<void> setupDependencies() async {
       attachmentRepo: getIt<AttachmentRepository>(),
       filePicker: getIt<FilePickerService>(),
       boardStore: getIt<BoardStore>(),
+    ),
+  );
+
+  getIt.registerFactory<MembersPageController>(
+    () => MembersPageController(
+      repository: getIt<MemberRepository>(),
     ),
   );
 }

@@ -2,16 +2,7 @@ class: CardDetail
 fields:
   # Core
   card: Card
-  
-  # Navegação
   currentList: CardList
-  board: Board
-  workspace: Workspace
-  
-  # Board context
-  boardLists: List<CardList>
-  boardLabels: List<LabelDef>
-  members: List<WorkspaceMember>
   
   # Card content
   checklists: List<ChecklistWithItems>

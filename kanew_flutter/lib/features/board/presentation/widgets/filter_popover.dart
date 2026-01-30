@@ -463,6 +463,8 @@ class _PriorityOptionsViewState extends State<_PriorityOptionsView> {
 
   String _getPriorityLabel(CardPriority priority) {
     switch (priority) {
+      case CardPriority.urgent:
+        return 'Urgente';
       case CardPriority.high:
         return 'Alta';
       case CardPriority.medium:
@@ -532,6 +534,8 @@ class _PriorityOptionTile extends StatelessWidget {
 
   String _getPriorityLabel(CardPriority priority) {
     switch (priority) {
+      case CardPriority.urgent:
+        return 'Urgente';
       case CardPriority.high:
         return 'Alta';
       case CardPriority.medium:
@@ -545,6 +549,8 @@ class _PriorityOptionTile extends StatelessWidget {
 
   Color _getPriorityColor(CardPriority priority) {
     switch (priority) {
+      case CardPriority.urgent:
+        return const Color(0xFFB71C1C);
       case CardPriority.high:
         return const Color(0xFFE53935); // Red
       case CardPriority.medium:

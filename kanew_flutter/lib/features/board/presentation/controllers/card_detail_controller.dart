@@ -26,10 +26,7 @@ class CardDetailPageController extends ChangeNotifier {
   List<Comment> _comments = [];
   List<CardActivity> _activities = [];
   List<LabelDef> _labels = []; // Labels attached to this card
-  List<LabelDef> _boardLabels = []; // All available labels in board
   List<Attachment> _attachments = [];
-  List<CardList> _boardLists = [];
-  List<WorkspaceMember> _members = [];
 
   bool _isLoading = false;
   bool _isUploading = false;
@@ -53,6 +50,7 @@ class CardDetailPageController extends ChangeNotifier {
        _filePicker = filePicker,
        _boardStore = boardStore;
 
+  // Getters - delegate to BoardStore for shared context
   Card? get selectedCard => _card;
   CardList? get list => _list;
   List<Checklist> get checklists => _checklists;
@@ -60,10 +58,12 @@ class CardDetailPageController extends ChangeNotifier {
   List<Comment> get comments => _comments;
   List<CardActivity> get activities => _activities;
   List<LabelDef> get labels => _labels;
-  List<LabelDef> get boardLabels => _boardLabels;
+  List<LabelDef> get boardLabels => _boardStore.labels;
   List<Attachment> get attachments => _attachments;
-  List<CardList> get boardLists => _boardLists;
-  List<WorkspaceMember> get members => _members;
+  List<CardList> get boardLists => _boardStore.lists;
+  List<WorkspaceMember> get members => _boardStore.members;
+  Board? get board => _boardStore.board;
+  Workspace? get workspace => _boardStore.workspace;
   bool get isLoading => _isLoading;
   bool get isUploading => _isUploading;
   String? get error => _error;
@@ -85,9 +85,6 @@ class CardDetailPageController extends ChangeNotifier {
         if (detail != null) {
           _card = detail.card;
           _list = detail.currentList;
-          _boardLists = detail.boardLists;
-          _members = detail.members;
-          _boardLabels = detail.boardLabels;
 
           // Checklists and items
           _checklists = detail.checklists.map((c) => c.checklist).toList();
@@ -102,6 +99,9 @@ class CardDetailPageController extends ChangeNotifier {
           _labels = detail.cardLabels;
           _comments = detail.recentComments;
           _activities = detail.recentActivities;
+
+          // Cache CardDetail in BoardStore
+          _boardStore.cacheCardDetail(detail);
         } else {
           _error = 'Card não encontrado';
         }
@@ -244,7 +244,7 @@ class CardDetailPageController extends ChangeNotifier {
     if (_labels.any((l) => l.id == labelId)) return;
 
     // Optimistic update
-    final labelToAdd = _boardLabels.firstWhere((l) => l.id == labelId);
+    final labelToAdd = boardLabels.firstWhere((l) => l.id == labelId);
     _labels.add(labelToAdd);
     notifyListeners();
 
@@ -286,7 +286,8 @@ class CardDetailPageController extends ChangeNotifier {
     result.fold(
       (f) => _error = f.message,
       (label) {
-        _boardLabels.add(label);
+        // Note: boardLabels is from BoardStore, we can't modify it directly
+        // The label will be available after next load
         // Automatically attach the newly created label
         attachLabel(label.id!);
       },
@@ -363,6 +364,7 @@ class CardDetailPageController extends ChangeNotifier {
     String? title,
     String? description,
     DateTime? dueDate,
+    CardPriority? priority,
   }) async {
     if (_card == null || _card?.id == null) return null;
 
@@ -371,6 +373,7 @@ class CardDetailPageController extends ChangeNotifier {
       title: title,
       description: description,
       dueDate: dueDate,
+      priority: priority,
     );
 
     return result.fold(
@@ -398,7 +401,7 @@ class CardDetailPageController extends ChangeNotifier {
 
     // Optimistic update
     final oldList = _list;
-    final newList = _boardLists.firstWhere((l) => l.id == newListId);
+    final newList = boardLists.firstWhere((l) => l.id == newListId);
 
     _list = newList;
     _card = _card!.copyWith(listId: newListId);

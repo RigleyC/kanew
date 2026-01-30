@@ -16,7 +16,8 @@ enum CardPriority implements _i1.SerializableModel {
   none,
   low,
   medium,
-  high;
+  high,
+  urgent;
 
   static CardPriority fromJson(String name) {
     switch (name) {
@@ -28,6 +29,8 @@ enum CardPriority implements _i1.SerializableModel {
         return CardPriority.medium;
       case 'high':
         return CardPriority.high;
+      case 'urgent':
+        return CardPriority.urgent;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "CardPriority"',

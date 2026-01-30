@@ -51,7 +51,14 @@ class _LoginScreenState extends State<LoginScreen> {
           name: 'login_screen',
         );
         if (mounted) {
-          context.go('/');
+          final state = GoRouterState.of(context);
+          final redirect = state.uri.queryParameters['redirect'];
+
+          if (redirect != null) {
+            context.go(redirect);
+          } else {
+            context.go('/');
+          }
         }
 
       case AuthAccountNotFoundError():
@@ -221,7 +228,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             FButton(
                               style: FButtonStyle.ghost(),
-                              onPress: () => context.go('/auth/signup'),
+                              onPress: () {
+                                final state = GoRouterState.of(context);
+                                final redirect =
+                                    state.uri.queryParameters['redirect'];
+                                context.go(
+                                  redirect != null
+                                      ? '/auth/signup?redirect=$redirect'
+                                      : '/auth/signup',
+                                );
+                              },
                               child: const Text('Criar uma conta'),
                             ),
                             const SizedBox(height: 8),

@@ -65,15 +65,21 @@ class _SignupScreenState extends State<SignupScreen> {
           'Verification code sent - email: $email, requestId: ${state.accountRequestId}',
           name: 'signup_screen',
         );
-        if (mounted) {
-          context.go(
-            '/auth/verification',
-            extra: {
-              'email': email,
-              'accountRequestId': state.accountRequestId.toString(),
-            },
-          );
-        }
+    if (mounted) {
+      final state = GoRouterState.of(context);
+      final redirect = state.uri.queryParameters['redirect'];
+
+      context.go(
+        '/auth/verification',
+        extra: {
+          'email': email,
+          'accountRequestId': viewModel.state is AuthNeedsVerification 
+              ? (viewModel.state as AuthNeedsVerification).accountRequestId.toString()
+              : '',
+          if (redirect != null) 'redirect': redirect,
+        },
+      );
+    }
 
       case AuthAccountExistsError():
         ScaffoldMessenger.of(context).showSnackBar(
@@ -212,7 +218,16 @@ class _SignupScreenState extends State<SignupScreen> {
                                 ),
                                 FButton(
                                   style: FButtonStyle.ghost(),
-                                  onPress: () => context.pop(),
+                                  onPress: () {
+                                    final state = GoRouterState.of(context);
+                                    final redirect =
+                                        state.uri.queryParameters['redirect'];
+                                    context.go(
+                                      redirect != null
+                                          ? '/auth/login?redirect=$redirect'
+                                          : '/auth/login',
+                                    );
+                                  },
                                   child: const Text('Entrar'),
                                 ),
                               ],

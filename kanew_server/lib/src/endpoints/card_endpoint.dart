@@ -47,12 +47,12 @@ class CardEndpoint extends Endpoint {
       session,
       where: (c) => c.listId.equals(listId) & c.deletedAt.equals(null),
       orderBy: (c) => c.priority,
-      orderDescending: false,
+      orderDescending: true,
     );
 
     // Secondary sort by rank within same priority
     cards.sort((a, b) {
-      final priorityCompare = a.priority.index.compareTo(b.priority.index);
+      final priorityCompare = b.priority.index.compareTo(a.priority.index);
       if (priorityCompare != 0) return priorityCompare;
       return a.rank.compareTo(b.rank);
     });
@@ -60,9 +60,12 @@ class CardEndpoint extends Endpoint {
     return cards;
   }
 
-  /// Gets all cards for a board (across all lists)
+  /// Gets all cards for a board with complete details
   /// Requires: board.read permission
-  Future<List<Card>> getCardsByBoard(
+  ///
+  /// This is an aggregate endpoint that returns everything needed for the board page
+  /// in a single request, reducing the number of HTTP calls from many to 1.
+  Future<List<CardDetail>> getCardsByBoardDetail(
     Session session,
     int boardId,
   ) async {
@@ -85,21 +88,145 @@ class CardEndpoint extends Endpoint {
       throw Exception('User does not have permission to read this board');
     }
 
+    // Get workspace
+    final workspace = await Workspace.db.findById(session, board.workspaceId);
+    if (workspace == null || workspace.deletedAt != null) {
+      throw Exception('Workspace not found');
+    }
+
+    // TODO: These will be used in getBoardWithCards
+    // Get board lists (still needed for currentList lookup)
+    final boardLists = await CardList.db.find(
+      session,
+      where: (l) => l.boardId.equals(boardId) & l.deletedAt.equals(null),
+      orderBy: (l) => l.rank,
+    );
+
+    // Get board labels
+    // final boardLabels = await LabelDef.db.find(
+    //   session,
+    //   where: (l) => l.boardId.equals(boardId) & l.deletedAt.equals(null),
+    // );
+
+    // Get workspace members
+    // final members = await WorkspaceMember.db.find(
+    //   session,
+    //   where: (m) =>
+    //       m.workspaceId.equals(board.workspaceId) & m.deletedAt.equals(null),
+    // );
+
+    // Get all cards for the board
     final cards = await Card.db.find(
       session,
       where: (c) => c.boardId.equals(boardId) & c.deletedAt.equals(null),
       orderBy: (c) => c.priority,
-      orderDescending: false,
+      orderDescending: true,
     );
 
     // Secondary sort by rank
     cards.sort((a, b) {
-      final priorityCompare = a.priority.index.compareTo(b.priority.index);
+      final priorityCompare = b.priority.index.compareTo(a.priority.index);
       if (priorityCompare != 0) return priorityCompare;
       return a.rank.compareTo(b.rank);
     });
 
-    return cards;
+    // For each card, fetch related data in parallel
+    final cardDetails = await Future.wait(
+      cards.map((card) async {
+        final currentList = boardLists.firstWhere((l) => l.id == card.listId);
+
+        // Fetch card-specific data in parallel
+        final cardData = await Future.wait([
+          // Checklists
+          Checklist.db.find(
+            session,
+            where: (c) => c.cardId.equals(card.id!) & c.deletedAt.equals(null),
+            orderBy: (c) => c.rank,
+          ),
+          // Attachments
+          Attachment.db.find(
+            session,
+            where: (a) => a.cardId.equals(card.id!) & a.deletedAt.equals(null),
+          ),
+          // Card labels (via CardLabel join table)
+          _getCardLabels(session, card.id!),
+          // Comments (last 20)
+          Comment.db.find(
+            session,
+            where: (c) => c.cardId.equals(card.id!) & c.deletedAt.equals(null),
+            orderBy: (c) => c.createdAt,
+            orderDescending: true,
+            limit: 20,
+          ),
+          // Activities (last 20)
+          CardActivity.db.find(
+            session,
+            where: (a) => a.cardId.equals(card.id!),
+            orderBy: (a) => a.createdAt,
+            orderDescending: true,
+            limit: 20,
+          ),
+          // Total comments count
+          Comment.db.count(
+            session,
+            where: (c) => c.cardId.equals(card.id!) & c.deletedAt.equals(null),
+          ),
+          // Total activities count
+          CardActivity.db.count(
+            session,
+            where: (a) => a.cardId.equals(card.id!),
+          ),
+        ]);
+
+        final checklistsRaw = cardData[0] as List<Checklist>;
+        final attachments = cardData[1] as List<Attachment>;
+        final cardLabels = cardData[2] as List<LabelDef>;
+        final recentComments = cardData[3] as List<Comment>;
+        final recentActivities = cardData[4] as List<CardActivity>;
+        final totalComments = cardData[5] as int;
+        final totalActivities = cardData[6] as int;
+
+        // For each checklist, get its items
+        final checklists = await Future.wait(
+          checklistsRaw.map((checklist) async {
+            final items = await ChecklistItem.db.find(
+              session,
+              where: (i) =>
+                  i.checklistId.equals(checklist.id!) &
+                  i.deletedAt.equals(null),
+              orderBy: (i) => i.rank,
+            );
+            return ChecklistWithItems(
+              checklist: checklist,
+              items: items,
+            );
+          }),
+        );
+
+        // Check edit permission
+        final canEdit = await PermissionService.hasPermission(
+          session,
+          userId: numericUserId,
+          workspaceId: board.workspaceId,
+          permissionSlug: 'board.update',
+        );
+
+        return CardDetail(
+          card: card,
+          currentList: currentList,
+          checklists: checklists,
+          attachments: attachments,
+          cardLabels: cardLabels,
+          recentComments: recentComments,
+          totalComments: totalComments,
+          recentActivities: recentActivities,
+          totalActivities: totalActivities,
+          canEdit: canEdit,
+        );
+      }),
+    );
+
+    return cardDetails;
   }
 
   /// Gets a single card by ID
@@ -213,7 +340,99 @@ class CardEndpoint extends Endpoint {
       details: 'Created card',
     );
 
+    session.log('[CardEndpoint] Created card "${created.title}"');
     return created;
+  }
+
+  /// Creates a new card and returns complete CardDetail
+  /// Requires: board.update permission
+  Future<CardDetail> createCardDetail(
+    Session session,
+    int listId,
+    String title, {
+    String? description,
+    CardPriority priority = CardPriority.none,
+    DateTime? dueDate,
+  }) async {
+    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
+
+    final cardList = await CardList.db.findById(session, listId);
+    if (cardList == null || cardList.deletedAt != null) {
+      throw Exception('List not found');
+    }
+
+    final board = await Board.db.findById(session, cardList.boardId);
+    if (board == null || board.deletedAt != null) {
+      throw Exception('Board not found');
+    }
+
+    final hasPermission = await PermissionService.hasPermission(
+      session,
+      userId: numericUserId,
+      workspaceId: board.workspaceId,
+      permissionSlug: 'board.update',
+    );
+
+    if (!hasPermission) {
+      throw Exception('User does not have permission to modify this board');
+    }
+
+    final lastRank = await Card.db.find(
+      session,
+      where: (c) =>
+          c.listId.equals(listId) &
+          c.priority.equals(priority) &
+          c.deletedAt.equals(null),
+      orderBy: (c) => c.rank,
+      orderDescending: true,
+      limit: 1,
+    );
+
+    final lastCardRank = lastRank.isNotEmpty ? lastRank.first.rank : null;
+    final newRank = LexoRankService.generateRankAfter(lastCardRank);
+
+    final card = Card(
+      uuid: const Uuid().v4obj(),
+      listId: listId,
+      boardId: cardList.boardId,
+      title: title,
+      descriptionDocument: description,
+      priority: priority,
+      rank: newRank,
+      dueDate: dueDate,
+      isCompleted: false,
+      createdAt: DateTime.now(),
+      createdBy: numericUserId,
+    );
+
+    final created = await Card.db.insertRow(session, card);
+
+    session.log(
+      '[CardEndpoint] Created card "${created.title}" with CardDetail',
+    );
+
+    await ActivityService.log(
+      session,
+      cardId: created.id!,
+      actorId: numericUserId,
+      type: ActivityType.create,
+      details: 'Created card',
+    );
+
+    final cardDetail = CardDetail(
+      card: created,
+      currentList: cardList,
+      checklists: [],
+      attachments: [],
+      cardLabels: [],
+      recentComments: [],
+      totalComments: 0,
+      recentActivities: [],
+      totalActivities: 0,
+      canEdit: true,
+    );
+
+    return cardDetail;
   }
 
   /// Updates a card's details
@@ -448,7 +667,9 @@ class CardEndpoint extends Endpoint {
       cardId: cardId,
       actorId: numericUserId,
       type: ActivityType.update,
-      details: result.isCompleted ? 'Completed card' : 'Marked card as incomplete',
+      details: result.isCompleted
+          ? 'Completed card'
+          : 'Marked card as incomplete',
     );
 
     return result;
@@ -456,7 +677,7 @@ class CardEndpoint extends Endpoint {
 
   /// Gets complete card details including all related data
   /// Requires: board.read permission
-  /// 
+  ///
   /// This is an aggregate endpoint that returns everything needed for the card detail page
   /// in a single request, reducing the number of HTTP calls from 7+ to 1.
   Future<CardDetail?> getCardDetail(
@@ -508,35 +729,36 @@ class CardEndpoint extends Endpoint {
         where: (l) => l.boardId.equals(card.boardId) & l.deletedAt.equals(null),
         orderBy: (l) => l.rank,
       ),
-      
+
       // Board labels
       LabelDef.db.find(
         session,
         where: (l) => l.boardId.equals(card.boardId) & l.deletedAt.equals(null),
       ),
-      
+
       // Workspace members
       WorkspaceMember.db.find(
         session,
-        where: (m) => m.workspaceId.equals(board.workspaceId) & m.deletedAt.equals(null),
+        where: (m) =>
+            m.workspaceId.equals(board.workspaceId) & m.deletedAt.equals(null),
       ),
-      
+
       // Checklists
       Checklist.db.find(
         session,
         where: (c) => c.cardId.equals(cardId) & c.deletedAt.equals(null),
         orderBy: (c) => c.rank,
       ),
-      
+
       // Attachments
       Attachment.db.find(
         session,
         where: (a) => a.cardId.equals(cardId) & a.deletedAt.equals(null),
       ),
-      
+
       // Card labels (via join table)
       _getCardLabels(session, cardId),
-      
+
       // Comments (last 20)
       Comment.db.find(
         session,
@@ -545,7 +767,7 @@ class CardEndpoint extends Endpoint {
         orderDescending: true,
         limit: 20,
       ),
-      
+
       // Activities (last 20)
       CardActivity.db.find(
         session,
@@ -554,13 +776,13 @@ class CardEndpoint extends Endpoint {
         orderDescending: true,
         limit: 20,
       ),
-      
+
       // Total comments count
       Comment.db.count(
         session,
         where: (c) => c.cardId.equals(cardId) & c.deletedAt.equals(null),
       ),
-      
+
       // Total activities count
       CardActivity.db.count(
         session,
@@ -584,7 +806,8 @@ class CardEndpoint extends Endpoint {
       checklists.map((checklist) async {
         final items = await ChecklistItem.db.find(
           session,
-          where: (i) => i.checklistId.equals(checklist.id!) & i.deletedAt.equals(null),
+          where: (i) =>
+              i.checklistId.equals(checklist.id!) & i.deletedAt.equals(null),
           orderBy: (i) => i.rank,
         );
         return ChecklistWithItems(
@@ -606,11 +829,6 @@ class CardEndpoint extends Endpoint {
     return CardDetail(
       card: card,
       currentList: currentList,
-      board: board,
-      workspace: workspace,
-      boardLists: boardLists,
-      boardLabels: boardLabels,
-      members: members,
       checklists: checklistsWithItems,
       attachments: attachments,
       cardLabels: cardLabels,
@@ -660,5 +878,139 @@ class CardEndpoint extends Endpoint {
     );
 
     return labels;
+  }
+
+  /// Helper method to get checklist counts for a card
+  Future<Map<String, int>> _getChecklistCounts(
+    Session session,
+    int cardId,
+  ) async {
+    final checklists = await Checklist.db.find(
+      session,
+      where: (c) => c.cardId.equals(cardId) & c.deletedAt.equals(null),
+    );
+
+    if (checklists.isEmpty) {
+      return {'total': 0, 'completed': 0};
+    }
+
+    final checklistIds = checklists.map((c) => c.id!).toList();
+    final items = await ChecklistItem.db.find(
+      session,
+      where: (i) => i.checklistId.inSet(checklistIds.toSet()),
+    );
+
+    return {
+      'total': items.length,
+      'completed': items.where((i) => i.isChecked).length,
+    };
+  }
+
+  /// Helper method to create CardSummary with counts
+  Future<List<CardSummary>> _getCardSummaries(
+    Session session,
+    int boardId,
+  ) async {
+    final cards = await Card.db.find(
+      session,
+      where: (c) => c.boardId.equals(boardId) & c.deletedAt.equals(null),
+      orderBy: (c) => c.priority,
+      orderDescending: true,
+    );
+
+    // Sort by priority then rank
+    cards.sort((a, b) {
+      final priorityCompare = b.priority.index.compareTo(a.priority.index);
+      if (priorityCompare != 0) return priorityCompare;
+      return a.rank.compareTo(b.rank);
+    });
+
+    return Future.wait(
+      cards.map((card) async {
+        // Fetch counts in parallel
+        final counts = await Future.wait([
+          _getChecklistCounts(session, card.id!),
+          Attachment.db.count(session, where: (a) => a.cardId.equals(card.id!)),
+          Comment.db.count(session, where: (c) => c.cardId.equals(card.id!)),
+          _getCardLabels(session, card.id!),
+        ]);
+
+        return CardSummary(
+          card: card,
+          cardLabels: counts[3] as List<LabelDef>,
+          checklistTotal: (counts[0] as Map<String, int>)['total']!,
+          checklistCompleted: (counts[0] as Map<String, int>)['completed']!,
+          attachmentCount: counts[1] as int,
+          commentCount: counts[2] as int,
+        );
+      }),
+    );
+  }
+
+  /// Gets board context with all cards (summary only)
+  /// Requires: board.read permission
+  ///
+  /// This endpoint returns BoardContext (loaded once) + CardSummary list (lightweight)
+  /// Use this instead of getCardsByBoardDetail for better performance
+  Future<BoardWithCards> getBoardWithCards(
+    Session session,
+    int boardId,
+  ) async {
+    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
+
+    // Get the board
+    final board = await Board.db.findById(session, boardId);
+    if (board == null || board.deletedAt != null) {
+      throw Exception('Board not found');
+    }
+
+    // Check permission
+    final hasPermission = await PermissionService.hasPermission(
+      session,
+      userId: numericUserId,
+      workspaceId: board.workspaceId,
+      permissionSlug: 'board.read',
+    );
+
+    if (!hasPermission) {
+      throw Exception('User does not have permission to read this board');
+    }
+
+    // Load context data in parallel
+    final contextData = await Future.wait([
+      Workspace.db.findById(session, board.workspaceId),
+      CardList.db.find(
+        session,
+        where: (l) => l.boardId.equals(boardId) & l.deletedAt.equals(null),
+        orderBy: (l) => l.rank,
+      ),
+      LabelDef.db.find(
+        session,
+        where: (l) => l.boardId.equals(boardId) & l.deletedAt.equals(null),
+      ),
+      WorkspaceMember.db.find(
+        session,
+        where: (m) =>
+            m.workspaceId.equals(board.workspaceId) & m.deletedAt.equals(null),
+      ),
+    ]);
+
+    final workspace = contextData[0] as Workspace?;
+    if (workspace == null || workspace.deletedAt != null) {
+      throw Exception('Workspace not found');
+    }
+
+    final context = BoardContext(
+      board: board,
+      workspace: workspace,
+      lists: contextData[1] as List<CardList>,
+      labels: contextData[2] as List<LabelDef>,
+      members: contextData[3] as List<WorkspaceMember>,
+    );
+
+    // Load card summaries
+    final cards = await _getCardSummaries(session, boardId);
+
+    return BoardWithCards(context: context, cards: cards);
   }
 }

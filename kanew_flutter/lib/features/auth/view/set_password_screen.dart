@@ -14,11 +14,13 @@ import '../viewmodel/auth_controller.dart';
 class SetPasswordScreen extends StatefulWidget {
   final String email;
   final String registrationToken;
+  final String? redirect;
 
   const SetPasswordScreen({
     super.key,
     required this.email,
     required this.registrationToken,
+    this.redirect,
   });
 
   @override
@@ -89,7 +91,11 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
           name: 'set_password_screen',
         );
         if (mounted) {
-          context.go('/');
+          if (widget.redirect != null) {
+            context.go(widget.redirect!);
+          } else {
+            context.go('/');
+          }
         }
 
       case AuthError():

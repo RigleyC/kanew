@@ -5,6 +5,8 @@ import '../../../../core/widgets/calendar/calendar.dart';
 import '../../../../core/widgets/searchable_list_content.dart';
 import 'label_chip.dart';
 import 'label_picker.dart';
+import 'priority_chip.dart';
+import 'priority_picker.dart';
 import 'sidebar_popover.dart';
 import 'sidebar_section.dart';
 
@@ -19,6 +21,7 @@ class CardDetailSidebar extends StatelessWidget {
   final Function(int) onToggleLabel;
   final Function(String, String) onCreateLabel;
   final Function(int) onListChanged;
+  final Function(CardPriority) onPriorityChanged;
 
   const CardDetailSidebar({
     super.key,
@@ -32,6 +35,7 @@ class CardDetailSidebar extends StatelessWidget {
     required this.onToggleLabel,
     required this.onCreateLabel,
     required this.onListChanged,
+    required this.onPriorityChanged,
   });
 
   String _formatDate(DateTime date) {
@@ -39,9 +43,9 @@ class CardDetailSidebar extends StatelessWidget {
   }
 
   CardList get _currentList => boardLists.firstWhere(
-        (l) => l.id == card.listId,
-        orElse: () => boardLists.first,
-      );
+    (l) => l.id == card.listId,
+    orElse: () => boardLists.first,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +83,24 @@ class CardDetailSidebar extends StatelessWidget {
               color: colorScheme.onSurface,
             ),
           ),
+        ),
+
+        // Prioridade
+        SidebarSection(
+          title: 'Prioridade',
+          trailing: SidebarPopover(
+            anchor: Icon(
+              Icons.keyboard_arrow_down,
+              size: 16,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            contentBuilder: (close) => PriorityPicker(
+              currentPriority: card.priority,
+              onSelect: (p) => onPriorityChanged(p),
+              onClose: close,
+            ),
+          ),
+          child: PriorityChip(priority: card.priority),
         ),
 
         // Etiquetas

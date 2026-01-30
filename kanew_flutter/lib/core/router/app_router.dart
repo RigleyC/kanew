@@ -16,6 +16,7 @@ import '../../features/workspace/view/workspace_shell.dart';
 import '../../features/workspace/pages/boards_page.dart';
 import '../../features/workspace/pages/members_page.dart';
 import '../../features/workspace/pages/settings_page.dart';
+import '../../features/workspace/presentation/pages/accept_invite_page.dart';
 import '../../features/workspace/viewmodel/workspace_controller.dart';
 import '../../features/board/presentation/pages/board_view_page.dart';
 import '../../features/board/presentation/pages/card_detail_page.dart';
@@ -28,8 +29,6 @@ final appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/',
   debugLogDiagnostics: false,
-  // Use Listenable.merge to listen to both auth and workspace state changes
-  // This is the recommended approach per AGENTS.md
   refreshListenable: Listenable.merge([
     getIt<AuthController>(),
     getIt<WorkspaceController>(),
@@ -48,24 +47,20 @@ final appRouter = GoRouter(
       name: 'app_router',
     );
 
-    // 1. Not authenticated and not on auth route → login
     if (!isAuthenticated && !isAuthRoute) {
       developer.log(
         'Redirecting to login (not authenticated)',
         name: 'app_router',
       );
-      // Preserve the intended location
       return '${RoutePaths.login}?redirect=$path';
     }
 
-    // 2. Authenticated on login/signup → redirect to workspace or preserved route
     if (isAuthenticated && (path == '/auth/login' || path == '/auth/signup')) {
       if (workspaceViewModel.isLoading) {
         developer.log('Waiting for workspaces to load...', name: 'app_router');
         return '/';
       }
 
-      // Check for redirect param
       final redirect = state.uri.queryParameters['redirect'];
       if (redirect != null && redirect.isNotEmpty) {
         developer.log(
@@ -81,18 +76,14 @@ final appRouter = GoRouter(
         return RoutePaths.workspaceBoards(slug);
       }
 
-      // Edge case: no workspaces yet, go to root to trigger loading
       return '/';
     }
 
-    // 3. Authenticated on root → redirect to first workspace
     if (isAuthenticated && path == '/') {
-      // If workspaces are loading, stay on loading screen
       if (workspaceViewModel.isLoading) {
-        return null; // Stay on loading screen
+        return null;
       }
 
-      // If we have workspaces, redirect to the first one
       if (workspaceViewModel.hasWorkspaces) {
         final slug = workspaceViewModel.workspaces.first.slug;
         developer.log(
@@ -102,9 +93,7 @@ final appRouter = GoRouter(
         return RoutePaths.workspaceBoards(slug);
       }
 
-      // If no workspaces and not loading, trigger loading
-      // The builder will handle calling loadWorkspaces()
-      return null; // Stay on root to trigger loading
+      return null;
     }
 
     return null;
@@ -137,7 +126,6 @@ final appRouter = GoRouter(
     ),
   ),
   routes: [
-
     GoRoute(
       path: '/',
       builder: (context, state) => ListenableBuilder(
@@ -146,7 +134,6 @@ final appRouter = GoRouter(
           final viewModel = getIt<WorkspaceController>();
           final authViewModel = getIt<AuthController>();
 
-          // Only trigger workspace loading if authenticated and not already loading/loaded
           if (authViewModel.isAuthenticated &&
               !viewModel.hasWorkspaces &&
               !viewModel.isLoading) {
@@ -221,9 +208,6 @@ final appRouter = GoRouter(
       ),
     ),
 
-    // ================================================================
-    // AUTH ROUTES
-    // ================================================================
     GoRoute(
       path: '/auth/login',
       builder: (context, state) => const LoginScreen(),
@@ -235,6 +219,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/auth/forgot-password',
       builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/invite/:code',
+      builder: (context, state) {
+        final code = state.pathParameters['code'] ?? '';
+        return AcceptInvitePage(inviteCode: code);
+      },
     ),
     GoRoute(
       path: '/auth/reset-password',
@@ -258,8 +249,16 @@ final appRouter = GoRouter(
         final requestId =
             extras?['requestId'] ??
             state.uri.queryParameters['requestId'] ??
+            state.uri.queryParameters['accountRequestId'] ??
             '';
-        return VerificationScreen(email: email, accountRequestId: requestId);
+        final redirect =
+            extras?['redirect'] ?? state.uri.queryParameters['redirect'];
+
+        return VerificationScreen(
+          email: email,
+          accountRequestId: requestId,
+          redirect: redirect,
+        );
       },
     ),
     GoRoute(
@@ -270,21 +269,23 @@ final appRouter = GoRouter(
             extras?['email'] ?? state.uri.queryParameters['email'] ?? '';
         final token =
             extras?['token'] ?? state.uri.queryParameters['token'] ?? '';
-        return SetPasswordScreen(email: email, registrationToken: token);
+        final redirect =
+            extras?['redirect'] ?? state.uri.queryParameters['redirect'];
+
+        return SetPasswordScreen(
+          email: email,
+          registrationToken: token,
+          redirect: redirect,
+        );
       },
     ),
 
-    // ================================================================
-    // WORKSPACE ROUTES with StatefulShellRoute
-    // ================================================================
     GoRoute(
       path: '/w/:slug',
       redirect: (context, state) {
-        // Redirect /w/:slug to /w/:slug/boards
         final slug = state.pathParameters['slug'];
         final fullPath = state.uri.path;
 
-        // Only redirect if exactly on /w/:slug (not on sub-routes)
         if (fullPath == '/w/$slug') {
           return RoutePaths.workspaceBoards(slug!);
         }
@@ -293,10 +294,8 @@ final appRouter = GoRouter(
       routes: [
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) {
-            // Extract slug from the current location
             final uri = state.uri;
             final pathSegments = uri.pathSegments;
-            // Path is /w/:slug/... so slug is at index 1
             final slug = pathSegments.length > 1 ? pathSegments[1] : null;
 
             return WorkspaceShell(
@@ -305,27 +304,35 @@ final appRouter = GoRouter(
             );
           },
           branches: [
-            // Tab 0: Boards (includes board view as nested route)
             StatefulShellBranch(
               routes: [
                 GoRoute(
                   path: 'boards',
                   pageBuilder: (context, state) {
-                    final workspaceSlug = state.pathParameters['slug'] ?? '';
+                    final uri = state.uri;
+                    final pathSegments = uri.pathSegments;
+                    final workspaceSlug = pathSegments.length > 1
+                        ? pathSegments[1]
+                        : '';
                     return NoTransitionPage(
                       key: state.pageKey,
                       child: BoardsPage(workspaceSlug: workspaceSlug),
                     );
                   },
                   routes: [
-                    // Board View Route - nested to keep sidebar visible
                     GoRoute(
                       path: ':boardSlug',
                       pageBuilder: (context, state) {
-                        final workspaceSlug =
-                            state.pathParameters['slug'] ?? '';
+                        final uri = state.uri;
+                        final pathSegments = uri.pathSegments;
+                        final workspaceSlug = pathSegments.length > 1
+                            ? pathSegments[1]
+                            : '';
                         final boardSlug =
                             state.pathParameters['boardSlug'] ?? '';
+                        print(
+                          'DEBUG ROUTER: uri=$uri, pathSegments=$pathSegments, workspaceSlug=$workspaceSlug, boardSlug=$boardSlug',
+                        );
                         return NoTransitionPage(
                           key: state.pageKey,
                           child: BoardViewPage(
@@ -335,12 +342,14 @@ final appRouter = GoRouter(
                         );
                       },
                       routes: [
-                        // Card Detail Route - needs its own BoardScope wrapper
                         GoRoute(
                           path: 'c/:cardUuid',
                           pageBuilder: (context, state) {
-                            final workspaceSlug =
-                                state.pathParameters['slug'] ?? '';
+                            final uri = state.uri;
+                            final pathSegments = uri.pathSegments;
+                            final workspaceSlug = pathSegments.length > 1
+                                ? pathSegments[1]
+                                : '';
                             final boardSlug =
                                 state.pathParameters['boardSlug'] ?? '';
                             final cardUuid =
@@ -361,19 +370,20 @@ final appRouter = GoRouter(
                 ),
               ],
             ),
-            // Tab 1: Members
             StatefulShellBranch(
               routes: [
                 GoRoute(
                   path: 'members',
-                  pageBuilder: (context, state) => NoTransitionPage(
-                    key: state.pageKey,
-                    child: const MembersPage(),
-                  ),
+                  pageBuilder: (context, state) {
+                    final workspaceSlug = state.pathParameters['slug'] ?? '';
+                    return NoTransitionPage(
+                      key: state.pageKey,
+                      child: MembersPage(workspaceSlug: workspaceSlug),
+                    );
+                  },
                 ),
               ],
             ),
-            // Tab 2: Settings
             StatefulShellBranch(
               routes: [
                 GoRoute(
