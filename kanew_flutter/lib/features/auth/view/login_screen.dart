@@ -5,7 +5,9 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/router/auth_route_helper.dart';
 import '../viewmodel/auth_controller.dart';
+
 
 /// Screen for user authentication.
 ///
@@ -80,12 +82,13 @@ class _LoginScreenState extends State<LoginScreen> {
           name: 'login_screen',
         );
         if (mounted && state.accountRequestId != null) {
+          final redirect = AuthRouteHelper.getRedirect(GoRouterState.of(context));
           context.go(
-            '/auth/verification',
-            extra: {
-              'email': email,
-              'accountRequestId': state.accountRequestId.toString(),
-            },
+            AuthRouteHelper.verification(
+              email: email,
+              accountRequestId: state.accountRequestId.toString(),
+              redirect: redirect,
+            ),
           );
         }
 
@@ -126,7 +129,8 @@ class _LoginScreenState extends State<LoginScreen> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              context.go('/auth/signup');
+              final redirect = AuthRouteHelper.getRedirect(GoRouterState.of(this.context));
+              context.go(AuthRouteHelper.signup(redirect: redirect));
             },
             child: const Text('Criar conta'),
           ),
@@ -233,9 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 final redirect =
                                     state.uri.queryParameters['redirect'];
                                 context.go(
-                                  redirect != null
-                                      ? '/auth/signup?redirect=$redirect'
-                                      : '/auth/signup',
+                                  AuthRouteHelper.signup(redirect: redirect),
                                 );
                               },
                               child: const Text('Criar uma conta'),

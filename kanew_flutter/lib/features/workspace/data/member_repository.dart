@@ -126,22 +126,22 @@ class MemberRepository {
   }
 
   /// Gets invite by code (public, no auth required)
-  Future<Either<Failure, WorkspaceInvite?>> getInviteByCode(
+  Future<Either<Failure, InviteDetails?>> getInviteByCode(
     String code,
   ) async {
     try {
-      final invite = await _client.invite.getInviteByCode(code);
-      return Right(invite);
+      final details = await _client.invite.getInviteByCode(code);
+      return Right(details);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }
 
   /// Accepts an invite and joins workspace
-  Future<Either<Failure, WorkspaceMember>> acceptInvite(String code) async {
+  Future<Either<Failure, AcceptInviteResult>> acceptInvite(String code) async {
     try {
-      final member = await _client.invite.acceptInvite(code);
-      return Right(member);
+      final result = await _client.invite.acceptInvite(code);
+      return Right(result);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

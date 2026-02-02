@@ -47,7 +47,9 @@ final appRouter = GoRouter(
       name: 'app_router',
     );
 
-    if (!isAuthenticated && !isAuthRoute) {
+    final isInviteRoute = path.startsWith('/invite');
+
+    if (!isAuthenticated && !isAuthRoute && !isInviteRoute) {
       developer.log(
         'Redirecting to login (not authenticated)',
         name: 'app_router',

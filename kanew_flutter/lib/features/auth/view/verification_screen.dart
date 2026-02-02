@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/router/auth_route_helper.dart';
 import '../viewmodel/auth_controller.dart';
 
 /// Screen for entering email verification code.
@@ -84,12 +85,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
         );
         if (mounted) {
           context.go(
-            '/auth/set-password',
-            extra: {
-              'email': widget.email,
-              'token': state.registrationToken,
-              if (widget.redirect != null) 'redirect': widget.redirect,
-            },
+            AuthRouteHelper.setPassword(
+              email: widget.email,
+              token: state.registrationToken,
+              redirect: widget.redirect,
+            ),
           );
         }
 
