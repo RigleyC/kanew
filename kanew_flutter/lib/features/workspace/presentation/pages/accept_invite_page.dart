@@ -24,13 +24,34 @@ class AcceptInvitePage extends StatefulWidget {
 
 class _AcceptInvitePageState extends State<AcceptInvitePage> {
   bool _isLoading = true;
+  bool _isAccepting = false;
   String? _error;
   InviteDetails? _inviteDetails;
+
+  late final AuthController _authController;
 
   @override
   void initState() {
     super.initState();
+    _authController = getIt<AuthController>();
+    _authController.addListener(_onAuthChanged);
     _validateInvite();
+  }
+
+  @override
+  void dispose() {
+    _authController.removeListener(_onAuthChanged);
+    super.dispose();
+  }
+
+  /// Called when auth state changes - auto-accept invite if authenticated
+  void _onAuthChanged() {
+    if (_authController.isAuthenticated && 
+        _inviteDetails != null && 
+        !_isAccepting &&
+        !_isLoading) {
+      _acceptInvite();
+    }
   }
 
   Future<void> _validateInvite() async {
@@ -57,16 +78,22 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
             _inviteDetails = inviteDetails;
             _isLoading = false;
           });
+          
+          // Auto-accept if user is already authenticated
+          if (_authController.isAuthenticated) {
+            _acceptInvite();
+          }
         }
       },
     );
   }
 
   Future<void> _acceptInvite() async {
-    final authController = getIt<AuthController>();
+    // Prevent double-acceptance
+    if (_isAccepting) return;
 
     // Check if user is authenticated
-    if (!authController.isAuthenticated) {
+    if (!_authController.isAuthenticated) {
       if (mounted) {
         context.go(AuthRouteHelper.login(
           redirect: RoutePaths.invite(widget.inviteCode),
@@ -76,7 +103,7 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
     }
 
     setState(() {
-      _isLoading = true;
+      _isAccepting = true;
       _error = null;
     });
 
@@ -88,7 +115,7 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
         if (mounted) {
           setState(() {
             _error = failure.message;
-            _isLoading = false;
+            _isAccepting = false;
           });
         }
       },
@@ -109,8 +136,8 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
 
   @override
   Widget build(BuildContext context) {
-    final authController = getIt<AuthController>();
-    final isAuthenticated = authController.isAuthenticated;
+    final isAuthenticated = _authController.isAuthenticated;
+    final isProcessing = _isLoading || _isAccepting;
 
     return Scaffold(
       body: Center(
@@ -136,8 +163,18 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  if (_isLoading)
-                    const CircularProgressIndicator()
+                  if (isProcessing)
+                    Column(
+                      spacing: 16,
+                      children: [
+                        const CircularProgressIndicator(),
+                        if (_isAccepting)
+                          const Text(
+                            'Aceitando convite...',
+                            textAlign: TextAlign.center,
+                          ),
+                      ],
+                    )
                   else if (_error != null)
                     Column(
                       spacing: 16,
