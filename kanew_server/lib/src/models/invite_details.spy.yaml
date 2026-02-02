@@ -1,0 +1,5 @@
+class: InviteDetails
+fields:
+  invite: WorkspaceInvite
+  workspaceName: String
+  workspaceSlug: String

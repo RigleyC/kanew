@@ -1,0 +1,4 @@
+class: AcceptInviteResult
+fields:
+  member: WorkspaceMember
+  workspaceSlug: String

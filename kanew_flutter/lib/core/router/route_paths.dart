@@ -7,6 +7,9 @@ class RoutePaths {
   static const String verification = '/auth/verification';
   static const String setPassword = '/auth/set-password';
 
+  // INVITE ROUTES
+  static String invite(String code) => '/invite/$code';
+
   // WORKSPACE ROUTES
   static String workspace(String slug) => '/w/$slug';
   static String workspaceBoards(String slug) => '/w/$slug/boards';
@@ -23,3 +26,4 @@ class RoutePaths {
     String cardUuid,
   ) => '/w/$workspaceSlug/boards/$boardSlug/c/$cardUuid';
 }
+

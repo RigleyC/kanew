@@ -125,7 +125,7 @@ class InviteEndpoint extends Endpoint {
   }
 
   /// Gets invite by code (public - no auth required for validation)
-  Future<WorkspaceInvite?> getInviteByCode(
+  Future<InviteDetails?> getInviteByCode(
     Session session,
     String code,
   ) async {
@@ -143,12 +143,22 @@ class InviteEndpoint extends Endpoint {
       return null;
     }
 
-    return invite;
+    // Fetch workspace details
+    final workspace = await Workspace.db.findById(session, invite.workspaceId);
+    if (workspace == null) {
+      return null;
+    }
+
+    return InviteDetails(
+      invite: invite,
+      workspaceName: workspace.title,
+      workspaceSlug: workspace.slug,
+    );
   }
 
   /// Accepts an invite and joins workspace
   /// Requires authentication
-  Future<WorkspaceMember> acceptInvite(Session session, String code) async {
+  Future<AcceptInviteResult> acceptInvite(Session session, String code) async {
     if (!session.isUserSignedIn) {
       throw Exception('User must be signed in to accept invite');
     }
@@ -181,45 +191,52 @@ class InviteEndpoint extends Endpoint {
           m.deletedAt.equals(null),
     );
 
+    WorkspaceMember member;
+
     if (existingMember != null) {
       // Mark invite as accepted anyway
       final updated = invite.copyWith(acceptedAt: DateTime.now());
       await WorkspaceInvite.db.updateRow(session, updated);
 
-      // Return existing member
-      return existingMember;
-    }
+      member = existingMember;
+    } else {
+      // Create new member
+      final newMember = WorkspaceMember(
+        userInfoId: userId,
+        workspaceId: invite.workspaceId,
+        role: MemberRole.member,
+        status: MemberStatus.active,
+        joinedAt: DateTime.now(),
+      );
 
-    // Create new member
-    final member = WorkspaceMember(
-      userInfoId: userId,
-      workspaceId: invite.workspaceId,
-      role: MemberRole.member,
-      status: MemberStatus.active,
-      joinedAt: DateTime.now(),
-    );
+      member = await WorkspaceMember.db.insertRow(session, newMember);
 
-    final createdMember = await WorkspaceMember.db.insertRow(session, member);
+      // Grant permissions from invite
+      for (final permissionId in invite.initialPermissions) {
+        await MemberPermission.db.insertRow(
+          session,
+          MemberPermission(
+            workspaceMemberId: member.id!,
+            permissionId: permissionId,
+          ),
+        );
+      }
 
-    // Grant permissions from invite
-    for (final permissionId in invite.initialPermissions) {
-      await MemberPermission.db.insertRow(
-        session,
-        MemberPermission(
-          workspaceMemberId: createdMember.id!,
-          permissionId: permissionId,
-        ),
+      // Mark invite as accepted
+      final updated = invite.copyWith(acceptedAt: DateTime.now());
+      await WorkspaceInvite.db.updateRow(session, updated);
+
+      session.log(
+        '[InviteEndpoint] User $userId accepted invite ${invite.code} and joined workspace ${invite.workspaceId}',
       );
     }
 
-    // Mark invite as accepted
-    final updated = invite.copyWith(acceptedAt: DateTime.now());
-    await WorkspaceInvite.db.updateRow(session, updated);
+    // Fetch workspace slug
+    final workspace = await Workspace.db.findById(session, invite.workspaceId);
 
-    session.log(
-      '[InviteEndpoint] User $userId accepted invite ${invite.code} and joined workspace ${invite.workspaceId}',
+    return AcceptInviteResult(
+      member: member,
+      workspaceSlug: workspace?.slug ?? '',
     );
-
-    return createdMember;
   }
 }

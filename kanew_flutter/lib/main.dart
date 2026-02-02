@@ -9,10 +9,8 @@ import 'core/theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize all dependencies
   await setupDependencies();
 
-  // Initialize locale data for date formatting
   await initializeDateFormatting('pt_BR', null);
 
   runApp(const KanewApp());
