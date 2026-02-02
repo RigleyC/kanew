@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kanew_client/kanew_client.dart' hide Card;
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/router/auth_route_helper.dart';
+import '../../../../core/router/route_paths.dart';
 import '../../data/member_repository.dart';
 import '../../../auth/viewmodel/auth_controller.dart';
+import '../../viewmodel/workspace_controller.dart';
 
 /// Public page for accepting workspace invites
 class AcceptInvitePage extends StatefulWidget {
@@ -21,7 +25,7 @@ class AcceptInvitePage extends StatefulWidget {
 class _AcceptInvitePageState extends State<AcceptInvitePage> {
   bool _isLoading = true;
   String? _error;
-  String? _workspaceName;
+  InviteDetails? _inviteDetails;
 
   @override
   void initState() {
@@ -47,12 +51,11 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
           });
         }
       },
-      (invite) {
+      (inviteDetails) {
         if (mounted) {
           setState(() {
+            _inviteDetails = inviteDetails;
             _isLoading = false;
-            // In a real app, you'd fetch workspace name here
-            _workspaceName = 'Workspace';
           });
         }
       },
@@ -65,8 +68,9 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
     // Check if user is authenticated
     if (!authController.isAuthenticated) {
       if (mounted) {
-        // Redirect to login with return URL
-        context.go('/auth/login?redirect=/invite/${widget.inviteCode}');
+        context.go(AuthRouteHelper.login(
+          redirect: RoutePaths.invite(widget.inviteCode),
+        ));
       }
       return;
     }
@@ -88,10 +92,16 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
           });
         }
       },
-      (workspaceId) {
+      (acceptResult) async {
         if (mounted) {
-          // Redirect to the workspace
-          context.go('/workspace/$workspaceId');
+          // Reload workspaces to include the new workspace
+          final workspaceController = getIt<WorkspaceController>();
+          await workspaceController.loadWorkspaces();
+          
+          // Redirect to the workspace boards page
+          if (mounted) {
+            context.go(RoutePaths.workspaceBoards(acceptResult.workspaceSlug));
+          }
         }
       },
     );
@@ -145,7 +155,7 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
                     )
                   else ...[
                     Text(
-                      'Você foi convidado para participar de "$_workspaceName".',
+                      'Você foi convidado para participar de "${_inviteDetails?.workspaceName ?? 'um workspace'}".',
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 16),
                     ),
@@ -172,13 +182,17 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
                         else ...[
                           FilledButton(
                             onPressed: () => context.go(
-                              '/auth/login?redirect=/invite/${widget.inviteCode}',
+                              AuthRouteHelper.login(
+                                redirect: RoutePaths.invite(widget.inviteCode),
+                              ),
                             ),
                             child: const Text('Fazer Login'),
                           ),
                           OutlinedButton(
                             onPressed: () => context.go(
-                              '/auth/signup?redirect=/invite/${widget.inviteCode}',
+                              AuthRouteHelper.signup(
+                                redirect: RoutePaths.invite(widget.inviteCode),
+                              ),
                             ),
                             child: const Text('Criar Conta'),
                           ),
