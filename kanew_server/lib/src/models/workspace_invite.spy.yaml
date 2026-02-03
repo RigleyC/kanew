@@ -6,7 +6,7 @@ fields:
   email: String? # Opcional - convite não é vinculado ao e-mail (plan.md linha 184)
   code: String
   workspaceId: int, relation(parent=workspace)
-  createdBy: int # Quem criou o convite
+  createdBy: UuidValue # Quem criou o convite
   
   # Lista de IDs de permissão que serão aplicadas ao aceitar
   # O Serverpod serializa List<int> como JSON no Postgres

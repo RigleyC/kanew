@@ -4,45 +4,40 @@ import 'permission_service.dart';
 import '../utils/slug_generator.dart';
 
 /// Service for handling post-registration logic
+/// 
+/// DEPRECATED: Use WorkspaceService.createDefaultWorkspace instead
+/// This file is kept for backward compatibility but should not be used for new code.
 class UserRegistrationService {
   /// Called after a user finishes registration.
   /// Creates a default workspace and user preferences.
+  /// 
+  /// DEPRECATED: Use WorkspaceService.createDefaultWorkspace instead
+  @Deprecated('Use WorkspaceService.createDefaultWorkspace instead')
   static Future<void> onUserRegistered(
     Session session, {
-    required int userId,
+    required UuidValue authUserId,
     String? userName,
   }) async {
     session.log(
-      '[UserRegistrationService] Setting up new user: $userId',
+      '[UserRegistrationService] Setting up new user: $authUserId',
     );
 
     // 1. Create default workspace
-    final workspace = await _createDefaultWorkspace(
+    await _createDefaultWorkspace(
       session,
-      userId: userId,
+      authUserId: authUserId,
       userName: userName,
     );
 
-    // 2. Create UserPreference
-    final preference = UserPreference(
-      userInfoId: userId,
-      lastWorkspaceId: workspace.id,
-      theme: 'system',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
-    await UserPreference.db.insertRow(session, preference);
-
     session.log(
-      '[UserRegistrationService] Created UserPreference for user $userId',
+      '[UserRegistrationService] Setup completed for user $authUserId',
     );
   }
 
   /// Creates the default workspace for a new user
   static Future<Workspace> _createDefaultWorkspace(
     Session session, {
-    required int userId,
+    required UuidValue authUserId,
     String? userName,
   }) async {
     // Generate workspace title using userName if available
@@ -67,21 +62,21 @@ class UserRegistrationService {
       uuid: const Uuid().v4obj(),
       title: workspaceTitle,
       slug: slug,
-      ownerId: userId,
+      ownerId: authUserId,
       createdAt: DateTime.now(),
     );
 
     final created = await Workspace.db.insertRow(session, workspace);
 
     session.log(
-      '[UserRegistrationService] Created workspace "${created.title}" (${created.slug}) for user $userId',
+      '[UserRegistrationService] Created workspace "${created.title}" (${created.slug}) for user $authUserId',
     );
 
     // Create WorkspaceMember for owner
     final member = WorkspaceMember(
-      userInfoId: userId,
+      authUserId: authUserId,
       workspaceId: created.id!,
-      role: MemberRole.owner, // Owner role (conforme plan.md)
+      role: MemberRole.owner,
       status: MemberStatus.active,
       joinedAt: DateTime.now(),
     );
@@ -95,7 +90,7 @@ class UserRegistrationService {
     );
 
     session.log(
-      '[UserRegistrationService] Granted all permissions to user $userId',
+      '[UserRegistrationService] Granted all permissions to user $authUserId',
     );
 
     return created;

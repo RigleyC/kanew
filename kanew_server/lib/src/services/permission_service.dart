@@ -108,7 +108,7 @@ class PermissionService {
   /// Checks if a member has a specific permission
   static Future<bool> hasPermission(
     Session session, {
-    required int userId,
+    required UuidValue userId,
     required int workspaceId,
     required String permissionSlug,
     int? scopeBoardId,
@@ -116,7 +116,7 @@ class PermissionService {
     final member = await WorkspaceMember.db.findFirstRow(
       session,
       where: (t) =>
-          t.userInfoId.equals(userId) &
+          t.authUserId.equals(userId) &
           t.workspaceId.equals(workspaceId) &
           t.deletedAt.equals(null),
     );
@@ -151,14 +151,14 @@ class PermissionService {
   /// Gets all permissions for a user in a workspace
   static Future<List<String>> getUserPermissions(
     Session session, {
-    required int userId,
+    required UuidValue userId,
     required int workspaceId,
   }) async {
     // First, find the workspace member
     final member = await WorkspaceMember.db.findFirstRow(
       session,
       where: (t) =>
-          t.userInfoId.equals(userId) &
+          t.authUserId.equals(userId) &
           t.workspaceId.equals(workspaceId) &
           t.deletedAt.equals(null),
     );
@@ -173,7 +173,9 @@ class PermissionService {
       where: (t) => t.workspaceMemberId.equals(member.id!),
     );
 
-    final permissionIds = memberPermissions.map((mp) => mp.permissionId).toSet();
+    final permissionIds = memberPermissions
+        .map((mp) => mp.permissionId)
+        .toSet();
 
     if (permissionIds.isEmpty) {
       return [];

@@ -790,9 +790,6 @@ class CardEndpoint extends Endpoint {
       ),
     ]);
 
-    final boardLists = results[0] as List<CardList>;
-    final boardLabels = results[1] as List<LabelDef>;
-    final members = results[2] as List<WorkspaceMember>;
     final checklists = results[3] as List<Checklist>;
     final attachments = results[4] as List<Attachment>;
     final cardLabels = results[5] as List<LabelDef>;

@@ -32,7 +32,7 @@ abstract class WorkspaceInvite
     String? email,
     required String code,
     required int workspaceId,
-    required int createdBy,
+    required _i1.UuidValue createdBy,
     required List<int> initialPermissions,
     DateTime? acceptedAt,
     DateTime? revokedAt,
@@ -45,7 +45,9 @@ abstract class WorkspaceInvite
       email: jsonSerialization['email'] as String?,
       code: jsonSerialization['code'] as String,
       workspaceId: jsonSerialization['workspaceId'] as int,
-      createdBy: jsonSerialization['createdBy'] as int,
+      createdBy: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['createdBy'],
+      ),
       initialPermissions: _i2.Protocol().deserialize<List<int>>(
         jsonSerialization['initialPermissions'],
       ),
@@ -74,7 +76,7 @@ abstract class WorkspaceInvite
 
   int workspaceId;
 
-  int createdBy;
+  _i1.UuidValue createdBy;
 
   List<int> initialPermissions;
 
@@ -95,7 +97,7 @@ abstract class WorkspaceInvite
     String? email,
     String? code,
     int? workspaceId,
-    int? createdBy,
+    _i1.UuidValue? createdBy,
     List<int>? initialPermissions,
     DateTime? acceptedAt,
     DateTime? revokedAt,
@@ -109,7 +111,7 @@ abstract class WorkspaceInvite
       if (email != null) 'email': email,
       'code': code,
       'workspaceId': workspaceId,
-      'createdBy': createdBy,
+      'createdBy': createdBy.toJson(),
       'initialPermissions': initialPermissions.toJson(),
       if (acceptedAt != null) 'acceptedAt': acceptedAt?.toJson(),
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
@@ -125,7 +127,7 @@ abstract class WorkspaceInvite
       if (email != null) 'email': email,
       'code': code,
       'workspaceId': workspaceId,
-      'createdBy': createdBy,
+      'createdBy': createdBy.toJson(),
       'initialPermissions': initialPermissions.toJson(),
       if (acceptedAt != null) 'acceptedAt': acceptedAt?.toJson(),
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
@@ -171,7 +173,7 @@ class _WorkspaceInviteImpl extends WorkspaceInvite {
     String? email,
     required String code,
     required int workspaceId,
-    required int createdBy,
+    required _i1.UuidValue createdBy,
     required List<int> initialPermissions,
     DateTime? acceptedAt,
     DateTime? revokedAt,
@@ -197,7 +199,7 @@ class _WorkspaceInviteImpl extends WorkspaceInvite {
     Object? email = _Undefined,
     String? code,
     int? workspaceId,
-    int? createdBy,
+    _i1.UuidValue? createdBy,
     List<int>? initialPermissions,
     Object? acceptedAt = _Undefined,
     Object? revokedAt = _Undefined,
@@ -237,7 +239,9 @@ class WorkspaceInviteUpdateTable extends _i1.UpdateTable<WorkspaceInviteTable> {
     value,
   );
 
-  _i1.ColumnValue<int, int> createdBy(int value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> createdBy(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
     table.createdBy,
     value,
   );
@@ -283,7 +287,7 @@ class WorkspaceInviteTable extends _i1.Table<int?> {
       'workspaceId',
       this,
     );
-    createdBy = _i1.ColumnInt(
+    createdBy = _i1.ColumnUuid(
       'createdBy',
       this,
     );
@@ -313,7 +317,7 @@ class WorkspaceInviteTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt workspaceId;
 
-  late final _i1.ColumnInt createdBy;
+  late final _i1.ColumnUuid createdBy;
 
   late final _i1.ColumnSerializable<List<int>> initialPermissions;
 

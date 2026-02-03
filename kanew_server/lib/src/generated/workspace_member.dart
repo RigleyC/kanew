@@ -18,7 +18,7 @@ abstract class WorkspaceMember
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   WorkspaceMember._({
     this.id,
-    required this.userInfoId,
+    required this.authUserId,
     required this.workspaceId,
     required this.role,
     required this.status,
@@ -29,19 +29,21 @@ abstract class WorkspaceMember
 
   factory WorkspaceMember({
     int? id,
-    required int userInfoId,
+    required _i1.UuidValue authUserId,
     required int workspaceId,
     required _i2.MemberRole role,
     required _i3.MemberStatus status,
     required DateTime joinedAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) = _WorkspaceMemberImpl;
 
   factory WorkspaceMember.fromJson(Map<String, dynamic> jsonSerialization) {
     return WorkspaceMember(
       id: jsonSerialization['id'] as int?,
-      userInfoId: jsonSerialization['userInfoId'] as int,
+      authUserId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['authUserId'],
+      ),
       workspaceId: jsonSerialization['workspaceId'] as int,
       role: _i2.MemberRole.fromJson((jsonSerialization['role'] as String)),
       status: _i3.MemberStatus.fromJson(
@@ -53,7 +55,9 @@ abstract class WorkspaceMember
       deletedAt: jsonSerialization['deletedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['deletedAt']),
-      deletedBy: jsonSerialization['deletedBy'] as int?,
+      deletedBy: jsonSerialization['deletedBy'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['deletedBy']),
     );
   }
 
@@ -64,7 +68,7 @@ abstract class WorkspaceMember
   @override
   int? id;
 
-  int userInfoId;
+  _i1.UuidValue authUserId;
 
   int workspaceId;
 
@@ -76,7 +80,7 @@ abstract class WorkspaceMember
 
   DateTime? deletedAt;
 
-  int? deletedBy;
+  _i1.UuidValue? deletedBy;
 
   @override
   _i1.Table<int?> get table => t;
@@ -86,26 +90,26 @@ abstract class WorkspaceMember
   @_i1.useResult
   WorkspaceMember copyWith({
     int? id,
-    int? userInfoId,
+    _i1.UuidValue? authUserId,
     int? workspaceId,
     _i2.MemberRole? role,
     _i3.MemberStatus? status,
     DateTime? joinedAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   });
   @override
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'WorkspaceMember',
       if (id != null) 'id': id,
-      'userInfoId': userInfoId,
+      'authUserId': authUserId.toJson(),
       'workspaceId': workspaceId,
       'role': role.toJson(),
       'status': status.toJson(),
       'joinedAt': joinedAt.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
-      if (deletedBy != null) 'deletedBy': deletedBy,
+      if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
   }
 
@@ -114,13 +118,13 @@ abstract class WorkspaceMember
     return {
       '__className__': 'WorkspaceMember',
       if (id != null) 'id': id,
-      'userInfoId': userInfoId,
+      'authUserId': authUserId.toJson(),
       'workspaceId': workspaceId,
       'role': role.toJson(),
       'status': status.toJson(),
       'joinedAt': joinedAt.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
-      if (deletedBy != null) 'deletedBy': deletedBy,
+      if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
   }
 
@@ -159,16 +163,16 @@ class _Undefined {}
 class _WorkspaceMemberImpl extends WorkspaceMember {
   _WorkspaceMemberImpl({
     int? id,
-    required int userInfoId,
+    required _i1.UuidValue authUserId,
     required int workspaceId,
     required _i2.MemberRole role,
     required _i3.MemberStatus status,
     required DateTime joinedAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
-         userInfoId: userInfoId,
+         authUserId: authUserId,
          workspaceId: workspaceId,
          role: role,
          status: status,
@@ -183,7 +187,7 @@ class _WorkspaceMemberImpl extends WorkspaceMember {
   @override
   WorkspaceMember copyWith({
     Object? id = _Undefined,
-    int? userInfoId,
+    _i1.UuidValue? authUserId,
     int? workspaceId,
     _i2.MemberRole? role,
     _i3.MemberStatus? status,
@@ -193,13 +197,13 @@ class _WorkspaceMemberImpl extends WorkspaceMember {
   }) {
     return WorkspaceMember(
       id: id is int? ? id : this.id,
-      userInfoId: userInfoId ?? this.userInfoId,
+      authUserId: authUserId ?? this.authUserId,
       workspaceId: workspaceId ?? this.workspaceId,
       role: role ?? this.role,
       status: status ?? this.status,
       joinedAt: joinedAt ?? this.joinedAt,
       deletedAt: deletedAt is DateTime? ? deletedAt : this.deletedAt,
-      deletedBy: deletedBy is int? ? deletedBy : this.deletedBy,
+      deletedBy: deletedBy is _i1.UuidValue? ? deletedBy : this.deletedBy,
     );
   }
 }
@@ -207,8 +211,10 @@ class _WorkspaceMemberImpl extends WorkspaceMember {
 class WorkspaceMemberUpdateTable extends _i1.UpdateTable<WorkspaceMemberTable> {
   WorkspaceMemberUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> userInfoId(int value) => _i1.ColumnValue(
-    table.userInfoId,
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> authUserId(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
+    table.authUserId,
     value,
   );
 
@@ -242,7 +248,9 @@ class WorkspaceMemberUpdateTable extends _i1.UpdateTable<WorkspaceMemberTable> {
         value,
       );
 
-  _i1.ColumnValue<int, int> deletedBy(int? value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> deletedBy(
+    _i1.UuidValue? value,
+  ) => _i1.ColumnValue(
     table.deletedBy,
     value,
   );
@@ -252,8 +260,8 @@ class WorkspaceMemberTable extends _i1.Table<int?> {
   WorkspaceMemberTable({super.tableRelation})
     : super(tableName: 'workspace_member') {
     updateTable = WorkspaceMemberUpdateTable(this);
-    userInfoId = _i1.ColumnInt(
-      'userInfoId',
+    authUserId = _i1.ColumnUuid(
+      'authUserId',
       this,
     );
     workspaceId = _i1.ColumnInt(
@@ -278,7 +286,7 @@ class WorkspaceMemberTable extends _i1.Table<int?> {
       'deletedAt',
       this,
     );
-    deletedBy = _i1.ColumnInt(
+    deletedBy = _i1.ColumnUuid(
       'deletedBy',
       this,
     );
@@ -286,7 +294,7 @@ class WorkspaceMemberTable extends _i1.Table<int?> {
 
   late final WorkspaceMemberUpdateTable updateTable;
 
-  late final _i1.ColumnInt userInfoId;
+  late final _i1.ColumnUuid authUserId;
 
   late final _i1.ColumnInt workspaceId;
 
@@ -298,12 +306,12 @@ class WorkspaceMemberTable extends _i1.Table<int?> {
 
   late final _i1.ColumnDateTime deletedAt;
 
-  late final _i1.ColumnInt deletedBy;
+  late final _i1.ColumnUuid deletedBy;
 
   @override
   List<_i1.Column> get columns => [
     id,
-    userInfoId,
+    authUserId,
     workspaceId,
     role,
     status,

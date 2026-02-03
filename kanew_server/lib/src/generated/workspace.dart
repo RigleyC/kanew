@@ -30,10 +30,10 @@ abstract class Workspace
     required _i1.UuidValue uuid,
     required String title,
     required String slug,
-    required int ownerId,
+    required _i1.UuidValue ownerId,
     required DateTime createdAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) = _WorkspaceImpl;
 
   factory Workspace.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -42,14 +42,18 @@ abstract class Workspace
       uuid: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['uuid']),
       title: jsonSerialization['title'] as String,
       slug: jsonSerialization['slug'] as String,
-      ownerId: jsonSerialization['ownerId'] as int,
+      ownerId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['ownerId'],
+      ),
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
       deletedAt: jsonSerialization['deletedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['deletedAt']),
-      deletedBy: jsonSerialization['deletedBy'] as int?,
+      deletedBy: jsonSerialization['deletedBy'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['deletedBy']),
     );
   }
 
@@ -66,13 +70,13 @@ abstract class Workspace
 
   String slug;
 
-  int ownerId;
+  _i1.UuidValue ownerId;
 
   DateTime createdAt;
 
   DateTime? deletedAt;
 
-  int? deletedBy;
+  _i1.UuidValue? deletedBy;
 
   @override
   _i1.Table<int?> get table => t;
@@ -85,10 +89,10 @@ abstract class Workspace
     _i1.UuidValue? uuid,
     String? title,
     String? slug,
-    int? ownerId,
+    _i1.UuidValue? ownerId,
     DateTime? createdAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -98,10 +102,10 @@ abstract class Workspace
       'uuid': uuid.toJson(),
       'title': title,
       'slug': slug,
-      'ownerId': ownerId,
+      'ownerId': ownerId.toJson(),
       'createdAt': createdAt.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
-      if (deletedBy != null) 'deletedBy': deletedBy,
+      if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
   }
 
@@ -113,10 +117,10 @@ abstract class Workspace
       'uuid': uuid.toJson(),
       'title': title,
       'slug': slug,
-      'ownerId': ownerId,
+      'ownerId': ownerId.toJson(),
       'createdAt': createdAt.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
-      if (deletedBy != null) 'deletedBy': deletedBy,
+      if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
   }
 
@@ -158,10 +162,10 @@ class _WorkspaceImpl extends Workspace {
     required _i1.UuidValue uuid,
     required String title,
     required String slug,
-    required int ownerId,
+    required _i1.UuidValue ownerId,
     required DateTime createdAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
          uuid: uuid,
@@ -182,7 +186,7 @@ class _WorkspaceImpl extends Workspace {
     _i1.UuidValue? uuid,
     String? title,
     String? slug,
-    int? ownerId,
+    _i1.UuidValue? ownerId,
     DateTime? createdAt,
     Object? deletedAt = _Undefined,
     Object? deletedBy = _Undefined,
@@ -195,7 +199,7 @@ class _WorkspaceImpl extends Workspace {
       ownerId: ownerId ?? this.ownerId,
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt is DateTime? ? deletedAt : this.deletedAt,
-      deletedBy: deletedBy is int? ? deletedBy : this.deletedBy,
+      deletedBy: deletedBy is _i1.UuidValue? ? deletedBy : this.deletedBy,
     );
   }
 }
@@ -219,10 +223,11 @@ class WorkspaceUpdateTable extends _i1.UpdateTable<WorkspaceTable> {
     value,
   );
 
-  _i1.ColumnValue<int, int> ownerId(int value) => _i1.ColumnValue(
-    table.ownerId,
-    value,
-  );
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> ownerId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.ownerId,
+        value,
+      );
 
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
@@ -236,7 +241,9 @@ class WorkspaceUpdateTable extends _i1.UpdateTable<WorkspaceTable> {
         value,
       );
 
-  _i1.ColumnValue<int, int> deletedBy(int? value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> deletedBy(
+    _i1.UuidValue? value,
+  ) => _i1.ColumnValue(
     table.deletedBy,
     value,
   );
@@ -257,7 +264,7 @@ class WorkspaceTable extends _i1.Table<int?> {
       'slug',
       this,
     );
-    ownerId = _i1.ColumnInt(
+    ownerId = _i1.ColumnUuid(
       'ownerId',
       this,
     );
@@ -269,7 +276,7 @@ class WorkspaceTable extends _i1.Table<int?> {
       'deletedAt',
       this,
     );
-    deletedBy = _i1.ColumnInt(
+    deletedBy = _i1.ColumnUuid(
       'deletedBy',
       this,
     );
@@ -283,13 +290,13 @@ class WorkspaceTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString slug;
 
-  late final _i1.ColumnInt ownerId;
+  late final _i1.ColumnUuid ownerId;
 
   late final _i1.ColumnDateTime createdAt;
 
   late final _i1.ColumnDateTime deletedAt;
 
-  late final _i1.ColumnInt deletedBy;
+  late final _i1.ColumnUuid deletedBy;
 
   @override
   List<_i1.Column> get columns => [

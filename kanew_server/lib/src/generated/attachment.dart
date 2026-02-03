@@ -37,7 +37,7 @@ abstract class Attachment
     required int size,
     required String storageKey,
     String? fileUrl,
-    required int uploaderId,
+    required _i1.UuidValue uploaderId,
     required DateTime createdAt,
     DateTime? deletedAt,
   }) = _AttachmentImpl;
@@ -52,7 +52,9 @@ abstract class Attachment
       size: jsonSerialization['size'] as int,
       storageKey: jsonSerialization['storageKey'] as String,
       fileUrl: jsonSerialization['fileUrl'] as String?,
-      uploaderId: jsonSerialization['uploaderId'] as int,
+      uploaderId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['uploaderId'],
+      ),
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -83,7 +85,7 @@ abstract class Attachment
 
   String? fileUrl;
 
-  int uploaderId;
+  _i1.UuidValue uploaderId;
 
   DateTime createdAt;
 
@@ -104,7 +106,7 @@ abstract class Attachment
     int? size,
     String? storageKey,
     String? fileUrl,
-    int? uploaderId,
+    _i1.UuidValue? uploaderId,
     DateTime? createdAt,
     DateTime? deletedAt,
   });
@@ -120,7 +122,7 @@ abstract class Attachment
       'size': size,
       'storageKey': storageKey,
       if (fileUrl != null) 'fileUrl': fileUrl,
-      'uploaderId': uploaderId,
+      'uploaderId': uploaderId.toJson(),
       'createdAt': createdAt.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
     };
@@ -138,7 +140,7 @@ abstract class Attachment
       'size': size,
       'storageKey': storageKey,
       if (fileUrl != null) 'fileUrl': fileUrl,
-      'uploaderId': uploaderId,
+      'uploaderId': uploaderId.toJson(),
       'createdAt': createdAt.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
     };
@@ -186,7 +188,7 @@ class _AttachmentImpl extends Attachment {
     required int size,
     required String storageKey,
     String? fileUrl,
-    required int uploaderId,
+    required _i1.UuidValue uploaderId,
     required DateTime createdAt,
     DateTime? deletedAt,
   }) : super._(
@@ -216,7 +218,7 @@ class _AttachmentImpl extends Attachment {
     int? size,
     String? storageKey,
     Object? fileUrl = _Undefined,
-    int? uploaderId,
+    _i1.UuidValue? uploaderId,
     DateTime? createdAt,
     Object? deletedAt = _Undefined,
   }) {
@@ -274,7 +276,9 @@ class AttachmentUpdateTable extends _i1.UpdateTable<AttachmentTable> {
     value,
   );
 
-  _i1.ColumnValue<int, int> uploaderId(int value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> uploaderId(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
     table.uploaderId,
     value,
   );
@@ -323,7 +327,7 @@ class AttachmentTable extends _i1.Table<int?> {
       'fileUrl',
       this,
     );
-    uploaderId = _i1.ColumnInt(
+    uploaderId = _i1.ColumnUuid(
       'uploaderId',
       this,
     );
@@ -353,7 +357,7 @@ class AttachmentTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString fileUrl;
 
-  late final _i1.ColumnInt uploaderId;
+  late final _i1.ColumnUuid uploaderId;
 
   late final _i1.ColumnDateTime createdAt;
 

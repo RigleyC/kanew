@@ -47,19 +47,13 @@ class BoardViewPageController extends ChangeNotifier {
   // Load board using slugs only (no workspaceId needed)
   Future<void> load(String workspaceSlug, String boardSlug) async {
     print('DEBUG: BoardViewPageController.load($workspaceSlug, $boardSlug)');
-    // Prevent reload if already loaded same board
-    if (_boardStore.board?.slug == boardSlug) {
-      print('DEBUG: Board already loaded, skipping');
-      return;
-    }
 
     _isLoading = true;
     _error = null;
-    _boardStore.clear(); // Reset store for new board
+    _boardStore.clear();
     notifyListeners();
 
     try {
-      // Use new optimized endpoint
       print('DEBUG: Calling getBoardWithCards($workspaceSlug, $boardSlug)');
       final boardWithCards = await _boardRepo.getBoardWithCards(
         workspaceSlug,

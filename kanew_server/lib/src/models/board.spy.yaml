@@ -13,11 +13,11 @@ fields:
   isTemplate: bool
   
   createdAt: DateTime
-  createdBy: int
+  createdBy: UuidValue
   
   # Soft Delete
   deletedAt: DateTime?
-  deletedBy: int?
+  deletedBy: UuidValue?
 indexes:
   board_uuid_idx:
     fields: uuid

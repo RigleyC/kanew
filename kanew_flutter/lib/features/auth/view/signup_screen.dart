@@ -5,6 +5,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/router/auth_route_helper.dart';
 import '../viewmodel/auth_controller.dart';
 
 /// Screen for starting the signup process.
@@ -66,18 +67,15 @@ class _SignupScreenState extends State<SignupScreen> {
           name: 'signup_screen',
         );
     if (mounted) {
-      final state = GoRouterState.of(context);
-      final redirect = state.uri.queryParameters['redirect'];
-
+      final redirect = AuthRouteHelper.getRedirect(GoRouterState.of(context));
       context.go(
-        '/auth/verification',
-        extra: {
-          'email': email,
-          'accountRequestId': viewModel.state is AuthNeedsVerification 
-              ? (viewModel.state as AuthNeedsVerification).accountRequestId.toString()
-              : '',
-          if (redirect != null) 'redirect': redirect,
-        },
+        AuthRouteHelper.verification(
+          email: email,
+          accountRequestId: (viewModel.state as AuthNeedsVerification)
+              .accountRequestId
+              .toString(),
+          redirect: redirect,
+        ),
       );
     }
 
@@ -223,9 +221,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                     final redirect =
                                         state.uri.queryParameters['redirect'];
                                     context.go(
-                                      redirect != null
-                                          ? '/auth/login?redirect=$redirect'
-                                          : '/auth/login',
+                                      AuthRouteHelper.login(redirect: redirect),
                                     );
                                   },
                                   child: const Text('Entrar'),

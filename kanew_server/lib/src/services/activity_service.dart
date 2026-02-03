@@ -6,14 +6,14 @@ class ActivityService {
   static Future<void> log(
     Session session, {
     required int cardId,
-    required int actorId,
+    required UuidValue actorId,
     required ActivityType type,
     String? details,
   }) async {
     try {
       final activity = CardActivity(
         cardId: cardId,
-        actorId: actorId,
+        actorId: actorId, // This should pass if CardActivity is updated
         type: type,
         details: details,
         createdAt: DateTime.now(),

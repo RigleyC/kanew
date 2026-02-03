@@ -26,7 +26,7 @@ abstract class Comment implements _i1.SerializableModel {
   factory Comment({
     int? id,
     required int cardId,
-    required int authorId,
+    required _i1.UuidValue authorId,
     required String content,
     required DateTime createdAt,
     DateTime? updatedAt,
@@ -37,7 +37,9 @@ abstract class Comment implements _i1.SerializableModel {
     return Comment(
       id: jsonSerialization['id'] as int?,
       cardId: jsonSerialization['cardId'] as int,
-      authorId: jsonSerialization['authorId'] as int,
+      authorId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['authorId'],
+      ),
       content: jsonSerialization['content'] as String,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
@@ -58,7 +60,7 @@ abstract class Comment implements _i1.SerializableModel {
 
   int cardId;
 
-  int authorId;
+  _i1.UuidValue authorId;
 
   String content;
 
@@ -74,7 +76,7 @@ abstract class Comment implements _i1.SerializableModel {
   Comment copyWith({
     int? id,
     int? cardId,
-    int? authorId,
+    _i1.UuidValue? authorId,
     String? content,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -86,7 +88,7 @@ abstract class Comment implements _i1.SerializableModel {
       '__className__': 'Comment',
       if (id != null) 'id': id,
       'cardId': cardId,
-      'authorId': authorId,
+      'authorId': authorId.toJson(),
       'content': content,
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
@@ -106,7 +108,7 @@ class _CommentImpl extends Comment {
   _CommentImpl({
     int? id,
     required int cardId,
-    required int authorId,
+    required _i1.UuidValue authorId,
     required String content,
     required DateTime createdAt,
     DateTime? updatedAt,
@@ -128,7 +130,7 @@ class _CommentImpl extends Comment {
   Comment copyWith({
     Object? id = _Undefined,
     int? cardId,
-    int? authorId,
+    _i1.UuidValue? authorId,
     String? content,
     DateTime? createdAt,
     Object? updatedAt = _Undefined,

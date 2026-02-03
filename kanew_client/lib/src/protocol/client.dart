@@ -29,16 +29,18 @@ import 'package:kanew_client/src/protocol/checklist.dart' as _i14;
 import 'package:kanew_client/src/protocol/checklist_item.dart' as _i15;
 import 'package:kanew_client/src/protocol/comment.dart' as _i16;
 import 'package:kanew_client/src/protocol/workspace_invite.dart' as _i17;
-import 'package:kanew_client/src/protocol/workspace_member.dart' as _i18;
-import 'package:kanew_client/src/protocol/label_def.dart' as _i19;
-import 'package:kanew_client/src/protocol/member_with_user.dart' as _i20;
-import 'package:kanew_client/src/protocol/member_role.dart' as _i21;
-import 'package:kanew_client/src/protocol/permission_info.dart' as _i22;
-import 'package:kanew_client/src/protocol/permission.dart' as _i23;
-import 'package:kanew_client/src/protocol/workspace.dart' as _i24;
-import 'package:kanew_client/src/protocol/greetings/greeting.dart' as _i25;
-import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i26;
-import 'protocol.dart' as _i27;
+import 'package:kanew_client/src/protocol/invite_details.dart' as _i18;
+import 'package:kanew_client/src/protocol/accept_invite_result.dart' as _i19;
+import 'package:kanew_client/src/protocol/label_def.dart' as _i20;
+import 'package:kanew_client/src/protocol/member_with_user.dart' as _i21;
+import 'package:kanew_client/src/protocol/workspace_member.dart' as _i22;
+import 'package:kanew_client/src/protocol/member_role.dart' as _i23;
+import 'package:kanew_client/src/protocol/permission_info.dart' as _i24;
+import 'package:kanew_client/src/protocol/permission.dart' as _i25;
+import 'package:kanew_client/src/protocol/workspace.dart' as _i26;
+import 'package:kanew_client/src/protocol/greetings/greeting.dart' as _i27;
+import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i28;
+import 'protocol.dart' as _i29;
 
 /// Extends EmailIdpBaseEndpoint to expose email auth endpoints.
 ///
@@ -918,8 +920,8 @@ class EndpointInvite extends _i2.EndpointRef {
       );
 
   /// Gets invite by code (public - no auth required for validation)
-  _i3.Future<_i17.WorkspaceInvite?> getInviteByCode(String code) =>
-      caller.callServerEndpoint<_i17.WorkspaceInvite?>(
+  _i3.Future<_i18.InviteDetails?> getInviteByCode(String code) =>
+      caller.callServerEndpoint<_i18.InviteDetails?>(
         'invite',
         'getInviteByCode',
         {'code': code},
@@ -927,8 +929,8 @@ class EndpointInvite extends _i2.EndpointRef {
 
   /// Accepts an invite and joins workspace
   /// Requires authentication
-  _i3.Future<_i18.WorkspaceMember> acceptInvite(String code) =>
-      caller.callServerEndpoint<_i18.WorkspaceMember>(
+  _i3.Future<_i19.AcceptInviteResult> acceptInvite(String code) =>
+      caller.callServerEndpoint<_i19.AcceptInviteResult>(
         'invite',
         'acceptInvite',
         {'code': code},
@@ -943,19 +945,19 @@ class EndpointLabel extends _i2.EndpointRef {
   String get name => 'label';
 
   /// Gets all labels defined for a board
-  _i3.Future<List<_i19.LabelDef>> getLabels(int boardId) =>
-      caller.callServerEndpoint<List<_i19.LabelDef>>(
+  _i3.Future<List<_i20.LabelDef>> getLabels(int boardId) =>
+      caller.callServerEndpoint<List<_i20.LabelDef>>(
         'label',
         'getLabels',
         {'boardId': boardId},
       );
 
   /// Creates a new label definition
-  _i3.Future<_i19.LabelDef> createLabel(
+  _i3.Future<_i20.LabelDef> createLabel(
     int boardId,
     String name,
     String colorHex,
-  ) => caller.callServerEndpoint<_i19.LabelDef>(
+  ) => caller.callServerEndpoint<_i20.LabelDef>(
     'label',
     'createLabel',
     {
@@ -966,11 +968,11 @@ class EndpointLabel extends _i2.EndpointRef {
   );
 
   /// Updates a label definition
-  _i3.Future<_i19.LabelDef> updateLabel(
+  _i3.Future<_i20.LabelDef> updateLabel(
     int labelId,
     String name,
     String colorHex,
-  ) => caller.callServerEndpoint<_i19.LabelDef>(
+  ) => caller.callServerEndpoint<_i20.LabelDef>(
     'label',
     'updateLabel',
     {
@@ -1014,8 +1016,8 @@ class EndpointLabel extends _i2.EndpointRef {
   );
 
   /// Get labels attached to a card
-  _i3.Future<List<_i19.LabelDef>> getCardLabels(int cardId) =>
-      caller.callServerEndpoint<List<_i19.LabelDef>>(
+  _i3.Future<List<_i20.LabelDef>> getCardLabels(int cardId) =>
+      caller.callServerEndpoint<List<_i20.LabelDef>>(
         'label',
         'getCardLabels',
         {'cardId': cardId},
@@ -1031,8 +1033,8 @@ class EndpointMember extends _i2.EndpointRef {
   String get name => 'member';
 
   /// Gets all members of a workspace with UserInfo details
-  _i3.Future<List<_i20.MemberWithUser>> getMembers(int workspaceId) =>
-      caller.callServerEndpoint<List<_i20.MemberWithUser>>(
+  _i3.Future<List<_i21.MemberWithUser>> getMembers(int workspaceId) =>
+      caller.callServerEndpoint<List<_i21.MemberWithUser>>(
         'member',
         'getMembers',
         {'workspaceId': workspaceId},
@@ -1047,10 +1049,10 @@ class EndpointMember extends _i2.EndpointRef {
       );
 
   /// Updates member role
-  _i3.Future<_i18.WorkspaceMember> updateMemberRole(
+  _i3.Future<_i22.WorkspaceMember> updateMemberRole(
     int memberId,
-    _i21.MemberRole newRole,
-  ) => caller.callServerEndpoint<_i18.WorkspaceMember>(
+    _i23.MemberRole newRole,
+  ) => caller.callServerEndpoint<_i22.WorkspaceMember>(
     'member',
     'updateMemberRole',
     {
@@ -1060,8 +1062,8 @@ class EndpointMember extends _i2.EndpointRef {
   );
 
   /// Gets all permissions for a member with granted status
-  _i3.Future<List<_i22.PermissionInfo>> getMemberPermissions(int memberId) =>
-      caller.callServerEndpoint<List<_i22.PermissionInfo>>(
+  _i3.Future<List<_i24.PermissionInfo>> getMemberPermissions(int memberId) =>
+      caller.callServerEndpoint<List<_i24.PermissionInfo>>(
         'member',
         'getMemberPermissions',
         {'memberId': memberId},
@@ -1094,8 +1096,8 @@ class EndpointMember extends _i2.EndpointRef {
   );
 
   /// Gets all available permissions in the system
-  _i3.Future<List<_i23.Permission>> getAllPermissions() =>
-      caller.callServerEndpoint<List<_i23.Permission>>(
+  _i3.Future<List<_i25.Permission>> getAllPermissions() =>
+      caller.callServerEndpoint<List<_i25.Permission>>(
         'member',
         'getAllPermissions',
         {},
@@ -1111,8 +1113,8 @@ class EndpointWorkspace extends _i2.EndpointRef {
   String get name => 'workspace';
 
   /// Gets all workspaces for authenticated user
-  _i3.Future<List<_i24.Workspace>> getWorkspaces() =>
-      caller.callServerEndpoint<List<_i24.Workspace>>(
+  _i3.Future<List<_i26.Workspace>> getWorkspaces() =>
+      caller.callServerEndpoint<List<_i26.Workspace>>(
         'workspace',
         'getWorkspaces',
         {},
@@ -1120,18 +1122,18 @@ class EndpointWorkspace extends _i2.EndpointRef {
 
   /// Gets a single workspace by slug
   /// Verifies that user has permission to read workspace
-  _i3.Future<_i24.Workspace?> getWorkspace(String slug) =>
-      caller.callServerEndpoint<_i24.Workspace?>(
+  _i3.Future<_i26.Workspace?> getWorkspace(String slug) =>
+      caller.callServerEndpoint<_i26.Workspace?>(
         'workspace',
         'getWorkspace',
         {'slug': slug},
       );
 
   /// Creates a new workspace
-  _i3.Future<_i24.Workspace> createWorkspace(
+  _i3.Future<_i26.Workspace> createWorkspace(
     String title,
     String? slug,
-  ) => caller.callServerEndpoint<_i24.Workspace>(
+  ) => caller.callServerEndpoint<_i26.Workspace>(
     'workspace',
     'createWorkspace',
     {
@@ -1141,11 +1143,11 @@ class EndpointWorkspace extends _i2.EndpointRef {
   );
 
   /// Updates workspace settings
-  _i3.Future<_i24.Workspace> updateWorkspace(
+  _i3.Future<_i26.Workspace> updateWorkspace(
     int workspaceId,
     String title,
     String? slug,
-  ) => caller.callServerEndpoint<_i24.Workspace>(
+  ) => caller.callServerEndpoint<_i26.Workspace>(
     'workspace',
     'updateWorkspace',
     {
@@ -1174,8 +1176,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i25.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i25.Greeting>(
+  _i3.Future<_i27.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i27.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -1186,14 +1188,14 @@ class Modules {
   Modules(Client client) {
     serverpod_auth_idp = _i1.Caller(client);
     serverpod_auth_core = _i4.Caller(client);
-    auth = _i26.Caller(client);
+    auth = _i28.Caller(client);
   }
 
   late final _i1.Caller serverpod_auth_idp;
 
   late final _i4.Caller serverpod_auth_core;
 
-  late final _i26.Caller auth;
+  late final _i28.Caller auth;
 }
 
 class Client extends _i2.ServerpodClientShared {
@@ -1216,7 +1218,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i27.Protocol(),
+         _i29.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,

@@ -35,7 +35,7 @@ abstract class CardList
     required bool archived,
     required DateTime createdAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) = _CardListImpl;
 
   factory CardList.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -52,7 +52,9 @@ abstract class CardList
       deletedAt: jsonSerialization['deletedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['deletedAt']),
-      deletedBy: jsonSerialization['deletedBy'] as int?,
+      deletedBy: jsonSerialization['deletedBy'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['deletedBy']),
     );
   }
 
@@ -77,7 +79,7 @@ abstract class CardList
 
   DateTime? deletedAt;
 
-  int? deletedBy;
+  _i1.UuidValue? deletedBy;
 
   @override
   _i1.Table<int?> get table => t;
@@ -94,7 +96,7 @@ abstract class CardList
     bool? archived,
     DateTime? createdAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -108,7 +110,7 @@ abstract class CardList
       'archived': archived,
       'createdAt': createdAt.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
-      if (deletedBy != null) 'deletedBy': deletedBy,
+      if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
   }
 
@@ -124,7 +126,7 @@ abstract class CardList
       'archived': archived,
       'createdAt': createdAt.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
-      if (deletedBy != null) 'deletedBy': deletedBy,
+      if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
   }
 
@@ -170,7 +172,7 @@ class _CardListImpl extends CardList {
     required bool archived,
     required DateTime createdAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
          uuid: uuid,
@@ -207,7 +209,7 @@ class _CardListImpl extends CardList {
       archived: archived ?? this.archived,
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt is DateTime? ? deletedAt : this.deletedAt,
-      deletedBy: deletedBy is int? ? deletedBy : this.deletedBy,
+      deletedBy: deletedBy is _i1.UuidValue? ? deletedBy : this.deletedBy,
     );
   }
 }
@@ -253,7 +255,9 @@ class CardListUpdateTable extends _i1.UpdateTable<CardListTable> {
         value,
       );
 
-  _i1.ColumnValue<int, int> deletedBy(int? value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> deletedBy(
+    _i1.UuidValue? value,
+  ) => _i1.ColumnValue(
     table.deletedBy,
     value,
   );
@@ -290,7 +294,7 @@ class CardListTable extends _i1.Table<int?> {
       'deletedAt',
       this,
     );
-    deletedBy = _i1.ColumnInt(
+    deletedBy = _i1.ColumnUuid(
       'deletedBy',
       this,
     );
@@ -312,7 +316,7 @@ class CardListTable extends _i1.Table<int?> {
 
   late final _i1.ColumnDateTime deletedAt;
 
-  late final _i1.ColumnInt deletedBy;
+  late final _i1.ColumnUuid deletedBy;
 
   @override
   List<_i1.Column> get columns => [

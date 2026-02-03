@@ -7,12 +7,12 @@ fields:
   slug: String # URL amigável
   
   # Dados
-  ownerId: int
+  ownerId: UuidValue # Changed from int to match Serverpod 3.x auth
   createdAt: DateTime
   
   # Soft Delete
   deletedAt: DateTime?
-  deletedBy: int?
+  deletedBy: UuidValue? # Changed from int to UuidValue
 indexes:
   workspace_uuid_idx:
     fields: uuid

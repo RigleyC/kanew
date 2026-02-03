@@ -31,7 +31,7 @@ abstract class WorkspaceInvite implements _i1.SerializableModel {
     String? email,
     required String code,
     required int workspaceId,
-    required int createdBy,
+    required _i1.UuidValue createdBy,
     required List<int> initialPermissions,
     DateTime? acceptedAt,
     DateTime? revokedAt,
@@ -44,7 +44,9 @@ abstract class WorkspaceInvite implements _i1.SerializableModel {
       email: jsonSerialization['email'] as String?,
       code: jsonSerialization['code'] as String,
       workspaceId: jsonSerialization['workspaceId'] as int,
-      createdBy: jsonSerialization['createdBy'] as int,
+      createdBy: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['createdBy'],
+      ),
       initialPermissions: _i2.Protocol().deserialize<List<int>>(
         jsonSerialization['initialPermissions'],
       ),
@@ -71,7 +73,7 @@ abstract class WorkspaceInvite implements _i1.SerializableModel {
 
   int workspaceId;
 
-  int createdBy;
+  _i1.UuidValue createdBy;
 
   List<int> initialPermissions;
 
@@ -89,7 +91,7 @@ abstract class WorkspaceInvite implements _i1.SerializableModel {
     String? email,
     String? code,
     int? workspaceId,
-    int? createdBy,
+    _i1.UuidValue? createdBy,
     List<int>? initialPermissions,
     DateTime? acceptedAt,
     DateTime? revokedAt,
@@ -103,7 +105,7 @@ abstract class WorkspaceInvite implements _i1.SerializableModel {
       if (email != null) 'email': email,
       'code': code,
       'workspaceId': workspaceId,
-      'createdBy': createdBy,
+      'createdBy': createdBy.toJson(),
       'initialPermissions': initialPermissions.toJson(),
       if (acceptedAt != null) 'acceptedAt': acceptedAt?.toJson(),
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
@@ -125,7 +127,7 @@ class _WorkspaceInviteImpl extends WorkspaceInvite {
     String? email,
     required String code,
     required int workspaceId,
-    required int createdBy,
+    required _i1.UuidValue createdBy,
     required List<int> initialPermissions,
     DateTime? acceptedAt,
     DateTime? revokedAt,
@@ -151,7 +153,7 @@ class _WorkspaceInviteImpl extends WorkspaceInvite {
     Object? email = _Undefined,
     String? code,
     int? workspaceId,
-    int? createdBy,
+    _i1.UuidValue? createdBy,
     List<int>? initialPermissions,
     Object? acceptedAt = _Undefined,
     Object? revokedAt = _Undefined,

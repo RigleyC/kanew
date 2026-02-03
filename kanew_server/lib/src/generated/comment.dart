@@ -27,7 +27,7 @@ abstract class Comment
   factory Comment({
     int? id,
     required int cardId,
-    required int authorId,
+    required _i1.UuidValue authorId,
     required String content,
     required DateTime createdAt,
     DateTime? updatedAt,
@@ -38,7 +38,9 @@ abstract class Comment
     return Comment(
       id: jsonSerialization['id'] as int?,
       cardId: jsonSerialization['cardId'] as int,
-      authorId: jsonSerialization['authorId'] as int,
+      authorId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['authorId'],
+      ),
       content: jsonSerialization['content'] as String,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
@@ -61,7 +63,7 @@ abstract class Comment
 
   int cardId;
 
-  int authorId;
+  _i1.UuidValue authorId;
 
   String content;
 
@@ -80,7 +82,7 @@ abstract class Comment
   Comment copyWith({
     int? id,
     int? cardId,
-    int? authorId,
+    _i1.UuidValue? authorId,
     String? content,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -92,7 +94,7 @@ abstract class Comment
       '__className__': 'Comment',
       if (id != null) 'id': id,
       'cardId': cardId,
-      'authorId': authorId,
+      'authorId': authorId.toJson(),
       'content': content,
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
@@ -106,7 +108,7 @@ abstract class Comment
       '__className__': 'Comment',
       if (id != null) 'id': id,
       'cardId': cardId,
-      'authorId': authorId,
+      'authorId': authorId.toJson(),
       'content': content,
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
@@ -150,7 +152,7 @@ class _CommentImpl extends Comment {
   _CommentImpl({
     int? id,
     required int cardId,
-    required int authorId,
+    required _i1.UuidValue authorId,
     required String content,
     required DateTime createdAt,
     DateTime? updatedAt,
@@ -172,7 +174,7 @@ class _CommentImpl extends Comment {
   Comment copyWith({
     Object? id = _Undefined,
     int? cardId,
-    int? authorId,
+    _i1.UuidValue? authorId,
     String? content,
     DateTime? createdAt,
     Object? updatedAt = _Undefined,
@@ -198,10 +200,11 @@ class CommentUpdateTable extends _i1.UpdateTable<CommentTable> {
     value,
   );
 
-  _i1.ColumnValue<int, int> authorId(int value) => _i1.ColumnValue(
-    table.authorId,
-    value,
-  );
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> authorId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.authorId,
+        value,
+      );
 
   _i1.ColumnValue<String, String> content(String value) => _i1.ColumnValue(
     table.content,
@@ -234,7 +237,7 @@ class CommentTable extends _i1.Table<int?> {
       'cardId',
       this,
     );
-    authorId = _i1.ColumnInt(
+    authorId = _i1.ColumnUuid(
       'authorId',
       this,
     );
@@ -260,7 +263,7 @@ class CommentTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt cardId;
 
-  late final _i1.ColumnInt authorId;
+  late final _i1.ColumnUuid authorId;
 
   late final _i1.ColumnString content;
 

@@ -9,7 +9,6 @@ class WorkspaceService {
   /// Called from onAfterAccountCreated hook in EmailIdpConfig
   ///
   /// Note: In Serverpod 3.x, authUserId is the user's UUID from auth_user table.
-  /// We need to map the UUID to a numeric ID for ownerId.
   static Future<Workspace> createDefaultWorkspace(
     Session session, {
     required UuidValue authUserId,
@@ -49,16 +48,11 @@ class WorkspaceService {
           .then((w) => w != null),
     );
 
-    // Generate a deterministic numeric ID from UUID
-    // This converts the first 8 bytes of the UUID to a positive integer
-    final uuidBytes = authUserId.toBytes();
-    final numericUserId = _bytesToInt(uuidBytes);
-
     final workspace = Workspace(
       uuid: const Uuid().v4obj(),
       title: title,
       slug: slug,
-      ownerId: numericUserId,
+      ownerId: authUserId,
       createdAt: DateTime.now(),
     );
 
@@ -66,48 +60,25 @@ class WorkspaceService {
 
     // Add owner as member with role 'owner'
     final member = WorkspaceMember(
-      userInfoId: numericUserId,
+      authUserId: authUserId,
       workspaceId: created.id!,
-      role: MemberRole.owner, // Owner role (conforme plan.md)
+      role: MemberRole.owner,
       status: MemberStatus.active,
       joinedAt: DateTime.now(),
     );
 
     final createdMember = await WorkspaceMember.db.insertRow(session, member);
 
-    // Grant all permissions to owner (conforme plan.md)
+    // Grant all permissions to owner
     await PermissionService.grantAllPermissions(
       session,
       workspaceMemberId: createdMember.id!,
     );
 
-    // Create UserPreference with lastWorkspaceId (conforme plan.md)
-    final preference = UserPreference(
-      userInfoId: numericUserId,
-      lastWorkspaceId: created.id!,
-      theme: null, // Default theme
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
-    await UserPreference.db.insertRow(session, preference);
-
     session.log(
-      '[WorkspaceService] Created default workspace "${created.title}" (${created.slug}) for user $numericUserId (UUID: $authUserId)',
-    );
-    session.log(
-      '[WorkspaceService] Created UserPreference with lastWorkspaceId=${created.id} for user $numericUserId',
+      '[WorkspaceService] Created default workspace "${created.title}" (${created.slug}) for user $authUserId',
     );
 
     return created;
-  }
-
-  /// Converts bytes to a positive integer
-  static int _bytesToInt(List<int> bytes) {
-    var result = 0;
-    for (var i = 0; i < bytes.length && i < 8; i++) {
-      result = (result << 8) | (bytes[i] & 0xFF);
-    }
-    return result.abs();
   }
 }

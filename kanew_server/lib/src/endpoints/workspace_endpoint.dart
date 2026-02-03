@@ -18,7 +18,7 @@ class WorkspaceEndpoint extends Endpoint {
     final members = await WorkspaceMember.db.find(
       session,
       where: (wm) =>
-          wm.userInfoId.equals(numericUserId) & wm.deletedAt.equals(null),
+          wm.authUserId.equals(numericUserId) & wm.deletedAt.equals(null),
     );
 
     final workspaceIds = members.map((m) => m.workspaceId).toSet().toList();
@@ -112,7 +112,7 @@ class WorkspaceEndpoint extends Endpoint {
     final created = await Workspace.db.insertRow(session, workspace);
 
     final member = WorkspaceMember(
-      userInfoId: numericUserId,
+      authUserId: numericUserId,
       workspaceId: created.id!,
       role: MemberRole.owner, // Owner recebe todas as permissões
       status: MemberStatus.active,

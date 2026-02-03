@@ -2,7 +2,7 @@
 class: WorkspaceMember
 table: workspace_member
 fields:
-  userInfoId: int
+  authUserId: UuidValue # Changed from userInfoId: int to match Serverpod 3.x auth
   workspaceId: int, relation(parent=workspace)
   role: MemberRole # owner, admin, member (hierarquia)
   status: MemberStatus # active, invited, suspended (estado)
@@ -10,8 +10,8 @@ fields:
   
   # Soft Delete (Se removido do time)
   deletedAt: DateTime?
-  deletedBy: int?
+  deletedBy: UuidValue? # Changed from int to UuidValue
 indexes:
   workspace_member_unique_idx:
-    fields: userInfoId, workspaceId
+    fields: authUserId, workspaceId
     unique: true
