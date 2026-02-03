@@ -36,7 +36,7 @@ abstract class Attachment implements _i1.SerializableModel {
     required int size,
     required String storageKey,
     String? fileUrl,
-    required int uploaderId,
+    required _i1.UuidValue uploaderId,
     required DateTime createdAt,
     DateTime? deletedAt,
   }) = _AttachmentImpl;
@@ -51,7 +51,9 @@ abstract class Attachment implements _i1.SerializableModel {
       size: jsonSerialization['size'] as int,
       storageKey: jsonSerialization['storageKey'] as String,
       fileUrl: jsonSerialization['fileUrl'] as String?,
-      uploaderId: jsonSerialization['uploaderId'] as int,
+      uploaderId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['uploaderId'],
+      ),
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -80,7 +82,7 @@ abstract class Attachment implements _i1.SerializableModel {
 
   String? fileUrl;
 
-  int uploaderId;
+  _i1.UuidValue uploaderId;
 
   DateTime createdAt;
 
@@ -98,7 +100,7 @@ abstract class Attachment implements _i1.SerializableModel {
     int? size,
     String? storageKey,
     String? fileUrl,
-    int? uploaderId,
+    _i1.UuidValue? uploaderId,
     DateTime? createdAt,
     DateTime? deletedAt,
   });
@@ -114,7 +116,7 @@ abstract class Attachment implements _i1.SerializableModel {
       'size': size,
       'storageKey': storageKey,
       if (fileUrl != null) 'fileUrl': fileUrl,
-      'uploaderId': uploaderId,
+      'uploaderId': uploaderId.toJson(),
       'createdAt': createdAt.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
     };
@@ -138,7 +140,7 @@ class _AttachmentImpl extends Attachment {
     required int size,
     required String storageKey,
     String? fileUrl,
-    required int uploaderId,
+    required _i1.UuidValue uploaderId,
     required DateTime createdAt,
     DateTime? deletedAt,
   }) : super._(
@@ -168,7 +170,7 @@ class _AttachmentImpl extends Attachment {
     int? size,
     String? storageKey,
     Object? fileUrl = _Undefined,
-    int? uploaderId,
+    _i1.UuidValue? uploaderId,
     DateTime? createdAt,
     Object? deletedAt = _Undefined,
   }) {

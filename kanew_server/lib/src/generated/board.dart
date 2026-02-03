@@ -39,9 +39,9 @@ abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     String? backgroundUrl,
     required bool isTemplate,
     required DateTime createdAt,
-    required int createdBy,
+    required _i1.UuidValue createdBy,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) = _BoardImpl;
 
   factory Board.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -59,11 +59,15 @@ abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
-      createdBy: jsonSerialization['createdBy'] as int,
+      createdBy: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['createdBy'],
+      ),
       deletedAt: jsonSerialization['deletedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['deletedAt']),
-      deletedBy: jsonSerialization['deletedBy'] as int?,
+      deletedBy: jsonSerialization['deletedBy'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['deletedBy']),
     );
   }
 
@@ -90,11 +94,11 @@ abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   DateTime createdAt;
 
-  int createdBy;
+  _i1.UuidValue createdBy;
 
   DateTime? deletedAt;
 
-  int? deletedBy;
+  _i1.UuidValue? deletedBy;
 
   @override
   _i1.Table<int?> get table => t;
@@ -112,9 +116,9 @@ abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
     String? backgroundUrl,
     bool? isTemplate,
     DateTime? createdAt,
-    int? createdBy,
+    _i1.UuidValue? createdBy,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -129,9 +133,9 @@ abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       if (backgroundUrl != null) 'backgroundUrl': backgroundUrl,
       'isTemplate': isTemplate,
       'createdAt': createdAt.toJson(),
-      'createdBy': createdBy,
+      'createdBy': createdBy.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
-      if (deletedBy != null) 'deletedBy': deletedBy,
+      if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
   }
 
@@ -148,9 +152,9 @@ abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
       if (backgroundUrl != null) 'backgroundUrl': backgroundUrl,
       'isTemplate': isTemplate,
       'createdAt': createdAt.toJson(),
-      'createdBy': createdBy,
+      'createdBy': createdBy.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
-      if (deletedBy != null) 'deletedBy': deletedBy,
+      if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
   }
 
@@ -197,9 +201,9 @@ class _BoardImpl extends Board {
     String? backgroundUrl,
     required bool isTemplate,
     required DateTime createdAt,
-    required int createdBy,
+    required _i1.UuidValue createdBy,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
          uuid: uuid,
@@ -229,7 +233,7 @@ class _BoardImpl extends Board {
     Object? backgroundUrl = _Undefined,
     bool? isTemplate,
     DateTime? createdAt,
-    int? createdBy,
+    _i1.UuidValue? createdBy,
     Object? deletedAt = _Undefined,
     Object? deletedBy = _Undefined,
   }) {
@@ -247,7 +251,7 @@ class _BoardImpl extends Board {
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,
       deletedAt: deletedAt is DateTime? ? deletedAt : this.deletedAt,
-      deletedBy: deletedBy is int? ? deletedBy : this.deletedBy,
+      deletedBy: deletedBy is _i1.UuidValue? ? deletedBy : this.deletedBy,
     );
   }
 }
@@ -300,7 +304,9 @@ class BoardUpdateTable extends _i1.UpdateTable<BoardTable> {
         value,
       );
 
-  _i1.ColumnValue<int, int> createdBy(int value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> createdBy(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
     table.createdBy,
     value,
   );
@@ -311,7 +317,9 @@ class BoardUpdateTable extends _i1.UpdateTable<BoardTable> {
         value,
       );
 
-  _i1.ColumnValue<int, int> deletedBy(int? value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> deletedBy(
+    _i1.UuidValue? value,
+  ) => _i1.ColumnValue(
     table.deletedBy,
     value,
   );
@@ -353,7 +361,7 @@ class BoardTable extends _i1.Table<int?> {
       'createdAt',
       this,
     );
-    createdBy = _i1.ColumnInt(
+    createdBy = _i1.ColumnUuid(
       'createdBy',
       this,
     );
@@ -361,7 +369,7 @@ class BoardTable extends _i1.Table<int?> {
       'deletedAt',
       this,
     );
-    deletedBy = _i1.ColumnInt(
+    deletedBy = _i1.ColumnUuid(
       'deletedBy',
       this,
     );
@@ -385,11 +393,11 @@ class BoardTable extends _i1.Table<int?> {
 
   late final _i1.ColumnDateTime createdAt;
 
-  late final _i1.ColumnInt createdBy;
+  late final _i1.ColumnUuid createdBy;
 
   late final _i1.ColumnDateTime deletedAt;
 
-  late final _i1.ColumnInt deletedBy;
+  late final _i1.ColumnUuid deletedBy;
 
   @override
   List<_i1.Column> get columns => [

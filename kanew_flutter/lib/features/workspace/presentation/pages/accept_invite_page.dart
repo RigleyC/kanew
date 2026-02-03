@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 import 'package:go_router/go_router.dart';
 import 'package:kanew_client/kanew_client.dart' hide Card;
 
@@ -33,6 +34,10 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
   @override
   void initState() {
     super.initState();
+    developer.log(
+      '[AcceptInvitePage] initState - inviteCode: ${widget.inviteCode}, isAuth: ${getIt<AuthController>().isAuthenticated}',
+      name: 'accept_invite',
+    );
     _authController = getIt<AuthController>();
     _authController.addListener(_onAuthChanged);
     _validateInvite();
@@ -46,15 +51,28 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
 
   /// Called when auth state changes - auto-accept invite if authenticated
   void _onAuthChanged() {
-    if (_authController.isAuthenticated && 
-        _inviteDetails != null && 
+    developer.log(
+      '[AcceptInvitePage] _onAuthChanged - isAuth: ${_authController.isAuthenticated}, '
+      'hasDetails: ${_inviteDetails != null}, isAccepting: $_isAccepting, isLoading: $_isLoading',
+      name: 'accept_invite',
+    );
+    if (_authController.isAuthenticated &&
+        _inviteDetails != null &&
         !_isAccepting &&
         !_isLoading) {
+      developer.log(
+        '[AcceptInvitePage] Auto-accepting invite',
+        name: 'accept_invite',
+      );
       _acceptInvite();
     }
   }
 
   Future<void> _validateInvite() async {
+    developer.log(
+      '[AcceptInvitePage] _validateInvite starting',
+      name: 'accept_invite',
+    );
     setState(() {
       _isLoading = true;
       _error = null;
@@ -65,6 +83,10 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
 
     result.fold(
       (failure) {
+        developer.log(
+          '[AcceptInvitePage] _validateInvite failed: ${failure.message}',
+          name: 'accept_invite',
+        );
         if (mounted) {
           setState(() {
             _error = failure.message;
@@ -73,15 +95,40 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
         }
       },
       (inviteDetails) {
+        developer.log(
+          '[AcceptInvitePage] _validateInvite success: inviteDetails=${inviteDetails?.workspaceName}',
+          name: 'accept_invite',
+        );
         if (mounted) {
-          setState(() {
-            _inviteDetails = inviteDetails;
-            _isLoading = false;
-          });
-          
-          // Auto-accept if user is already authenticated
-          if (_authController.isAuthenticated) {
-            _acceptInvite();
+          if (inviteDetails == null) {
+            // Invite not found or already used
+            developer.log(
+              '[AcceptInvitePage] Invite is null - not found or already used',
+              name: 'accept_invite',
+            );
+            setState(() {
+              _error = 'Convite não encontrado ou já foi utilizado.';
+              _isLoading = false;
+            });
+          } else {
+            setState(() {
+              _inviteDetails = inviteDetails;
+              _isLoading = false;
+            });
+
+            // Auto-accept if user is already authenticated
+            if (_authController.isAuthenticated) {
+              developer.log(
+                '[AcceptInvitePage] User is authenticated, auto-accepting',
+                name: 'accept_invite',
+              );
+              _acceptInvite();
+            } else {
+              developer.log(
+                '[AcceptInvitePage] User NOT authenticated, waiting for login',
+                name: 'accept_invite',
+              );
+            }
           }
         }
       },
@@ -89,15 +136,31 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
   }
 
   Future<void> _acceptInvite() async {
+    developer.log(
+      '[AcceptInvitePage] _acceptInvite called',
+      name: 'accept_invite',
+    );
     // Prevent double-acceptance
-    if (_isAccepting) return;
+    if (_isAccepting) {
+      developer.log(
+        '[AcceptInvitePage] Already accepting, skipping',
+        name: 'accept_invite',
+      );
+      return;
+    }
 
     // Check if user is authenticated
     if (!_authController.isAuthenticated) {
+      developer.log(
+        '[AcceptInvitePage] Not authenticated, redirecting to login',
+        name: 'accept_invite',
+      );
       if (mounted) {
-        context.go(AuthRouteHelper.login(
-          redirect: RoutePaths.invite(widget.inviteCode),
-        ));
+        context.go(
+          AuthRouteHelper.login(
+            redirect: RoutePaths.invite(widget.inviteCode),
+          ),
+        );
       }
       return;
     }
@@ -112,6 +175,10 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
 
     result.fold(
       (failure) {
+        developer.log(
+          '[AcceptInvitePage] acceptInvite failed: ${failure.message}',
+          name: 'accept_invite',
+        );
         if (mounted) {
           setState(() {
             _error = failure.message;
@@ -120,13 +187,21 @@ class _AcceptInvitePageState extends State<AcceptInvitePage> {
         }
       },
       (acceptResult) async {
+        developer.log(
+          '[AcceptInvitePage] acceptInvite success! workspaceSlug: ${acceptResult.workspaceSlug}',
+          name: 'accept_invite',
+        );
         if (mounted) {
           // Reload workspaces to include the new workspace
           final workspaceController = getIt<WorkspaceController>();
           await workspaceController.loadWorkspaces();
-          
+
           // Redirect to the workspace boards page
           if (mounted) {
+            developer.log(
+              '[AcceptInvitePage] Navigating to workspace: ${acceptResult.workspaceSlug}',
+              name: 'accept_invite',
+            );
             context.go(RoutePaths.workspaceBoards(acceptResult.workspaceSlug));
           }
         }

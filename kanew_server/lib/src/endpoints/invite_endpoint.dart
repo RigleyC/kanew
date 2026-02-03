@@ -186,7 +186,7 @@ class InviteEndpoint extends Endpoint {
     final existingMember = await WorkspaceMember.db.findFirstRow(
       session,
       where: (m) =>
-          m.userInfoId.equals(userId) &
+          m.authUserId.equals(userId) &
           m.workspaceId.equals(invite.workspaceId) &
           m.deletedAt.equals(null),
     );
@@ -202,7 +202,7 @@ class InviteEndpoint extends Endpoint {
     } else {
       // Create new member
       final newMember = WorkspaceMember(
-        userInfoId: userId,
+        authUserId: userId,
         workspaceId: invite.workspaceId,
         role: MemberRole.member,
         status: MemberStatus.active,

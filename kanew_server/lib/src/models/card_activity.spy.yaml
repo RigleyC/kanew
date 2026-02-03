@@ -3,7 +3,7 @@ class: CardActivity
 table: card_activity
 fields:
   cardId: int, relation(parent=card)
-  actorId: int # Conforme plan.md (userId -> actorId)
+  actorId: UuidValue # Conforme plan.md (userId -> actorId)
   type: ActivityType
   
   # Detalhes flexíveis (ex: {"fromList": "A", "toList": "B"})

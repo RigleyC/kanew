@@ -44,10 +44,10 @@ abstract class Card implements _i1.SerializableModel {
     DateTime? dueDate,
     required bool isCompleted,
     required DateTime createdAt,
-    required int createdBy,
+    required _i1.UuidValue createdBy,
     DateTime? updatedAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) = _CardImpl;
 
   factory Card.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -69,14 +69,18 @@ abstract class Card implements _i1.SerializableModel {
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
-      createdBy: jsonSerialization['createdBy'] as int,
+      createdBy: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['createdBy'],
+      ),
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
       deletedAt: jsonSerialization['deletedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['deletedAt']),
-      deletedBy: jsonSerialization['deletedBy'] as int?,
+      deletedBy: jsonSerialization['deletedBy'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['deletedBy']),
     );
   }
 
@@ -105,13 +109,13 @@ abstract class Card implements _i1.SerializableModel {
 
   DateTime createdAt;
 
-  int createdBy;
+  _i1.UuidValue createdBy;
 
   DateTime? updatedAt;
 
   DateTime? deletedAt;
 
-  int? deletedBy;
+  _i1.UuidValue? deletedBy;
 
   /// Returns a shallow copy of this [Card]
   /// with some or all fields replaced by the given arguments.
@@ -128,10 +132,10 @@ abstract class Card implements _i1.SerializableModel {
     DateTime? dueDate,
     bool? isCompleted,
     DateTime? createdAt,
-    int? createdBy,
+    _i1.UuidValue? createdBy,
     DateTime? updatedAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -149,10 +153,10 @@ abstract class Card implements _i1.SerializableModel {
       if (dueDate != null) 'dueDate': dueDate?.toJson(),
       'isCompleted': isCompleted,
       'createdAt': createdAt.toJson(),
-      'createdBy': createdBy,
+      'createdBy': createdBy.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
-      if (deletedBy != null) 'deletedBy': deletedBy,
+      if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
   }
 
@@ -177,10 +181,10 @@ class _CardImpl extends Card {
     DateTime? dueDate,
     required bool isCompleted,
     required DateTime createdAt,
-    required int createdBy,
+    required _i1.UuidValue createdBy,
     DateTime? updatedAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
          uuid: uuid,
@@ -215,7 +219,7 @@ class _CardImpl extends Card {
     Object? dueDate = _Undefined,
     bool? isCompleted,
     DateTime? createdAt,
-    int? createdBy,
+    _i1.UuidValue? createdBy,
     Object? updatedAt = _Undefined,
     Object? deletedAt = _Undefined,
     Object? deletedBy = _Undefined,
@@ -237,7 +241,7 @@ class _CardImpl extends Card {
       createdBy: createdBy ?? this.createdBy,
       updatedAt: updatedAt is DateTime? ? updatedAt : this.updatedAt,
       deletedAt: deletedAt is DateTime? ? deletedAt : this.deletedAt,
-      deletedBy: deletedBy is int? ? deletedBy : this.deletedBy,
+      deletedBy: deletedBy is _i1.UuidValue? ? deletedBy : this.deletedBy,
     );
   }
 }

@@ -17,7 +17,7 @@ class ChecklistEndpoint extends Endpoint {
     Session session,
     int cardId,
   ) async {
-    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     // Get card to check existence
     final card = await Card.db.findById(session, cardId);
@@ -34,7 +34,7 @@ class ChecklistEndpoint extends Endpoint {
     // Verify user has permission to read
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: board.workspaceId,
       permissionSlug: 'board.read',
     );
@@ -53,7 +53,7 @@ class ChecklistEndpoint extends Endpoint {
     // For each checklist, fetch its items
     // Note: In a real world scenario with large datasets we might want to optimize this query
     // or fetch items separately. For now, fetching eagerly is fine.
-    // However, Serverpod doesn't support easy relation loading yet in find, 
+    // However, Serverpod doesn't support easy relation loading yet in find,
     // so we assume the client might want to fetch items separately or we construct a DTO.
     // For this MVP, let's keep it simple: client calls getChecklists, then calls getItems for each?
     // Or we return a custom DTO.
@@ -71,7 +71,7 @@ class ChecklistEndpoint extends Endpoint {
     Session session,
     int checklistId,
   ) async {
-    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     final checklist = await Checklist.db.findById(session, checklistId);
     if (checklist == null || checklist.deletedAt != null) {
@@ -90,7 +90,7 @@ class ChecklistEndpoint extends Endpoint {
 
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: board.workspaceId,
       permissionSlug: 'board.read',
     );
@@ -101,7 +101,8 @@ class ChecklistEndpoint extends Endpoint {
 
     final items = await ChecklistItem.db.find(
       session,
-      where: (i) => i.checklistId.equals(checklistId) & i.deletedAt.equals(null),
+      where: (i) =>
+          i.checklistId.equals(checklistId) & i.deletedAt.equals(null),
       orderBy: (i) => i.rank,
     );
 
@@ -115,7 +116,7 @@ class ChecklistEndpoint extends Endpoint {
     int cardId,
     String title,
   ) async {
-    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     final card = await Card.db.findById(session, cardId);
     if (card == null || card.deletedAt != null) {
@@ -129,7 +130,7 @@ class ChecklistEndpoint extends Endpoint {
 
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: board.workspaceId,
       permissionSlug: 'board.update',
     );
@@ -160,7 +161,7 @@ class ChecklistEndpoint extends Endpoint {
     await ActivityService.log(
       session,
       cardId: cardId,
-      actorId: numericUserId,
+      actorId: userId,
       type: ActivityType.update,
       details: 'Created checklist "${created.title}"',
     );
@@ -175,7 +176,7 @@ class ChecklistEndpoint extends Endpoint {
     int checklistId,
     String title,
   ) async {
-    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     final checklist = await Checklist.db.findById(session, checklistId);
     if (checklist == null || checklist.deletedAt != null) {
@@ -194,7 +195,7 @@ class ChecklistEndpoint extends Endpoint {
 
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: board.workspaceId,
       permissionSlug: 'board.update',
     );
@@ -214,7 +215,7 @@ class ChecklistEndpoint extends Endpoint {
     await ActivityService.log(
       session,
       cardId: result.cardId,
-      actorId: numericUserId,
+      actorId: userId,
       type: ActivityType.update,
       details: 'Renamed checklist to "${result.title}"',
     );
@@ -228,7 +229,7 @@ class ChecklistEndpoint extends Endpoint {
     Session session,
     int checklistId,
   ) async {
-    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     final checklist = await Checklist.db.findById(session, checklistId);
     if (checklist == null || checklist.deletedAt != null) {
@@ -247,7 +248,7 @@ class ChecklistEndpoint extends Endpoint {
 
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: board.workspaceId,
       permissionSlug: 'board.update',
     );
@@ -266,7 +267,7 @@ class ChecklistEndpoint extends Endpoint {
     await ActivityService.log(
       session,
       cardId: checklist.cardId,
-      actorId: numericUserId,
+      actorId: userId,
       type: ActivityType.update,
       details: 'Deleted checklist "${checklist.title}"',
     );
@@ -279,7 +280,7 @@ class ChecklistEndpoint extends Endpoint {
     int checklistId,
     String title,
   ) async {
-    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     final checklist = await Checklist.db.findById(session, checklistId);
     if (checklist == null || checklist.deletedAt != null) {
@@ -298,7 +299,7 @@ class ChecklistEndpoint extends Endpoint {
 
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: board.workspaceId,
       permissionSlug: 'board.update',
     );
@@ -310,7 +311,8 @@ class ChecklistEndpoint extends Endpoint {
     // Generate rank at the end
     final lastItem = await ChecklistItem.db.findFirstRow(
       session,
-      where: (i) => i.checklistId.equals(checklistId) & i.deletedAt.equals(null),
+      where: (i) =>
+          i.checklistId.equals(checklistId) & i.deletedAt.equals(null),
       orderBy: (i) => i.rank,
       orderDescending: true,
     );
@@ -329,9 +331,10 @@ class ChecklistEndpoint extends Endpoint {
     await ActivityService.log(
       session,
       cardId: checklist.cardId,
-      actorId: numericUserId,
+      actorId: userId,
       type: ActivityType.update,
-      details: 'Added item "${created.title}" to checklist "${checklist.title}"',
+      details:
+          'Added item "${created.title}" to checklist "${checklist.title}"',
     );
 
     return created;
@@ -345,7 +348,7 @@ class ChecklistEndpoint extends Endpoint {
     String? title,
     bool? isChecked,
   }) async {
-    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     final item = await ChecklistItem.db.findById(session, itemId);
     if (item == null || item.deletedAt != null) {
@@ -369,7 +372,7 @@ class ChecklistEndpoint extends Endpoint {
 
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: board.workspaceId,
       permissionSlug: 'board.update',
     );
@@ -396,9 +399,10 @@ class ChecklistEndpoint extends Endpoint {
     await ActivityService.log(
       session,
       cardId: checklist.cardId,
-      actorId: numericUserId,
+      actorId: userId,
       type: ActivityType.update,
-      details: '$action item "${result.title}" in checklist "${checklist.title}"',
+      details:
+          '$action item "${result.title}" in checklist "${checklist.title}"',
     );
 
     return result;
@@ -410,7 +414,7 @@ class ChecklistEndpoint extends Endpoint {
     Session session,
     int itemId,
   ) async {
-    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     final item = await ChecklistItem.db.findById(session, itemId);
     if (item == null || item.deletedAt != null) {
@@ -434,7 +438,7 @@ class ChecklistEndpoint extends Endpoint {
 
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: board.workspaceId,
       permissionSlug: 'board.update',
     );
@@ -453,9 +457,10 @@ class ChecklistEndpoint extends Endpoint {
     await ActivityService.log(
       session,
       cardId: checklist.cardId,
-      actorId: numericUserId,
+      actorId: userId,
       type: ActivityType.update,
-      details: 'Deleted item "${item.title}" from checklist "${checklist.title}"',
+      details:
+          'Deleted item "${item.title}" from checklist "${checklist.title}"',
     );
   }
 }

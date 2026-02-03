@@ -8,6 +8,6 @@ fields:
   size: int # Tamanho em bytes (conforme plan.md)
   storageKey: String # Chave no storage (S3/MinIO) - conforme plan.md
   fileUrl: String? # URL pública (opcional, pode ser gerada a partir de storageKey)
-  uploaderId: int # Quem fez upload (conforme plan.md)
+  uploaderId: UuidValue # Quem fez upload (conforme plan.md)
   createdAt: DateTime
   deletedAt: DateTime?

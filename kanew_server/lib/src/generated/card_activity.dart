@@ -27,7 +27,7 @@ abstract class CardActivity
   factory CardActivity({
     int? id,
     required int cardId,
-    required int actorId,
+    required _i1.UuidValue actorId,
     required _i2.ActivityType type,
     String? details,
     required DateTime createdAt,
@@ -37,7 +37,9 @@ abstract class CardActivity
     return CardActivity(
       id: jsonSerialization['id'] as int?,
       cardId: jsonSerialization['cardId'] as int,
-      actorId: jsonSerialization['actorId'] as int,
+      actorId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['actorId'],
+      ),
       type: _i2.ActivityType.fromJson((jsonSerialization['type'] as String)),
       details: jsonSerialization['details'] as String?,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
@@ -55,7 +57,7 @@ abstract class CardActivity
 
   int cardId;
 
-  int actorId;
+  _i1.UuidValue actorId;
 
   _i2.ActivityType type;
 
@@ -72,7 +74,7 @@ abstract class CardActivity
   CardActivity copyWith({
     int? id,
     int? cardId,
-    int? actorId,
+    _i1.UuidValue? actorId,
     _i2.ActivityType? type,
     String? details,
     DateTime? createdAt,
@@ -83,7 +85,7 @@ abstract class CardActivity
       '__className__': 'CardActivity',
       if (id != null) 'id': id,
       'cardId': cardId,
-      'actorId': actorId,
+      'actorId': actorId.toJson(),
       'type': type.toJson(),
       if (details != null) 'details': details,
       'createdAt': createdAt.toJson(),
@@ -96,7 +98,7 @@ abstract class CardActivity
       '__className__': 'CardActivity',
       if (id != null) 'id': id,
       'cardId': cardId,
-      'actorId': actorId,
+      'actorId': actorId.toJson(),
       'type': type.toJson(),
       if (details != null) 'details': details,
       'createdAt': createdAt.toJson(),
@@ -139,7 +141,7 @@ class _CardActivityImpl extends CardActivity {
   _CardActivityImpl({
     int? id,
     required int cardId,
-    required int actorId,
+    required _i1.UuidValue actorId,
     required _i2.ActivityType type,
     String? details,
     required DateTime createdAt,
@@ -159,7 +161,7 @@ class _CardActivityImpl extends CardActivity {
   CardActivity copyWith({
     Object? id = _Undefined,
     int? cardId,
-    int? actorId,
+    _i1.UuidValue? actorId,
     _i2.ActivityType? type,
     Object? details = _Undefined,
     DateTime? createdAt,
@@ -183,10 +185,11 @@ class CardActivityUpdateTable extends _i1.UpdateTable<CardActivityTable> {
     value,
   );
 
-  _i1.ColumnValue<int, int> actorId(int value) => _i1.ColumnValue(
-    table.actorId,
-    value,
-  );
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> actorId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.actorId,
+        value,
+      );
 
   _i1.ColumnValue<_i2.ActivityType, _i2.ActivityType> type(
     _i2.ActivityType value,
@@ -214,7 +217,7 @@ class CardActivityTable extends _i1.Table<int?> {
       'cardId',
       this,
     );
-    actorId = _i1.ColumnInt(
+    actorId = _i1.ColumnUuid(
       'actorId',
       this,
     );
@@ -237,7 +240,7 @@ class CardActivityTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt cardId;
 
-  late final _i1.ColumnInt actorId;
+  late final _i1.ColumnUuid actorId;
 
   late final _i1.ColumnEnum<_i2.ActivityType> type;
 

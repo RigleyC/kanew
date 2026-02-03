@@ -39,9 +39,9 @@ abstract class Board implements _i1.SerializableModel {
     String? backgroundUrl,
     required bool isTemplate,
     required DateTime createdAt,
-    required int createdBy,
+    required _i1.UuidValue createdBy,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) = _BoardImpl;
 
   factory Board.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -59,11 +59,15 @@ abstract class Board implements _i1.SerializableModel {
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
-      createdBy: jsonSerialization['createdBy'] as int,
+      createdBy: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['createdBy'],
+      ),
       deletedAt: jsonSerialization['deletedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['deletedAt']),
-      deletedBy: jsonSerialization['deletedBy'] as int?,
+      deletedBy: jsonSerialization['deletedBy'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['deletedBy']),
     );
   }
 
@@ -88,11 +92,11 @@ abstract class Board implements _i1.SerializableModel {
 
   DateTime createdAt;
 
-  int createdBy;
+  _i1.UuidValue createdBy;
 
   DateTime? deletedAt;
 
-  int? deletedBy;
+  _i1.UuidValue? deletedBy;
 
   /// Returns a shallow copy of this [Board]
   /// with some or all fields replaced by the given arguments.
@@ -107,9 +111,9 @@ abstract class Board implements _i1.SerializableModel {
     String? backgroundUrl,
     bool? isTemplate,
     DateTime? createdAt,
-    int? createdBy,
+    _i1.UuidValue? createdBy,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -124,9 +128,9 @@ abstract class Board implements _i1.SerializableModel {
       if (backgroundUrl != null) 'backgroundUrl': backgroundUrl,
       'isTemplate': isTemplate,
       'createdAt': createdAt.toJson(),
-      'createdBy': createdBy,
+      'createdBy': createdBy.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
-      if (deletedBy != null) 'deletedBy': deletedBy,
+      if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
   }
 
@@ -149,9 +153,9 @@ class _BoardImpl extends Board {
     String? backgroundUrl,
     required bool isTemplate,
     required DateTime createdAt,
-    required int createdBy,
+    required _i1.UuidValue createdBy,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
          uuid: uuid,
@@ -181,7 +185,7 @@ class _BoardImpl extends Board {
     Object? backgroundUrl = _Undefined,
     bool? isTemplate,
     DateTime? createdAt,
-    int? createdBy,
+    _i1.UuidValue? createdBy,
     Object? deletedAt = _Undefined,
     Object? deletedBy = _Undefined,
   }) {
@@ -199,7 +203,7 @@ class _BoardImpl extends Board {
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,
       deletedAt: deletedAt is DateTime? ? deletedAt : this.deletedAt,
-      deletedBy: deletedBy is int? ? deletedBy : this.deletedBy,
+      deletedBy: deletedBy is _i1.UuidValue? ? deletedBy : this.deletedBy,
     );
   }
 }

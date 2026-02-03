@@ -287,10 +287,10 @@ class AttachmentEndpoint extends Endpoint {
     if (card == null) {
       throw Exception('Card not found');
     }
-    
+
     final board = await Board.db.findById(session, card.boardId);
     if (board == null) {
-       throw Exception('Board not found');
+      throw Exception('Board not found');
     }
 
     final hasPermission = await PermissionService.hasPermission(
@@ -302,9 +302,11 @@ class AttachmentEndpoint extends Endpoint {
 
     // Allow uploader or workspace admin to delete
     final isUploader = attachment.uploaderId == numericUserId;
-    
+
     if (!hasPermission && !isUploader) {
-      throw Exception('User does not have permission to delete this attachment');
+      throw Exception(
+        'User does not have permission to delete this attachment',
+      );
     }
 
     // Soft delete

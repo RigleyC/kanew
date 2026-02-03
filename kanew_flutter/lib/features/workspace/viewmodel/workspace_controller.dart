@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:kanew_client/kanew_client.dart';
 
 import '../data/workspace_repository.dart';
@@ -126,7 +127,7 @@ class WorkspaceController extends ChangeNotifier {
     final existing = _workspaces.where((w) => w.slug == slug).firstOrNull;
     if (existing != null) {
       _currentWorkspace = existing;
-      notifyListeners();
+      SchedulerBinding.instance.addPostFrameCallback((_) => notifyListeners());
       developer.log(
         'Workspace found in memory: ${existing.title}',
         name: 'workspace_controller',
@@ -138,7 +139,9 @@ class WorkspaceController extends ChangeNotifier {
       final workspace = await _repository.getBySlug(slug);
       if (workspace != null) {
         _currentWorkspace = workspace;
-        notifyListeners();
+        SchedulerBinding.instance.addPostFrameCallback(
+          (_) => notifyListeners(),
+        );
         developer.log(
           'Workspace loaded from repository: ${workspace.title}',
           name: 'workspace_controller',

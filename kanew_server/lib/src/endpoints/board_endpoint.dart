@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/permission_service.dart';
+import '../services/auth_helper.dart';
 import '../utils/slug_generator.dart';
 
 /// Endpoint for managing boards within a workspace
@@ -15,12 +16,12 @@ class BoardEndpoint extends Endpoint {
     Session session,
     int workspaceId,
   ) async {
-    final numericUserId = _getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     // Verify user has permission to read boards in this workspace
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: workspaceId,
       permissionSlug: 'board.read',
     );
@@ -46,7 +47,7 @@ class BoardEndpoint extends Endpoint {
     Session session,
     String workspaceSlug,
   ) async {
-    final numericUserId = _getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     // Resolve workspace by slug
     final workspace = await Workspace.db.findFirstRow(
@@ -61,7 +62,7 @@ class BoardEndpoint extends Endpoint {
     // Verify permission
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: workspace.id!,
       permissionSlug: 'board.read',
     );
@@ -86,12 +87,12 @@ class BoardEndpoint extends Endpoint {
     int workspaceId,
     String slug,
   ) async {
-    final numericUserId = _getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     // Verify user has permission to read boards
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: workspaceId,
       permissionSlug: 'board.read',
     );
@@ -118,7 +119,7 @@ class BoardEndpoint extends Endpoint {
     String workspaceSlug,
     String boardSlug,
   ) async {
-    final numericUserId = _getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     // Resolve workspace by slug
     final workspace = await Workspace.db.findFirstRow(
@@ -133,7 +134,7 @@ class BoardEndpoint extends Endpoint {
     // Verify permission
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: workspace.id!,
       permissionSlug: 'board.read',
     );
@@ -158,12 +159,12 @@ class BoardEndpoint extends Endpoint {
     int workspaceId,
     String title,
   ) async {
-    final numericUserId = _getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     // Verify user has permission to create boards
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: workspaceId,
       permissionSlug: 'board.create',
     );
@@ -201,13 +202,13 @@ class BoardEndpoint extends Endpoint {
       visibility: BoardVisibility.workspace,
       isTemplate: false,
       createdAt: DateTime.now(),
-      createdBy: numericUserId,
+      createdBy: userId,
     );
 
     final created = await Board.db.insertRow(session, board);
 
     session.log(
-      '[BoardEndpoint] Created board "${created.title}" (${created.slug}) in workspace $workspaceId by user $numericUserId',
+      '[BoardEndpoint] Created board "${created.title}" (${created.slug}) in workspace $workspaceId by user $userId',
     );
 
     return created;
@@ -242,7 +243,7 @@ class BoardEndpoint extends Endpoint {
     String title,
     String? slug,
   ) async {
-    final numericUserId = _getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     final board = await Board.db.findById(session, boardId);
 
@@ -253,7 +254,7 @@ class BoardEndpoint extends Endpoint {
     // Verify user has permission to update boards
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: board.workspaceId,
       permissionSlug: 'board.update',
     );
@@ -300,7 +301,7 @@ class BoardEndpoint extends Endpoint {
     Session session,
     int boardId,
   ) async {
-    final numericUserId = _getAuthenticatedUserId(session);
+    final userId = AuthHelper.getAuthenticatedUserId(session);
 
     final board = await Board.db.findById(session, boardId);
 
@@ -311,7 +312,7 @@ class BoardEndpoint extends Endpoint {
     // Verify user has permission to delete boards
     final hasPermission = await PermissionService.hasPermission(
       session,
-      userId: numericUserId,
+      userId: userId,
       workspaceId: board.workspaceId,
       permissionSlug: 'board.delete',
     );
@@ -322,29 +323,13 @@ class BoardEndpoint extends Endpoint {
 
     final updated = board.copyWith(
       deletedAt: DateTime.now(),
-      deletedBy: numericUserId,
+      deletedBy: userId,
     );
 
     await Board.db.updateRow(session, updated);
 
     session.log(
-      '[BoardEndpoint] Soft deleted board "${board.title}" by user $numericUserId',
+      '[BoardEndpoint] Soft deleted board "${board.title}" by user $userId',
     );
-  }
-
-  /// Helper method to get the authenticated user's numeric ID
-  int _getAuthenticatedUserId(Session session) {
-    final authenticated = session.authenticated;
-    final userId = authenticated!.userIdentifier;
-    return _parseUserIdToInt(userId);
-  }
-
-  /// Parses a user ID string to an integer
-  int _parseUserIdToInt(String userId) {
-    final parsed = int.tryParse(userId);
-    if (parsed != null) {
-      return parsed;
-    }
-    return userId.hashCode.abs();
   }
 }

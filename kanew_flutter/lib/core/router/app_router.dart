@@ -58,11 +58,7 @@ final appRouter = GoRouter(
     }
 
     if (isAuthenticated && (path == '/auth/login' || path == '/auth/signup')) {
-      if (workspaceViewModel.isLoading) {
-        developer.log('Waiting for workspaces to load...', name: 'app_router');
-        return '/';
-      }
-
+      // Always check for redirect parameter first
       final redirect = state.uri.queryParameters['redirect'];
       if (redirect != null && redirect.isNotEmpty) {
         developer.log(
@@ -70,6 +66,12 @@ final appRouter = GoRouter(
           name: 'app_router',
         );
         return redirect;
+      }
+
+      // No redirect - go to default workspace
+      if (workspaceViewModel.isLoading) {
+        developer.log('Waiting for workspaces to load...', name: 'app_router');
+        return null; // Don't redirect yet, wait for workspaces
       }
 
       if (workspaceViewModel.hasWorkspaces) {

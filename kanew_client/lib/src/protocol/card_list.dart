@@ -34,7 +34,7 @@ abstract class CardList implements _i1.SerializableModel {
     required bool archived,
     required DateTime createdAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) = _CardListImpl;
 
   factory CardList.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -51,7 +51,9 @@ abstract class CardList implements _i1.SerializableModel {
       deletedAt: jsonSerialization['deletedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['deletedAt']),
-      deletedBy: jsonSerialization['deletedBy'] as int?,
+      deletedBy: jsonSerialization['deletedBy'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['deletedBy']),
     );
   }
 
@@ -74,7 +76,7 @@ abstract class CardList implements _i1.SerializableModel {
 
   DateTime? deletedAt;
 
-  int? deletedBy;
+  _i1.UuidValue? deletedBy;
 
   /// Returns a shallow copy of this [CardList]
   /// with some or all fields replaced by the given arguments.
@@ -88,7 +90,7 @@ abstract class CardList implements _i1.SerializableModel {
     bool? archived,
     DateTime? createdAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -102,7 +104,7 @@ abstract class CardList implements _i1.SerializableModel {
       'archived': archived,
       'createdAt': createdAt.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
-      if (deletedBy != null) 'deletedBy': deletedBy,
+      if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
   }
 
@@ -124,7 +126,7 @@ class _CardListImpl extends CardList {
     required bool archived,
     required DateTime createdAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
          uuid: uuid,
@@ -161,7 +163,7 @@ class _CardListImpl extends CardList {
       archived: archived ?? this.archived,
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt is DateTime? ? deletedAt : this.deletedAt,
-      deletedBy: deletedBy is int? ? deletedBy : this.deletedBy,
+      deletedBy: deletedBy is _i1.UuidValue? ? deletedBy : this.deletedBy,
     );
   }
 }

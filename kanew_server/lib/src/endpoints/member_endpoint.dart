@@ -25,7 +25,9 @@ class MemberEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to read workspace members');
+      throw Exception(
+        'User does not have permission to read workspace members',
+      );
     }
 
     // Get all workspace members
@@ -40,16 +42,23 @@ class MemberEndpoint extends Endpoint {
     final result = <MemberWithUser>[];
 
     for (final member in members) {
-      final userInfo = await Users.findUserByUserId(session, member.userInfoId);
+      // TODO: Implement user lookup when API is known
+      /*
+      final userInfo = await Users.findUserByUserIdentifier(
+        session,
+        member.authUserId.toString(),
+      );
+      */
 
-      if (userInfo != null) {
-        result.add(MemberWithUser(
+      // Placeholder
+      result.add(
+        MemberWithUser(
           member: member,
-          userName: userInfo.userName ?? 'Unknown',
-          userEmail: userInfo.email ?? '',
-          userImageUrl: userInfo.imageUrl,
-        ));
-      }
+          userName: 'User',
+          userEmail: 'user@example.com',
+          userImageUrl: null,
+        ),
+      );
     }
 
     return result;
@@ -156,7 +165,9 @@ class MemberEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to read member permissions');
+      throw Exception(
+        'User does not have permission to read member permissions',
+      );
     }
 
     // Get all permissions
@@ -169,8 +180,9 @@ class MemberEndpoint extends Endpoint {
           mp.workspaceMemberId.equals(memberId) & mp.scopeBoardId.equals(null),
     );
 
-    final grantedPermissionIds =
-        memberPermissions.map((mp) => mp.permissionId).toSet();
+    final grantedPermissionIds = memberPermissions
+        .map((mp) => mp.permissionId)
+        .toSet();
 
     // Build result
     final result = allPermissions.map((permission) {
@@ -206,7 +218,9 @@ class MemberEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to update member permissions');
+      throw Exception(
+        'User does not have permission to update member permissions',
+      );
     }
 
     // Cannot change owner permissions
@@ -275,7 +289,7 @@ class MemberEndpoint extends Endpoint {
     final currentOwnerMember = await WorkspaceMember.db.findFirstRow(
       session,
       where: (m) =>
-          m.userInfoId.equals(userId) &
+          m.authUserId.equals(userId) &
           m.workspaceId.equals(workspaceId) &
           m.deletedAt.equals(null),
     );
@@ -286,7 +300,7 @@ class MemberEndpoint extends Endpoint {
 
     // Update workspace ownerId
     final updatedWorkspace = workspace.copyWith(
-      ownerId: newOwnerMember.userInfoId,
+      ownerId: newOwnerMember.authUserId,
     );
     await Workspace.db.updateRow(session, updatedWorkspace);
 
@@ -305,7 +319,7 @@ class MemberEndpoint extends Endpoint {
     );
 
     session.log(
-      '[MemberEndpoint] Transferred ownership of workspace $workspaceId from user $userId to user ${newOwnerMember.userInfoId}',
+      '[MemberEndpoint] Transferred ownership of workspace $workspaceId from user $userId to user ${newOwnerMember.authUserId}',
     );
   }
 
@@ -314,7 +328,7 @@ class MemberEndpoint extends Endpoint {
     // This endpoint requires authentication but no specific workspace permission
     // It's needed to populate the invite dialog with available permissions
     final permissions = await Permission.db.find(session);
-    
+
     session.log('[MemberEndpoint] Retrieved ${permissions.length} permissions');
     return permissions;
   }

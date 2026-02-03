@@ -29,10 +29,10 @@ abstract class Workspace implements _i1.SerializableModel {
     required _i1.UuidValue uuid,
     required String title,
     required String slug,
-    required int ownerId,
+    required _i1.UuidValue ownerId,
     required DateTime createdAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) = _WorkspaceImpl;
 
   factory Workspace.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -41,14 +41,18 @@ abstract class Workspace implements _i1.SerializableModel {
       uuid: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['uuid']),
       title: jsonSerialization['title'] as String,
       slug: jsonSerialization['slug'] as String,
-      ownerId: jsonSerialization['ownerId'] as int,
+      ownerId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['ownerId'],
+      ),
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
       deletedAt: jsonSerialization['deletedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['deletedAt']),
-      deletedBy: jsonSerialization['deletedBy'] as int?,
+      deletedBy: jsonSerialization['deletedBy'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['deletedBy']),
     );
   }
 
@@ -63,13 +67,13 @@ abstract class Workspace implements _i1.SerializableModel {
 
   String slug;
 
-  int ownerId;
+  _i1.UuidValue ownerId;
 
   DateTime createdAt;
 
   DateTime? deletedAt;
 
-  int? deletedBy;
+  _i1.UuidValue? deletedBy;
 
   /// Returns a shallow copy of this [Workspace]
   /// with some or all fields replaced by the given arguments.
@@ -79,10 +83,10 @@ abstract class Workspace implements _i1.SerializableModel {
     _i1.UuidValue? uuid,
     String? title,
     String? slug,
-    int? ownerId,
+    _i1.UuidValue? ownerId,
     DateTime? createdAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -92,10 +96,10 @@ abstract class Workspace implements _i1.SerializableModel {
       'uuid': uuid.toJson(),
       'title': title,
       'slug': slug,
-      'ownerId': ownerId,
+      'ownerId': ownerId.toJson(),
       'createdAt': createdAt.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
-      if (deletedBy != null) 'deletedBy': deletedBy,
+      if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
   }
 
@@ -113,10 +117,10 @@ class _WorkspaceImpl extends Workspace {
     required _i1.UuidValue uuid,
     required String title,
     required String slug,
-    required int ownerId,
+    required _i1.UuidValue ownerId,
     required DateTime createdAt,
     DateTime? deletedAt,
-    int? deletedBy,
+    _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
          uuid: uuid,
@@ -137,7 +141,7 @@ class _WorkspaceImpl extends Workspace {
     _i1.UuidValue? uuid,
     String? title,
     String? slug,
-    int? ownerId,
+    _i1.UuidValue? ownerId,
     DateTime? createdAt,
     Object? deletedAt = _Undefined,
     Object? deletedBy = _Undefined,
@@ -150,7 +154,7 @@ class _WorkspaceImpl extends Workspace {
       ownerId: ownerId ?? this.ownerId,
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt is DateTime? ? deletedAt : this.deletedAt,
-      deletedBy: deletedBy is int? ? deletedBy : this.deletedBy,
+      deletedBy: deletedBy is _i1.UuidValue? ? deletedBy : this.deletedBy,
     );
   }
 }

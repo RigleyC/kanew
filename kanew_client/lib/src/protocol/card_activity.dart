@@ -26,7 +26,7 @@ abstract class CardActivity implements _i1.SerializableModel {
   factory CardActivity({
     int? id,
     required int cardId,
-    required int actorId,
+    required _i1.UuidValue actorId,
     required _i2.ActivityType type,
     String? details,
     required DateTime createdAt,
@@ -36,7 +36,9 @@ abstract class CardActivity implements _i1.SerializableModel {
     return CardActivity(
       id: jsonSerialization['id'] as int?,
       cardId: jsonSerialization['cardId'] as int,
-      actorId: jsonSerialization['actorId'] as int,
+      actorId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['actorId'],
+      ),
       type: _i2.ActivityType.fromJson((jsonSerialization['type'] as String)),
       details: jsonSerialization['details'] as String?,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
@@ -52,7 +54,7 @@ abstract class CardActivity implements _i1.SerializableModel {
 
   int cardId;
 
-  int actorId;
+  _i1.UuidValue actorId;
 
   _i2.ActivityType type;
 
@@ -66,7 +68,7 @@ abstract class CardActivity implements _i1.SerializableModel {
   CardActivity copyWith({
     int? id,
     int? cardId,
-    int? actorId,
+    _i1.UuidValue? actorId,
     _i2.ActivityType? type,
     String? details,
     DateTime? createdAt,
@@ -77,7 +79,7 @@ abstract class CardActivity implements _i1.SerializableModel {
       '__className__': 'CardActivity',
       if (id != null) 'id': id,
       'cardId': cardId,
-      'actorId': actorId,
+      'actorId': actorId.toJson(),
       'type': type.toJson(),
       if (details != null) 'details': details,
       'createdAt': createdAt.toJson(),
@@ -96,7 +98,7 @@ class _CardActivityImpl extends CardActivity {
   _CardActivityImpl({
     int? id,
     required int cardId,
-    required int actorId,
+    required _i1.UuidValue actorId,
     required _i2.ActivityType type,
     String? details,
     required DateTime createdAt,
@@ -116,7 +118,7 @@ class _CardActivityImpl extends CardActivity {
   CardActivity copyWith({
     Object? id = _Undefined,
     int? cardId,
-    int? actorId,
+    _i1.UuidValue? actorId,
     _i2.ActivityType? type,
     Object? details = _Undefined,
     DateTime? createdAt,
