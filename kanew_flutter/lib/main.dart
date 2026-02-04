@@ -10,7 +10,6 @@ import 'core/theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Use path-based URLs (e.g., /invite/code instead of /#/invite/code)
   usePathUrlStrategy();
 
   await setupDependencies();

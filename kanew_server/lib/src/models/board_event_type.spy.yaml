@@ -1,0 +1,17 @@
+enum: BoardEventType
+values:
+  # Card events
+  - cardCreated
+  - cardUpdated
+  - cardMoved
+  - cardDeleted
+  - cardArchived
+  # List events
+  - listCreated
+  - listUpdated
+  - listReordered
+  - listDeleted
+  - listArchived
+  # Board events
+  - boardUpdated
+  - boardDeleted

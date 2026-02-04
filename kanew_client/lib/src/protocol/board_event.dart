@@ -1,0 +1,143 @@
+/* AUTOMATICALLY GENERATED CODE DO NOT MODIFY */
+/*   To generate run: "serverpod generate"    */
+
+// ignore_for_file: implementation_imports
+// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: public_member_api_docs
+// ignore_for_file: type_literal_in_constant_pattern
+// ignore_for_file: use_super_parameters
+// ignore_for_file: invalid_use_of_internal_member
+
+// ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'board_event_type.dart' as _i2;
+
+abstract class BoardEvent implements _i1.SerializableModel {
+  BoardEvent._({
+    required this.eventType,
+    required this.boardId,
+    this.listId,
+    this.cardId,
+    this.payload,
+    required this.timestamp,
+    required this.actorId,
+  });
+
+  factory BoardEvent({
+    required _i2.BoardEventType eventType,
+    required int boardId,
+    int? listId,
+    int? cardId,
+    String? payload,
+    required DateTime timestamp,
+    required int actorId,
+  }) = _BoardEventImpl;
+
+  factory BoardEvent.fromJson(Map<String, dynamic> jsonSerialization) {
+    return BoardEvent(
+      eventType: _i2.BoardEventType.fromJson(
+        (jsonSerialization['eventType'] as String),
+      ),
+      boardId: jsonSerialization['boardId'] as int,
+      listId: jsonSerialization['listId'] as int?,
+      cardId: jsonSerialization['cardId'] as int?,
+      payload: jsonSerialization['payload'] as String?,
+      timestamp: _i1.DateTimeJsonExtension.fromJson(
+        jsonSerialization['timestamp'],
+      ),
+      actorId: jsonSerialization['actorId'] as int,
+    );
+  }
+
+  _i2.BoardEventType eventType;
+
+  int boardId;
+
+  int? listId;
+
+  int? cardId;
+
+  String? payload;
+
+  DateTime timestamp;
+
+  int actorId;
+
+  /// Returns a shallow copy of this [BoardEvent]
+  /// with some or all fields replaced by the given arguments.
+  @_i1.useResult
+  BoardEvent copyWith({
+    _i2.BoardEventType? eventType,
+    int? boardId,
+    int? listId,
+    int? cardId,
+    String? payload,
+    DateTime? timestamp,
+    int? actorId,
+  });
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      '__className__': 'BoardEvent',
+      'eventType': eventType.toJson(),
+      'boardId': boardId,
+      if (listId != null) 'listId': listId,
+      if (cardId != null) 'cardId': cardId,
+      if (payload != null) 'payload': payload,
+      'timestamp': timestamp.toJson(),
+      'actorId': actorId,
+    };
+  }
+
+  @override
+  String toString() {
+    return _i1.SerializationManager.encode(this);
+  }
+}
+
+class _Undefined {}
+
+class _BoardEventImpl extends BoardEvent {
+  _BoardEventImpl({
+    required _i2.BoardEventType eventType,
+    required int boardId,
+    int? listId,
+    int? cardId,
+    String? payload,
+    required DateTime timestamp,
+    required int actorId,
+  }) : super._(
+         eventType: eventType,
+         boardId: boardId,
+         listId: listId,
+         cardId: cardId,
+         payload: payload,
+         timestamp: timestamp,
+         actorId: actorId,
+       );
+
+  /// Returns a shallow copy of this [BoardEvent]
+  /// with some or all fields replaced by the given arguments.
+  @_i1.useResult
+  @override
+  BoardEvent copyWith({
+    _i2.BoardEventType? eventType,
+    int? boardId,
+    Object? listId = _Undefined,
+    Object? cardId = _Undefined,
+    Object? payload = _Undefined,
+    DateTime? timestamp,
+    int? actorId,
+  }) {
+    return BoardEvent(
+      eventType: eventType ?? this.eventType,
+      boardId: boardId ?? this.boardId,
+      listId: listId is int? ? listId : this.listId,
+      cardId: cardId is int? ? cardId : this.cardId,
+      payload: payload is String? ? payload : this.payload,
+      timestamp: timestamp ?? this.timestamp,
+      actorId: actorId ?? this.actorId,
+    );
+  }
+}
