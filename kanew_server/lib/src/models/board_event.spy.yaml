@@ -6,4 +6,4 @@ fields:
   cardId: int?
   payload: String?
   timestamp: DateTime
-  actorId: int
+  actorId: UuidValue

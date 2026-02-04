@@ -3,6 +3,7 @@ import '../generated/protocol.dart';
 import '../services/permission_service.dart';
 import '../services/auth_helper.dart';
 import '../utils/slug_generator.dart';
+import '../services/board_broadcast_service.dart';
 
 /// Endpoint for managing boards within a workspace
 class BoardEndpoint extends Endpoint {
@@ -292,6 +293,14 @@ class BoardEndpoint extends Endpoint {
       '[BoardEndpoint] Updated board "${result.title}" (${result.slug})',
     );
 
+    // Broadcast board updated event
+    BoardBroadcastService.boardUpdated(
+      session,
+      boardId: result.id!,
+      actorId: userId,
+      board: result,
+    );
+
     return result;
   }
 
@@ -330,6 +339,13 @@ class BoardEndpoint extends Endpoint {
 
     session.log(
       '[BoardEndpoint] Soft deleted board "${board.title}" by user $userId',
+    );
+
+    // Broadcast board deleted event
+    BoardBroadcastService.boardDeleted(
+      session,
+      boardId: board.id!,
+      actorId: userId,
     );
   }
 }

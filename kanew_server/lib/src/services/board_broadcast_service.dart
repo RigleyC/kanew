@@ -30,7 +30,7 @@ class BoardBroadcastService {
     required int boardId,
     required int listId,
     required int cardId,
-    required int actorId,
+    required UuidValue actorId,
     required CardSummary cardSummary,
   }) {
     broadcast(
@@ -54,7 +54,7 @@ class BoardBroadcastService {
     required int boardId,
     required int listId,
     required int cardId,
-    required int actorId,
+    required UuidValue actorId,
     required Card card,
   }) {
     broadcast(
@@ -79,7 +79,7 @@ class BoardBroadcastService {
     required int oldListId,
     required int newListId,
     required int cardId,
-    required int actorId,
+    required UuidValue actorId,
     required String newRank,
     required String priority,
   }) {
@@ -107,7 +107,7 @@ class BoardBroadcastService {
     required int boardId,
     required int listId,
     required int cardId,
-    required int actorId,
+    required UuidValue actorId,
   }) {
     broadcast(
       session,
@@ -128,7 +128,7 @@ class BoardBroadcastService {
     Session session, {
     required int boardId,
     required int listId,
-    required int actorId,
+    required UuidValue actorId,
     required CardList cardList,
   }) {
     broadcast(
@@ -150,7 +150,7 @@ class BoardBroadcastService {
     Session session, {
     required int boardId,
     required int listId,
-    required int actorId,
+    required UuidValue actorId,
     required CardList cardList,
   }) {
     broadcast(
@@ -171,7 +171,7 @@ class BoardBroadcastService {
   static void listReordered(
     Session session, {
     required int boardId,
-    required int actorId,
+    required UuidValue actorId,
     required List<int> orderedListIds,
   }) {
     broadcast(
@@ -192,7 +192,7 @@ class BoardBroadcastService {
     Session session, {
     required int boardId,
     required int listId,
-    required int actorId,
+    required UuidValue actorId,
   }) {
     broadcast(
       session,
@@ -211,7 +211,7 @@ class BoardBroadcastService {
   static void boardUpdated(
     Session session, {
     required int boardId,
-    required int actorId,
+    required UuidValue actorId,
     required Board board,
   }) {
     broadcast(
@@ -231,7 +231,7 @@ class BoardBroadcastService {
   static void boardDeleted(
     Session session, {
     required int boardId,
-    required int actorId,
+    required UuidValue actorId,
   }) {
     broadcast(
       session,

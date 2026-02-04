@@ -20,27 +20,28 @@ import 'package:kanew_client/src/protocol/card_activity.dart' as _i5;
 import 'package:kanew_client/src/protocol/attachment.dart' as _i6;
 import 'dart:typed_data' as _i7;
 import 'package:kanew_client/src/protocol/board.dart' as _i8;
-import 'package:kanew_client/src/protocol/card.dart' as _i9;
-import 'package:kanew_client/src/protocol/card_detail.dart' as _i10;
-import 'package:kanew_client/src/protocol/card_priority.dart' as _i11;
-import 'package:kanew_client/src/protocol/board_with_cards.dart' as _i12;
-import 'package:kanew_client/src/protocol/card_list.dart' as _i13;
-import 'package:kanew_client/src/protocol/checklist.dart' as _i14;
-import 'package:kanew_client/src/protocol/checklist_item.dart' as _i15;
-import 'package:kanew_client/src/protocol/comment.dart' as _i16;
-import 'package:kanew_client/src/protocol/workspace_invite.dart' as _i17;
-import 'package:kanew_client/src/protocol/invite_details.dart' as _i18;
-import 'package:kanew_client/src/protocol/accept_invite_result.dart' as _i19;
-import 'package:kanew_client/src/protocol/label_def.dart' as _i20;
-import 'package:kanew_client/src/protocol/member_with_user.dart' as _i21;
-import 'package:kanew_client/src/protocol/workspace_member.dart' as _i22;
-import 'package:kanew_client/src/protocol/member_role.dart' as _i23;
-import 'package:kanew_client/src/protocol/permission_info.dart' as _i24;
-import 'package:kanew_client/src/protocol/permission.dart' as _i25;
-import 'package:kanew_client/src/protocol/workspace.dart' as _i26;
-import 'package:kanew_client/src/protocol/greetings/greeting.dart' as _i27;
-import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i28;
-import 'protocol.dart' as _i29;
+import 'package:kanew_client/src/protocol/board_event.dart' as _i9;
+import 'package:kanew_client/src/protocol/card.dart' as _i10;
+import 'package:kanew_client/src/protocol/card_detail.dart' as _i11;
+import 'package:kanew_client/src/protocol/card_priority.dart' as _i12;
+import 'package:kanew_client/src/protocol/board_with_cards.dart' as _i13;
+import 'package:kanew_client/src/protocol/card_list.dart' as _i14;
+import 'package:kanew_client/src/protocol/checklist.dart' as _i15;
+import 'package:kanew_client/src/protocol/checklist_item.dart' as _i16;
+import 'package:kanew_client/src/protocol/comment.dart' as _i17;
+import 'package:kanew_client/src/protocol/workspace_invite.dart' as _i18;
+import 'package:kanew_client/src/protocol/invite_details.dart' as _i19;
+import 'package:kanew_client/src/protocol/accept_invite_result.dart' as _i20;
+import 'package:kanew_client/src/protocol/label_def.dart' as _i21;
+import 'package:kanew_client/src/protocol/member_with_user.dart' as _i22;
+import 'package:kanew_client/src/protocol/workspace_member.dart' as _i23;
+import 'package:kanew_client/src/protocol/member_role.dart' as _i24;
+import 'package:kanew_client/src/protocol/permission_info.dart' as _i25;
+import 'package:kanew_client/src/protocol/permission.dart' as _i26;
+import 'package:kanew_client/src/protocol/workspace.dart' as _i27;
+import 'package:kanew_client/src/protocol/greetings/greeting.dart' as _i28;
+import 'package:serverpod_auth_client/serverpod_auth_client.dart' as _i29;
+import 'protocol.dart' as _i30;
 
 /// Extends EmailIdpBaseEndpoint to expose email auth endpoints.
 ///
@@ -491,6 +492,30 @@ class EndpointBoard extends _i2.EndpointRef {
   );
 }
 
+/// Endpoint para streaming de eventos do Board em tempo real
+/// {@category Endpoint}
+class EndpointBoardStream extends _i2.EndpointRef {
+  EndpointBoardStream(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'boardStream';
+
+  /// Subscreve para receber atualizações em tempo real do board.
+  /// Requer: board.read permission
+  ///
+  /// O cliente recebe eventos sempre que:
+  /// - Um card é criado, atualizado, movido ou deletado
+  /// - Uma lista é criada, atualizada, reordenada ou deletada
+  /// - O board é atualizado ou deletado
+  _i3.Stream<_i9.BoardEvent> subscribeToBoardUpdates(int boardId) => caller
+      .callStreamingServerEndpoint<_i3.Stream<_i9.BoardEvent>, _i9.BoardEvent>(
+        'boardStream',
+        'subscribeToBoardUpdates',
+        {'boardId': boardId},
+        {},
+      );
+}
+
 /// Endpoint for managing cards within a list
 /// {@category Endpoint}
 class EndpointCard extends _i2.EndpointRef {
@@ -501,8 +526,8 @@ class EndpointCard extends _i2.EndpointRef {
 
   /// Gets all cards for a list
   /// Requires: board.read permission
-  _i3.Future<List<_i9.Card>> getCards(int listId) =>
-      caller.callServerEndpoint<List<_i9.Card>>(
+  _i3.Future<List<_i10.Card>> getCards(int listId) =>
+      caller.callServerEndpoint<List<_i10.Card>>(
         'card',
         'getCards',
         {'listId': listId},
@@ -513,8 +538,8 @@ class EndpointCard extends _i2.EndpointRef {
   ///
   /// This is an aggregate endpoint that returns everything needed for the board page
   /// in a single request, reducing the number of HTTP calls from many to 1.
-  _i3.Future<List<_i10.CardDetail>> getCardsByBoardDetail(int boardId) =>
-      caller.callServerEndpoint<List<_i10.CardDetail>>(
+  _i3.Future<List<_i11.CardDetail>> getCardsByBoardDetail(int boardId) =>
+      caller.callServerEndpoint<List<_i11.CardDetail>>(
         'card',
         'getCardsByBoardDetail',
         {'boardId': boardId},
@@ -522,8 +547,8 @@ class EndpointCard extends _i2.EndpointRef {
 
   /// Gets a single card by ID
   /// Requires: board.read permission
-  _i3.Future<_i9.Card?> getCard(int cardId) =>
-      caller.callServerEndpoint<_i9.Card?>(
+  _i3.Future<_i10.Card?> getCard(int cardId) =>
+      caller.callServerEndpoint<_i10.Card?>(
         'card',
         'getCard',
         {'cardId': cardId},
@@ -531,13 +556,13 @@ class EndpointCard extends _i2.EndpointRef {
 
   /// Creates a new card in a list
   /// Requires: board.update permission
-  _i3.Future<_i9.Card> createCard(
+  _i3.Future<_i10.Card> createCard(
     int listId,
     String title, {
     String? description,
-    required _i11.CardPriority priority,
+    required _i12.CardPriority priority,
     DateTime? dueDate,
-  }) => caller.callServerEndpoint<_i9.Card>(
+  }) => caller.callServerEndpoint<_i10.Card>(
     'card',
     'createCard',
     {
@@ -551,13 +576,13 @@ class EndpointCard extends _i2.EndpointRef {
 
   /// Creates a new card and returns complete CardDetail
   /// Requires: board.update permission
-  _i3.Future<_i10.CardDetail> createCardDetail(
+  _i3.Future<_i11.CardDetail> createCardDetail(
     int listId,
     String title, {
     String? description,
-    required _i11.CardPriority priority,
+    required _i12.CardPriority priority,
     DateTime? dueDate,
-  }) => caller.callServerEndpoint<_i10.CardDetail>(
+  }) => caller.callServerEndpoint<_i11.CardDetail>(
     'card',
     'createCardDetail',
     {
@@ -571,14 +596,14 @@ class EndpointCard extends _i2.EndpointRef {
 
   /// Updates a card's details
   /// Requires: board.update permission
-  _i3.Future<_i9.Card> updateCard(
+  _i3.Future<_i10.Card> updateCard(
     int cardId, {
     String? title,
     String? description,
-    _i11.CardPriority? priority,
+    _i12.CardPriority? priority,
     DateTime? dueDate,
     bool? isCompleted,
-  }) => caller.callServerEndpoint<_i9.Card>(
+  }) => caller.callServerEndpoint<_i10.Card>(
     'card',
     'updateCard',
     {
@@ -593,13 +618,13 @@ class EndpointCard extends _i2.EndpointRef {
 
   /// Moves a card to a different list and/or reorders within the list
   /// Requires: board.update permission
-  _i3.Future<_i9.Card> moveCard(
+  _i3.Future<_i10.Card> moveCard(
     int cardId,
     int targetListId, {
     String? afterRank,
     String? beforeRank,
-    _i11.CardPriority? newPriority,
-  }) => caller.callServerEndpoint<_i9.Card>(
+    _i12.CardPriority? newPriority,
+  }) => caller.callServerEndpoint<_i10.Card>(
     'card',
     'moveCard',
     {
@@ -621,8 +646,8 @@ class EndpointCard extends _i2.EndpointRef {
 
   /// Toggles card completion status
   /// Requires: board.update permission
-  _i3.Future<_i9.Card> toggleComplete(int cardId) =>
-      caller.callServerEndpoint<_i9.Card>(
+  _i3.Future<_i10.Card> toggleComplete(int cardId) =>
+      caller.callServerEndpoint<_i10.Card>(
         'card',
         'toggleComplete',
         {'cardId': cardId},
@@ -633,8 +658,8 @@ class EndpointCard extends _i2.EndpointRef {
   ///
   /// This is an aggregate endpoint that returns everything needed for the card detail page
   /// in a single request, reducing the number of HTTP calls from 7+ to 1.
-  _i3.Future<_i10.CardDetail?> getCardDetail(int cardId) =>
-      caller.callServerEndpoint<_i10.CardDetail?>(
+  _i3.Future<_i11.CardDetail?> getCardDetail(int cardId) =>
+      caller.callServerEndpoint<_i11.CardDetail?>(
         'card',
         'getCardDetail',
         {'cardId': cardId},
@@ -642,8 +667,8 @@ class EndpointCard extends _i2.EndpointRef {
 
   /// Gets complete card details by UUID
   /// Requires: board.read permission
-  _i3.Future<_i10.CardDetail?> getCardDetailByUuid(String uuid) =>
-      caller.callServerEndpoint<_i10.CardDetail?>(
+  _i3.Future<_i11.CardDetail?> getCardDetailByUuid(String uuid) =>
+      caller.callServerEndpoint<_i11.CardDetail?>(
         'card',
         'getCardDetailByUuid',
         {'uuid': uuid},
@@ -654,8 +679,8 @@ class EndpointCard extends _i2.EndpointRef {
   ///
   /// This endpoint returns BoardContext (loaded once) + CardSummary list (lightweight)
   /// Use this instead of getCardsByBoardDetail for better performance
-  _i3.Future<_i12.BoardWithCards> getBoardWithCards(int boardId) =>
-      caller.callServerEndpoint<_i12.BoardWithCards>(
+  _i3.Future<_i13.BoardWithCards> getBoardWithCards(int boardId) =>
+      caller.callServerEndpoint<_i13.BoardWithCards>(
         'card',
         'getBoardWithCards',
         {'boardId': boardId},
@@ -672,8 +697,8 @@ class EndpointCardList extends _i2.EndpointRef {
 
   /// Gets all lists for a board
   /// Requires: board.read permission
-  _i3.Future<List<_i13.CardList>> getLists(int boardId) =>
-      caller.callServerEndpoint<List<_i13.CardList>>(
+  _i3.Future<List<_i14.CardList>> getLists(int boardId) =>
+      caller.callServerEndpoint<List<_i14.CardList>>(
         'cardList',
         'getLists',
         {'boardId': boardId},
@@ -681,10 +706,10 @@ class EndpointCardList extends _i2.EndpointRef {
 
   /// Creates a new list in a board
   /// Requires: board.update permission
-  _i3.Future<_i13.CardList> createList(
+  _i3.Future<_i14.CardList> createList(
     int boardId,
     String title,
-  ) => caller.callServerEndpoint<_i13.CardList>(
+  ) => caller.callServerEndpoint<_i14.CardList>(
     'cardList',
     'createList',
     {
@@ -695,10 +720,10 @@ class EndpointCardList extends _i2.EndpointRef {
 
   /// Updates a list's title
   /// Requires: board.update permission
-  _i3.Future<_i13.CardList> updateList(
+  _i3.Future<_i14.CardList> updateList(
     int listId,
     String title,
-  ) => caller.callServerEndpoint<_i13.CardList>(
+  ) => caller.callServerEndpoint<_i14.CardList>(
     'cardList',
     'updateList',
     {
@@ -710,10 +735,10 @@ class EndpointCardList extends _i2.EndpointRef {
   /// Reorders lists within a board
   /// Receives an ordered list of list IDs and recalculates ranks
   /// Requires: board.update permission
-  _i3.Future<List<_i13.CardList>> reorderLists(
+  _i3.Future<List<_i14.CardList>> reorderLists(
     int boardId,
     List<int> orderedListIds,
-  ) => caller.callServerEndpoint<List<_i13.CardList>>(
+  ) => caller.callServerEndpoint<List<_i14.CardList>>(
     'cardList',
     'reorderLists',
     {
@@ -732,8 +757,8 @@ class EndpointCardList extends _i2.EndpointRef {
 
   /// Archives a list (sets archived = true)
   /// Requires: board.update permission
-  _i3.Future<_i13.CardList> archiveList(int listId) =>
-      caller.callServerEndpoint<_i13.CardList>(
+  _i3.Future<_i14.CardList> archiveList(int listId) =>
+      caller.callServerEndpoint<_i14.CardList>(
         'cardList',
         'archiveList',
         {'listId': listId},
@@ -750,8 +775,8 @@ class EndpointChecklist extends _i2.EndpointRef {
 
   /// Gets all checklists for a card
   /// Requires: board.read permission
-  _i3.Future<List<_i14.Checklist>> getChecklists(int cardId) =>
-      caller.callServerEndpoint<List<_i14.Checklist>>(
+  _i3.Future<List<_i15.Checklist>> getChecklists(int cardId) =>
+      caller.callServerEndpoint<List<_i15.Checklist>>(
         'checklist',
         'getChecklists',
         {'cardId': cardId},
@@ -759,8 +784,8 @@ class EndpointChecklist extends _i2.EndpointRef {
 
   /// Gets all items for a checklist
   /// Requires: board.read permission
-  _i3.Future<List<_i15.ChecklistItem>> getItems(int checklistId) =>
-      caller.callServerEndpoint<List<_i15.ChecklistItem>>(
+  _i3.Future<List<_i16.ChecklistItem>> getItems(int checklistId) =>
+      caller.callServerEndpoint<List<_i16.ChecklistItem>>(
         'checklist',
         'getItems',
         {'checklistId': checklistId},
@@ -768,10 +793,10 @@ class EndpointChecklist extends _i2.EndpointRef {
 
   /// Creates a new checklist in a card
   /// Requires: board.update permission
-  _i3.Future<_i14.Checklist> createChecklist(
+  _i3.Future<_i15.Checklist> createChecklist(
     int cardId,
     String title,
-  ) => caller.callServerEndpoint<_i14.Checklist>(
+  ) => caller.callServerEndpoint<_i15.Checklist>(
     'checklist',
     'createChecklist',
     {
@@ -782,10 +807,10 @@ class EndpointChecklist extends _i2.EndpointRef {
 
   /// Updates a checklist
   /// Requires: board.update permission
-  _i3.Future<_i14.Checklist> updateChecklist(
+  _i3.Future<_i15.Checklist> updateChecklist(
     int checklistId,
     String title,
-  ) => caller.callServerEndpoint<_i14.Checklist>(
+  ) => caller.callServerEndpoint<_i15.Checklist>(
     'checklist',
     'updateChecklist',
     {
@@ -805,10 +830,10 @@ class EndpointChecklist extends _i2.EndpointRef {
 
   /// Creates a new item in a checklist
   /// Requires: board.update permission
-  _i3.Future<_i15.ChecklistItem> addItem(
+  _i3.Future<_i16.ChecklistItem> addItem(
     int checklistId,
     String title,
-  ) => caller.callServerEndpoint<_i15.ChecklistItem>(
+  ) => caller.callServerEndpoint<_i16.ChecklistItem>(
     'checklist',
     'addItem',
     {
@@ -819,11 +844,11 @@ class EndpointChecklist extends _i2.EndpointRef {
 
   /// Updates a checklist item
   /// Requires: board.update permission
-  _i3.Future<_i15.ChecklistItem> updateItem(
+  _i3.Future<_i16.ChecklistItem> updateItem(
     int itemId, {
     String? title,
     bool? isChecked,
-  }) => caller.callServerEndpoint<_i15.ChecklistItem>(
+  }) => caller.callServerEndpoint<_i16.ChecklistItem>(
     'checklist',
     'updateItem',
     {
@@ -850,18 +875,18 @@ class EndpointComment extends _i2.EndpointRef {
   String get name => 'comment';
 
   /// Gets all comments for a card
-  _i3.Future<List<_i16.Comment>> getComments(int cardId) =>
-      caller.callServerEndpoint<List<_i16.Comment>>(
+  _i3.Future<List<_i17.Comment>> getComments(int cardId) =>
+      caller.callServerEndpoint<List<_i17.Comment>>(
         'comment',
         'getComments',
         {'cardId': cardId},
       );
 
   /// Creates a comment
-  _i3.Future<_i16.Comment> createComment(
+  _i3.Future<_i17.Comment> createComment(
     int cardId,
     String content,
-  ) => caller.callServerEndpoint<_i16.Comment>(
+  ) => caller.callServerEndpoint<_i17.Comment>(
     'comment',
     'createComment',
     {
@@ -889,11 +914,11 @@ class EndpointInvite extends _i2.EndpointRef {
 
   /// Creates a new workspace invite
   /// Requires 'workspace.invite' permission
-  _i3.Future<_i17.WorkspaceInvite> createInvite(
+  _i3.Future<_i18.WorkspaceInvite> createInvite(
     int workspaceId,
     List<int> permissionIds, {
     String? email,
-  }) => caller.callServerEndpoint<_i17.WorkspaceInvite>(
+  }) => caller.callServerEndpoint<_i18.WorkspaceInvite>(
     'invite',
     'createInvite',
     {
@@ -904,8 +929,8 @@ class EndpointInvite extends _i2.EndpointRef {
   );
 
   /// Gets all pending invites for a workspace
-  _i3.Future<List<_i17.WorkspaceInvite>> getInvites(int workspaceId) =>
-      caller.callServerEndpoint<List<_i17.WorkspaceInvite>>(
+  _i3.Future<List<_i18.WorkspaceInvite>> getInvites(int workspaceId) =>
+      caller.callServerEndpoint<List<_i18.WorkspaceInvite>>(
         'invite',
         'getInvites',
         {'workspaceId': workspaceId},
@@ -920,8 +945,8 @@ class EndpointInvite extends _i2.EndpointRef {
       );
 
   /// Gets invite by code (public - no auth required for validation)
-  _i3.Future<_i18.InviteDetails?> getInviteByCode(String code) =>
-      caller.callServerEndpoint<_i18.InviteDetails?>(
+  _i3.Future<_i19.InviteDetails?> getInviteByCode(String code) =>
+      caller.callServerEndpoint<_i19.InviteDetails?>(
         'invite',
         'getInviteByCode',
         {'code': code},
@@ -929,8 +954,8 @@ class EndpointInvite extends _i2.EndpointRef {
 
   /// Accepts an invite and joins workspace
   /// Requires authentication
-  _i3.Future<_i19.AcceptInviteResult> acceptInvite(String code) =>
-      caller.callServerEndpoint<_i19.AcceptInviteResult>(
+  _i3.Future<_i20.AcceptInviteResult> acceptInvite(String code) =>
+      caller.callServerEndpoint<_i20.AcceptInviteResult>(
         'invite',
         'acceptInvite',
         {'code': code},
@@ -945,19 +970,19 @@ class EndpointLabel extends _i2.EndpointRef {
   String get name => 'label';
 
   /// Gets all labels defined for a board
-  _i3.Future<List<_i20.LabelDef>> getLabels(int boardId) =>
-      caller.callServerEndpoint<List<_i20.LabelDef>>(
+  _i3.Future<List<_i21.LabelDef>> getLabels(int boardId) =>
+      caller.callServerEndpoint<List<_i21.LabelDef>>(
         'label',
         'getLabels',
         {'boardId': boardId},
       );
 
   /// Creates a new label definition
-  _i3.Future<_i20.LabelDef> createLabel(
+  _i3.Future<_i21.LabelDef> createLabel(
     int boardId,
     String name,
     String colorHex,
-  ) => caller.callServerEndpoint<_i20.LabelDef>(
+  ) => caller.callServerEndpoint<_i21.LabelDef>(
     'label',
     'createLabel',
     {
@@ -968,11 +993,11 @@ class EndpointLabel extends _i2.EndpointRef {
   );
 
   /// Updates a label definition
-  _i3.Future<_i20.LabelDef> updateLabel(
+  _i3.Future<_i21.LabelDef> updateLabel(
     int labelId,
     String name,
     String colorHex,
-  ) => caller.callServerEndpoint<_i20.LabelDef>(
+  ) => caller.callServerEndpoint<_i21.LabelDef>(
     'label',
     'updateLabel',
     {
@@ -1016,8 +1041,8 @@ class EndpointLabel extends _i2.EndpointRef {
   );
 
   /// Get labels attached to a card
-  _i3.Future<List<_i20.LabelDef>> getCardLabels(int cardId) =>
-      caller.callServerEndpoint<List<_i20.LabelDef>>(
+  _i3.Future<List<_i21.LabelDef>> getCardLabels(int cardId) =>
+      caller.callServerEndpoint<List<_i21.LabelDef>>(
         'label',
         'getCardLabels',
         {'cardId': cardId},
@@ -1033,8 +1058,8 @@ class EndpointMember extends _i2.EndpointRef {
   String get name => 'member';
 
   /// Gets all members of a workspace with UserInfo details
-  _i3.Future<List<_i21.MemberWithUser>> getMembers(int workspaceId) =>
-      caller.callServerEndpoint<List<_i21.MemberWithUser>>(
+  _i3.Future<List<_i22.MemberWithUser>> getMembers(int workspaceId) =>
+      caller.callServerEndpoint<List<_i22.MemberWithUser>>(
         'member',
         'getMembers',
         {'workspaceId': workspaceId},
@@ -1049,10 +1074,10 @@ class EndpointMember extends _i2.EndpointRef {
       );
 
   /// Updates member role
-  _i3.Future<_i22.WorkspaceMember> updateMemberRole(
+  _i3.Future<_i23.WorkspaceMember> updateMemberRole(
     int memberId,
-    _i23.MemberRole newRole,
-  ) => caller.callServerEndpoint<_i22.WorkspaceMember>(
+    _i24.MemberRole newRole,
+  ) => caller.callServerEndpoint<_i23.WorkspaceMember>(
     'member',
     'updateMemberRole',
     {
@@ -1062,8 +1087,8 @@ class EndpointMember extends _i2.EndpointRef {
   );
 
   /// Gets all permissions for a member with granted status
-  _i3.Future<List<_i24.PermissionInfo>> getMemberPermissions(int memberId) =>
-      caller.callServerEndpoint<List<_i24.PermissionInfo>>(
+  _i3.Future<List<_i25.PermissionInfo>> getMemberPermissions(int memberId) =>
+      caller.callServerEndpoint<List<_i25.PermissionInfo>>(
         'member',
         'getMemberPermissions',
         {'memberId': memberId},
@@ -1096,8 +1121,8 @@ class EndpointMember extends _i2.EndpointRef {
   );
 
   /// Gets all available permissions in the system
-  _i3.Future<List<_i25.Permission>> getAllPermissions() =>
-      caller.callServerEndpoint<List<_i25.Permission>>(
+  _i3.Future<List<_i26.Permission>> getAllPermissions() =>
+      caller.callServerEndpoint<List<_i26.Permission>>(
         'member',
         'getAllPermissions',
         {},
@@ -1113,8 +1138,8 @@ class EndpointWorkspace extends _i2.EndpointRef {
   String get name => 'workspace';
 
   /// Gets all workspaces for authenticated user
-  _i3.Future<List<_i26.Workspace>> getWorkspaces() =>
-      caller.callServerEndpoint<List<_i26.Workspace>>(
+  _i3.Future<List<_i27.Workspace>> getWorkspaces() =>
+      caller.callServerEndpoint<List<_i27.Workspace>>(
         'workspace',
         'getWorkspaces',
         {},
@@ -1122,18 +1147,18 @@ class EndpointWorkspace extends _i2.EndpointRef {
 
   /// Gets a single workspace by slug
   /// Verifies that user has permission to read workspace
-  _i3.Future<_i26.Workspace?> getWorkspace(String slug) =>
-      caller.callServerEndpoint<_i26.Workspace?>(
+  _i3.Future<_i27.Workspace?> getWorkspace(String slug) =>
+      caller.callServerEndpoint<_i27.Workspace?>(
         'workspace',
         'getWorkspace',
         {'slug': slug},
       );
 
   /// Creates a new workspace
-  _i3.Future<_i26.Workspace> createWorkspace(
+  _i3.Future<_i27.Workspace> createWorkspace(
     String title,
     String? slug,
-  ) => caller.callServerEndpoint<_i26.Workspace>(
+  ) => caller.callServerEndpoint<_i27.Workspace>(
     'workspace',
     'createWorkspace',
     {
@@ -1143,11 +1168,11 @@ class EndpointWorkspace extends _i2.EndpointRef {
   );
 
   /// Updates workspace settings
-  _i3.Future<_i26.Workspace> updateWorkspace(
+  _i3.Future<_i27.Workspace> updateWorkspace(
     int workspaceId,
     String title,
     String? slug,
-  ) => caller.callServerEndpoint<_i26.Workspace>(
+  ) => caller.callServerEndpoint<_i27.Workspace>(
     'workspace',
     'updateWorkspace',
     {
@@ -1176,8 +1201,8 @@ class EndpointGreeting extends _i2.EndpointRef {
   String get name => 'greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i27.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i27.Greeting>(
+  _i3.Future<_i28.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i28.Greeting>(
         'greeting',
         'hello',
         {'name': name},
@@ -1188,14 +1213,14 @@ class Modules {
   Modules(Client client) {
     serverpod_auth_idp = _i1.Caller(client);
     serverpod_auth_core = _i4.Caller(client);
-    auth = _i28.Caller(client);
+    auth = _i29.Caller(client);
   }
 
   late final _i1.Caller serverpod_auth_idp;
 
   late final _i4.Caller serverpod_auth_core;
 
-  late final _i28.Caller auth;
+  late final _i29.Caller auth;
 }
 
 class Client extends _i2.ServerpodClientShared {
@@ -1218,7 +1243,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i29.Protocol(),
+         _i30.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -1232,6 +1257,7 @@ class Client extends _i2.ServerpodClientShared {
     activity = EndpointActivity(this);
     attachment = EndpointAttachment(this);
     board = EndpointBoard(this);
+    boardStream = EndpointBoardStream(this);
     card = EndpointCard(this);
     cardList = EndpointCardList(this);
     checklist = EndpointChecklist(this);
@@ -1253,6 +1279,8 @@ class Client extends _i2.ServerpodClientShared {
   late final EndpointAttachment attachment;
 
   late final EndpointBoard board;
+
+  late final EndpointBoardStream boardStream;
 
   late final EndpointCard card;
 
@@ -1281,6 +1309,7 @@ class Client extends _i2.ServerpodClientShared {
     'activity': activity,
     'attachment': attachment,
     'board': board,
+    'boardStream': boardStream,
     'card': card,
     'cardList': cardList,
     'checklist': checklist,

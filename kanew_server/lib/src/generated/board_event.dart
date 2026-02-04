@@ -32,7 +32,7 @@ abstract class BoardEvent
     int? cardId,
     String? payload,
     required DateTime timestamp,
-    required int actorId,
+    required _i1.UuidValue actorId,
   }) = _BoardEventImpl;
 
   factory BoardEvent.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -47,7 +47,9 @@ abstract class BoardEvent
       timestamp: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['timestamp'],
       ),
-      actorId: jsonSerialization['actorId'] as int,
+      actorId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['actorId'],
+      ),
     );
   }
 
@@ -63,7 +65,7 @@ abstract class BoardEvent
 
   DateTime timestamp;
 
-  int actorId;
+  _i1.UuidValue actorId;
 
   /// Returns a shallow copy of this [BoardEvent]
   /// with some or all fields replaced by the given arguments.
@@ -75,7 +77,7 @@ abstract class BoardEvent
     int? cardId,
     String? payload,
     DateTime? timestamp,
-    int? actorId,
+    _i1.UuidValue? actorId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -87,7 +89,7 @@ abstract class BoardEvent
       if (cardId != null) 'cardId': cardId,
       if (payload != null) 'payload': payload,
       'timestamp': timestamp.toJson(),
-      'actorId': actorId,
+      'actorId': actorId.toJson(),
     };
   }
 
@@ -101,7 +103,7 @@ abstract class BoardEvent
       if (cardId != null) 'cardId': cardId,
       if (payload != null) 'payload': payload,
       'timestamp': timestamp.toJson(),
-      'actorId': actorId,
+      'actorId': actorId.toJson(),
     };
   }
 
@@ -121,7 +123,7 @@ class _BoardEventImpl extends BoardEvent {
     int? cardId,
     String? payload,
     required DateTime timestamp,
-    required int actorId,
+    required _i1.UuidValue actorId,
   }) : super._(
          eventType: eventType,
          boardId: boardId,
@@ -143,7 +145,7 @@ class _BoardEventImpl extends BoardEvent {
     Object? cardId = _Undefined,
     Object? payload = _Undefined,
     DateTime? timestamp,
-    int? actorId,
+    _i1.UuidValue? actorId,
   }) {
     return BoardEvent(
       eventType: eventType ?? this.eventType,

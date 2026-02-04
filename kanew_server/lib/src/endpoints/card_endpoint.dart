@@ -4,6 +4,7 @@ import '../services/permission_service.dart';
 import '../services/lexorank_service.dart';
 import '../services/auth_helper.dart';
 import '../services/activity_service.dart';
+import '../services/board_broadcast_service.dart';
 
 /// Endpoint for managing cards within a list
 class CardEndpoint extends Endpoint {
@@ -341,6 +342,26 @@ class CardEndpoint extends Endpoint {
     );
 
     session.log('[CardEndpoint] Created card "${created.title}"');
+
+    // Broadcast card created event
+    final summary = CardSummary(
+      card: created,
+      cardLabels: [],
+      checklistTotal: 0,
+      checklistCompleted: 0,
+      attachmentCount: 0,
+      commentCount: 0,
+    );
+    
+    BoardBroadcastService.cardCreated(
+      session,
+      boardId: created.boardId,
+      listId: created.listId,
+      cardId: created.id!,
+      actorId: numericUserId,
+      cardSummary: summary,
+    );
+
     return created;
   }
 
@@ -491,6 +512,16 @@ class CardEndpoint extends Endpoint {
       details: 'Updated card details',
     );
 
+    // Broadcast card updated event
+    BoardBroadcastService.cardUpdated(
+      session,
+      boardId: result.boardId,
+      listId: result.listId,
+      cardId: result.id!,
+      actorId: numericUserId,
+      card: result,
+    );
+
     return result;
   }
 
@@ -568,6 +599,18 @@ class CardEndpoint extends Endpoint {
       details: 'Moved card to another list',
     );
 
+    // Broadcast card moved event
+    BoardBroadcastService.cardMoved(
+      session,
+      boardId: result.boardId,
+      oldListId: card.listId,
+      newListId: result.listId,
+      cardId: result.id!,
+      actorId: numericUserId,
+      newRank: result.rank,
+      priority: result.priority.name,
+    );
+
     return result;
   }
 
@@ -618,6 +661,15 @@ class CardEndpoint extends Endpoint {
       actorId: numericUserId,
       type: ActivityType.delete,
       details: 'Deleted card',
+    );
+
+    // Broadcast card deleted event
+    BoardBroadcastService.cardDeleted(
+      session,
+      boardId: card.boardId,
+      listId: card.listId,
+      cardId: cardId,
+      actorId: numericUserId,
     );
   }
 

@@ -20,25 +20,26 @@ import 'package:kanew_server/src/generated/card_activity.dart' as _i5;
 import 'package:kanew_server/src/generated/attachment.dart' as _i6;
 import 'dart:typed_data' as _i7;
 import 'package:kanew_server/src/generated/board.dart' as _i8;
-import 'package:kanew_server/src/generated/card.dart' as _i9;
-import 'package:kanew_server/src/generated/card_detail.dart' as _i10;
-import 'package:kanew_server/src/generated/card_priority.dart' as _i11;
-import 'package:kanew_server/src/generated/board_with_cards.dart' as _i12;
-import 'package:kanew_server/src/generated/card_list.dart' as _i13;
-import 'package:kanew_server/src/generated/checklist.dart' as _i14;
-import 'package:kanew_server/src/generated/checklist_item.dart' as _i15;
-import 'package:kanew_server/src/generated/comment.dart' as _i16;
-import 'package:kanew_server/src/generated/workspace_invite.dart' as _i17;
-import 'package:kanew_server/src/generated/invite_details.dart' as _i18;
-import 'package:kanew_server/src/generated/accept_invite_result.dart' as _i19;
-import 'package:kanew_server/src/generated/label_def.dart' as _i20;
-import 'package:kanew_server/src/generated/member_with_user.dart' as _i21;
-import 'package:kanew_server/src/generated/workspace_member.dart' as _i22;
-import 'package:kanew_server/src/generated/member_role.dart' as _i23;
-import 'package:kanew_server/src/generated/permission_info.dart' as _i24;
-import 'package:kanew_server/src/generated/permission.dart' as _i25;
-import 'package:kanew_server/src/generated/workspace.dart' as _i26;
-import 'package:kanew_server/src/generated/greetings/greeting.dart' as _i27;
+import 'package:kanew_server/src/generated/board_event.dart' as _i9;
+import 'package:kanew_server/src/generated/card.dart' as _i10;
+import 'package:kanew_server/src/generated/card_detail.dart' as _i11;
+import 'package:kanew_server/src/generated/card_priority.dart' as _i12;
+import 'package:kanew_server/src/generated/board_with_cards.dart' as _i13;
+import 'package:kanew_server/src/generated/card_list.dart' as _i14;
+import 'package:kanew_server/src/generated/checklist.dart' as _i15;
+import 'package:kanew_server/src/generated/checklist_item.dart' as _i16;
+import 'package:kanew_server/src/generated/comment.dart' as _i17;
+import 'package:kanew_server/src/generated/workspace_invite.dart' as _i18;
+import 'package:kanew_server/src/generated/invite_details.dart' as _i19;
+import 'package:kanew_server/src/generated/accept_invite_result.dart' as _i20;
+import 'package:kanew_server/src/generated/label_def.dart' as _i21;
+import 'package:kanew_server/src/generated/member_with_user.dart' as _i22;
+import 'package:kanew_server/src/generated/workspace_member.dart' as _i23;
+import 'package:kanew_server/src/generated/member_role.dart' as _i24;
+import 'package:kanew_server/src/generated/permission_info.dart' as _i25;
+import 'package:kanew_server/src/generated/permission.dart' as _i26;
+import 'package:kanew_server/src/generated/workspace.dart' as _i27;
+import 'package:kanew_server/src/generated/greetings/greeting.dart' as _i28;
 import 'package:kanew_server/src/generated/protocol.dart';
 import 'package:kanew_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -156,6 +157,8 @@ class TestEndpoints {
 
   late final _BoardEndpoint board;
 
+  late final _BoardStreamEndpoint boardStream;
+
   late final _CardEndpoint card;
 
   late final _CardListEndpoint cardList;
@@ -199,6 +202,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     board = _BoardEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    boardStream = _BoardStreamEndpoint(
       endpoints,
       serializationManager,
     );
@@ -1077,6 +1084,49 @@ class _BoardEndpoint {
   }
 }
 
+class _BoardStreamEndpoint {
+  _BoardStreamEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Stream<_i9.BoardEvent> subscribeToBoardUpdates(
+    _i1.TestSessionBuilder sessionBuilder,
+    int boardId,
+  ) {
+    var _localTestStreamManager = _i1.TestStreamManager<_i9.BoardEvent>();
+    _i1.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'boardStream',
+              method: 'subscribeToBoardUpdates',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'boardStream',
+              methodName: 'subscribeToBoardUpdates',
+              arguments: {'boardId': boardId},
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
+  }
+}
+
 class _CardEndpoint {
   _CardEndpoint(
     this._endpointDispatch,
@@ -1087,7 +1137,7 @@ class _CardEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i9.Card>> getCards(
+  _i3.Future<List<_i10.Card>> getCards(
     _i1.TestSessionBuilder sessionBuilder,
     int listId,
   ) async {
@@ -1110,7 +1160,7 @@ class _CardEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i9.Card>>);
+                as _i3.Future<List<_i10.Card>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1118,7 +1168,7 @@ class _CardEndpoint {
     });
   }
 
-  _i3.Future<List<_i10.CardDetail>> getCardsByBoardDetail(
+  _i3.Future<List<_i11.CardDetail>> getCardsByBoardDetail(
     _i1.TestSessionBuilder sessionBuilder,
     int boardId,
   ) async {
@@ -1141,7 +1191,7 @@ class _CardEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i10.CardDetail>>);
+                as _i3.Future<List<_i11.CardDetail>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1149,7 +1199,7 @@ class _CardEndpoint {
     });
   }
 
-  _i3.Future<_i9.Card?> getCard(
+  _i3.Future<_i10.Card?> getCard(
     _i1.TestSessionBuilder sessionBuilder,
     int cardId,
   ) async {
@@ -1172,7 +1222,7 @@ class _CardEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i9.Card?>);
+                as _i3.Future<_i10.Card?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1180,12 +1230,12 @@ class _CardEndpoint {
     });
   }
 
-  _i3.Future<_i9.Card> createCard(
+  _i3.Future<_i10.Card> createCard(
     _i1.TestSessionBuilder sessionBuilder,
     int listId,
     String title, {
     String? description,
-    required _i11.CardPriority priority,
+    required _i12.CardPriority priority,
     DateTime? dueDate,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1213,7 +1263,7 @@ class _CardEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i9.Card>);
+                as _i3.Future<_i10.Card>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1221,12 +1271,12 @@ class _CardEndpoint {
     });
   }
 
-  _i3.Future<_i10.CardDetail> createCardDetail(
+  _i3.Future<_i11.CardDetail> createCardDetail(
     _i1.TestSessionBuilder sessionBuilder,
     int listId,
     String title, {
     String? description,
-    required _i11.CardPriority priority,
+    required _i12.CardPriority priority,
     DateTime? dueDate,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1254,7 +1304,7 @@ class _CardEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i10.CardDetail>);
+                as _i3.Future<_i11.CardDetail>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1262,12 +1312,12 @@ class _CardEndpoint {
     });
   }
 
-  _i3.Future<_i9.Card> updateCard(
+  _i3.Future<_i10.Card> updateCard(
     _i1.TestSessionBuilder sessionBuilder,
     int cardId, {
     String? title,
     String? description,
-    _i11.CardPriority? priority,
+    _i12.CardPriority? priority,
     DateTime? dueDate,
     bool? isCompleted,
   }) async {
@@ -1297,7 +1347,7 @@ class _CardEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i9.Card>);
+                as _i3.Future<_i10.Card>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1305,13 +1355,13 @@ class _CardEndpoint {
     });
   }
 
-  _i3.Future<_i9.Card> moveCard(
+  _i3.Future<_i10.Card> moveCard(
     _i1.TestSessionBuilder sessionBuilder,
     int cardId,
     int targetListId, {
     String? afterRank,
     String? beforeRank,
-    _i11.CardPriority? newPriority,
+    _i12.CardPriority? newPriority,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1338,7 +1388,7 @@ class _CardEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i9.Card>);
+                as _i3.Future<_i10.Card>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1377,7 +1427,7 @@ class _CardEndpoint {
     });
   }
 
-  _i3.Future<_i9.Card> toggleComplete(
+  _i3.Future<_i10.Card> toggleComplete(
     _i1.TestSessionBuilder sessionBuilder,
     int cardId,
   ) async {
@@ -1400,7 +1450,7 @@ class _CardEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i9.Card>);
+                as _i3.Future<_i10.Card>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1408,7 +1458,7 @@ class _CardEndpoint {
     });
   }
 
-  _i3.Future<_i10.CardDetail?> getCardDetail(
+  _i3.Future<_i11.CardDetail?> getCardDetail(
     _i1.TestSessionBuilder sessionBuilder,
     int cardId,
   ) async {
@@ -1431,7 +1481,7 @@ class _CardEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i10.CardDetail?>);
+                as _i3.Future<_i11.CardDetail?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1439,7 +1489,7 @@ class _CardEndpoint {
     });
   }
 
-  _i3.Future<_i10.CardDetail?> getCardDetailByUuid(
+  _i3.Future<_i11.CardDetail?> getCardDetailByUuid(
     _i1.TestSessionBuilder sessionBuilder,
     String uuid,
   ) async {
@@ -1462,7 +1512,7 @@ class _CardEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i10.CardDetail?>);
+                as _i3.Future<_i11.CardDetail?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1470,7 +1520,7 @@ class _CardEndpoint {
     });
   }
 
-  _i3.Future<_i12.BoardWithCards> getBoardWithCards(
+  _i3.Future<_i13.BoardWithCards> getBoardWithCards(
     _i1.TestSessionBuilder sessionBuilder,
     int boardId,
   ) async {
@@ -1493,7 +1543,7 @@ class _CardEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i12.BoardWithCards>);
+                as _i3.Future<_i13.BoardWithCards>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1512,7 +1562,7 @@ class _CardListEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i13.CardList>> getLists(
+  _i3.Future<List<_i14.CardList>> getLists(
     _i1.TestSessionBuilder sessionBuilder,
     int boardId,
   ) async {
@@ -1535,7 +1585,7 @@ class _CardListEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i13.CardList>>);
+                as _i3.Future<List<_i14.CardList>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1543,7 +1593,7 @@ class _CardListEndpoint {
     });
   }
 
-  _i3.Future<_i13.CardList> createList(
+  _i3.Future<_i14.CardList> createList(
     _i1.TestSessionBuilder sessionBuilder,
     int boardId,
     String title,
@@ -1570,7 +1620,7 @@ class _CardListEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.CardList>);
+                as _i3.Future<_i14.CardList>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1578,7 +1628,7 @@ class _CardListEndpoint {
     });
   }
 
-  _i3.Future<_i13.CardList> updateList(
+  _i3.Future<_i14.CardList> updateList(
     _i1.TestSessionBuilder sessionBuilder,
     int listId,
     String title,
@@ -1605,7 +1655,7 @@ class _CardListEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.CardList>);
+                as _i3.Future<_i14.CardList>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1613,7 +1663,7 @@ class _CardListEndpoint {
     });
   }
 
-  _i3.Future<List<_i13.CardList>> reorderLists(
+  _i3.Future<List<_i14.CardList>> reorderLists(
     _i1.TestSessionBuilder sessionBuilder,
     int boardId,
     List<int> orderedListIds,
@@ -1640,7 +1690,7 @@ class _CardListEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i13.CardList>>);
+                as _i3.Future<List<_i14.CardList>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1679,7 +1729,7 @@ class _CardListEndpoint {
     });
   }
 
-  _i3.Future<_i13.CardList> archiveList(
+  _i3.Future<_i14.CardList> archiveList(
     _i1.TestSessionBuilder sessionBuilder,
     int listId,
   ) async {
@@ -1702,7 +1752,7 @@ class _CardListEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.CardList>);
+                as _i3.Future<_i14.CardList>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1721,7 +1771,7 @@ class _ChecklistEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i14.Checklist>> getChecklists(
+  _i3.Future<List<_i15.Checklist>> getChecklists(
     _i1.TestSessionBuilder sessionBuilder,
     int cardId,
   ) async {
@@ -1744,7 +1794,7 @@ class _ChecklistEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i14.Checklist>>);
+                as _i3.Future<List<_i15.Checklist>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1752,7 +1802,7 @@ class _ChecklistEndpoint {
     });
   }
 
-  _i3.Future<List<_i15.ChecklistItem>> getItems(
+  _i3.Future<List<_i16.ChecklistItem>> getItems(
     _i1.TestSessionBuilder sessionBuilder,
     int checklistId,
   ) async {
@@ -1775,7 +1825,7 @@ class _ChecklistEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i15.ChecklistItem>>);
+                as _i3.Future<List<_i16.ChecklistItem>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1783,7 +1833,7 @@ class _ChecklistEndpoint {
     });
   }
 
-  _i3.Future<_i14.Checklist> createChecklist(
+  _i3.Future<_i15.Checklist> createChecklist(
     _i1.TestSessionBuilder sessionBuilder,
     int cardId,
     String title,
@@ -1810,7 +1860,7 @@ class _ChecklistEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i14.Checklist>);
+                as _i3.Future<_i15.Checklist>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1818,7 +1868,7 @@ class _ChecklistEndpoint {
     });
   }
 
-  _i3.Future<_i14.Checklist> updateChecklist(
+  _i3.Future<_i15.Checklist> updateChecklist(
     _i1.TestSessionBuilder sessionBuilder,
     int checklistId,
     String title,
@@ -1845,7 +1895,7 @@ class _ChecklistEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i14.Checklist>);
+                as _i3.Future<_i15.Checklist>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1884,7 +1934,7 @@ class _ChecklistEndpoint {
     });
   }
 
-  _i3.Future<_i15.ChecklistItem> addItem(
+  _i3.Future<_i16.ChecklistItem> addItem(
     _i1.TestSessionBuilder sessionBuilder,
     int checklistId,
     String title,
@@ -1911,7 +1961,7 @@ class _ChecklistEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i15.ChecklistItem>);
+                as _i3.Future<_i16.ChecklistItem>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1919,7 +1969,7 @@ class _ChecklistEndpoint {
     });
   }
 
-  _i3.Future<_i15.ChecklistItem> updateItem(
+  _i3.Future<_i16.ChecklistItem> updateItem(
     _i1.TestSessionBuilder sessionBuilder,
     int itemId, {
     String? title,
@@ -1948,7 +1998,7 @@ class _ChecklistEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i15.ChecklistItem>);
+                as _i3.Future<_i16.ChecklistItem>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1998,7 +2048,7 @@ class _CommentEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i16.Comment>> getComments(
+  _i3.Future<List<_i17.Comment>> getComments(
     _i1.TestSessionBuilder sessionBuilder,
     int cardId,
   ) async {
@@ -2021,7 +2071,7 @@ class _CommentEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i16.Comment>>);
+                as _i3.Future<List<_i17.Comment>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2029,7 +2079,7 @@ class _CommentEndpoint {
     });
   }
 
-  _i3.Future<_i16.Comment> createComment(
+  _i3.Future<_i17.Comment> createComment(
     _i1.TestSessionBuilder sessionBuilder,
     int cardId,
     String content,
@@ -2056,7 +2106,7 @@ class _CommentEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i16.Comment>);
+                as _i3.Future<_i17.Comment>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2106,7 +2156,7 @@ class _InviteEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i17.WorkspaceInvite> createInvite(
+  _i3.Future<_i18.WorkspaceInvite> createInvite(
     _i1.TestSessionBuilder sessionBuilder,
     int workspaceId,
     List<int> permissionIds, {
@@ -2135,7 +2185,7 @@ class _InviteEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i17.WorkspaceInvite>);
+                as _i3.Future<_i18.WorkspaceInvite>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2143,7 +2193,7 @@ class _InviteEndpoint {
     });
   }
 
-  _i3.Future<List<_i17.WorkspaceInvite>> getInvites(
+  _i3.Future<List<_i18.WorkspaceInvite>> getInvites(
     _i1.TestSessionBuilder sessionBuilder,
     int workspaceId,
   ) async {
@@ -2166,7 +2216,7 @@ class _InviteEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i17.WorkspaceInvite>>);
+                as _i3.Future<List<_i18.WorkspaceInvite>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2205,7 +2255,7 @@ class _InviteEndpoint {
     });
   }
 
-  _i3.Future<_i18.InviteDetails?> getInviteByCode(
+  _i3.Future<_i19.InviteDetails?> getInviteByCode(
     _i1.TestSessionBuilder sessionBuilder,
     String code,
   ) async {
@@ -2228,7 +2278,7 @@ class _InviteEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i18.InviteDetails?>);
+                as _i3.Future<_i19.InviteDetails?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2236,7 +2286,7 @@ class _InviteEndpoint {
     });
   }
 
-  _i3.Future<_i19.AcceptInviteResult> acceptInvite(
+  _i3.Future<_i20.AcceptInviteResult> acceptInvite(
     _i1.TestSessionBuilder sessionBuilder,
     String code,
   ) async {
@@ -2259,7 +2309,7 @@ class _InviteEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i19.AcceptInviteResult>);
+                as _i3.Future<_i20.AcceptInviteResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2278,7 +2328,7 @@ class _LabelEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i20.LabelDef>> getLabels(
+  _i3.Future<List<_i21.LabelDef>> getLabels(
     _i1.TestSessionBuilder sessionBuilder,
     int boardId,
   ) async {
@@ -2301,7 +2351,7 @@ class _LabelEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i20.LabelDef>>);
+                as _i3.Future<List<_i21.LabelDef>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2309,7 +2359,7 @@ class _LabelEndpoint {
     });
   }
 
-  _i3.Future<_i20.LabelDef> createLabel(
+  _i3.Future<_i21.LabelDef> createLabel(
     _i1.TestSessionBuilder sessionBuilder,
     int boardId,
     String name,
@@ -2338,7 +2388,7 @@ class _LabelEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i20.LabelDef>);
+                as _i3.Future<_i21.LabelDef>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2346,7 +2396,7 @@ class _LabelEndpoint {
     });
   }
 
-  _i3.Future<_i20.LabelDef> updateLabel(
+  _i3.Future<_i21.LabelDef> updateLabel(
     _i1.TestSessionBuilder sessionBuilder,
     int labelId,
     String name,
@@ -2375,7 +2425,7 @@ class _LabelEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i20.LabelDef>);
+                as _i3.Future<_i21.LabelDef>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2484,7 +2534,7 @@ class _LabelEndpoint {
     });
   }
 
-  _i3.Future<List<_i20.LabelDef>> getCardLabels(
+  _i3.Future<List<_i21.LabelDef>> getCardLabels(
     _i1.TestSessionBuilder sessionBuilder,
     int cardId,
   ) async {
@@ -2507,7 +2557,7 @@ class _LabelEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i20.LabelDef>>);
+                as _i3.Future<List<_i21.LabelDef>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2526,7 +2576,7 @@ class _MemberEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i21.MemberWithUser>> getMembers(
+  _i3.Future<List<_i22.MemberWithUser>> getMembers(
     _i1.TestSessionBuilder sessionBuilder,
     int workspaceId,
   ) async {
@@ -2549,7 +2599,7 @@ class _MemberEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i21.MemberWithUser>>);
+                as _i3.Future<List<_i22.MemberWithUser>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2588,10 +2638,10 @@ class _MemberEndpoint {
     });
   }
 
-  _i3.Future<_i22.WorkspaceMember> updateMemberRole(
+  _i3.Future<_i23.WorkspaceMember> updateMemberRole(
     _i1.TestSessionBuilder sessionBuilder,
     int memberId,
-    _i23.MemberRole newRole,
+    _i24.MemberRole newRole,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2615,7 +2665,7 @@ class _MemberEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i22.WorkspaceMember>);
+                as _i3.Future<_i23.WorkspaceMember>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2623,7 +2673,7 @@ class _MemberEndpoint {
     });
   }
 
-  _i3.Future<List<_i24.PermissionInfo>> getMemberPermissions(
+  _i3.Future<List<_i25.PermissionInfo>> getMemberPermissions(
     _i1.TestSessionBuilder sessionBuilder,
     int memberId,
   ) async {
@@ -2646,7 +2696,7 @@ class _MemberEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i24.PermissionInfo>>);
+                as _i3.Future<List<_i25.PermissionInfo>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2724,7 +2774,7 @@ class _MemberEndpoint {
     });
   }
 
-  _i3.Future<List<_i25.Permission>> getAllPermissions(
+  _i3.Future<List<_i26.Permission>> getAllPermissions(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2746,7 +2796,7 @@ class _MemberEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i25.Permission>>);
+                as _i3.Future<List<_i26.Permission>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2765,7 +2815,7 @@ class _WorkspaceEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i26.Workspace>> getWorkspaces(
+  _i3.Future<List<_i27.Workspace>> getWorkspaces(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2787,7 +2837,7 @@ class _WorkspaceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i26.Workspace>>);
+                as _i3.Future<List<_i27.Workspace>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2795,7 +2845,7 @@ class _WorkspaceEndpoint {
     });
   }
 
-  _i3.Future<_i26.Workspace?> getWorkspace(
+  _i3.Future<_i27.Workspace?> getWorkspace(
     _i1.TestSessionBuilder sessionBuilder,
     String slug,
   ) async {
@@ -2818,7 +2868,7 @@ class _WorkspaceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i26.Workspace?>);
+                as _i3.Future<_i27.Workspace?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2826,7 +2876,7 @@ class _WorkspaceEndpoint {
     });
   }
 
-  _i3.Future<_i26.Workspace> createWorkspace(
+  _i3.Future<_i27.Workspace> createWorkspace(
     _i1.TestSessionBuilder sessionBuilder,
     String title,
     String? slug,
@@ -2853,7 +2903,7 @@ class _WorkspaceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i26.Workspace>);
+                as _i3.Future<_i27.Workspace>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2861,7 +2911,7 @@ class _WorkspaceEndpoint {
     });
   }
 
-  _i3.Future<_i26.Workspace> updateWorkspace(
+  _i3.Future<_i27.Workspace> updateWorkspace(
     _i1.TestSessionBuilder sessionBuilder,
     int workspaceId,
     String title,
@@ -2890,7 +2940,7 @@ class _WorkspaceEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i26.Workspace>);
+                as _i3.Future<_i27.Workspace>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2940,7 +2990,7 @@ class _GreetingEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i27.Greeting> hello(
+  _i3.Future<_i28.Greeting> hello(
     _i1.TestSessionBuilder sessionBuilder,
     String name,
   ) async {
@@ -2963,7 +3013,7 @@ class _GreetingEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i27.Greeting>);
+                as _i3.Future<_i28.Greeting>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

@@ -3,6 +3,7 @@ import '../generated/protocol.dart';
 import '../services/permission_service.dart';
 import '../services/lexorank_service.dart';
 import '../services/auth_helper.dart';
+import '../services/board_broadcast_service.dart';
 
 /// Endpoint for managing lists within a board
 class CardListEndpoint extends Endpoint {
@@ -100,6 +101,15 @@ class CardListEndpoint extends Endpoint {
       '[CardListEndpoint] Created list "${created.title}" (rank: ${created.rank}) in board $boardId',
     );
 
+    // Broadcast list created event
+    BoardBroadcastService.listCreated(
+      session,
+      boardId: created.boardId,
+      listId: created.id!,
+      actorId: numericUserId,
+      cardList: created,
+    );
+
     return created;
   }
 
@@ -138,6 +148,15 @@ class CardListEndpoint extends Endpoint {
     final result = await CardList.db.updateRow(session, updated);
 
     session.log('[CardListEndpoint] Updated list "${result.title}"');
+
+    // Broadcast list updated event
+    BoardBroadcastService.listUpdated(
+      session,
+      boardId: result.boardId,
+      listId: result.id!,
+      actorId: numericUserId,
+      cardList: result,
+    );
 
     return result;
   }
@@ -190,6 +209,14 @@ class CardListEndpoint extends Endpoint {
 
     session.log(
       '[CardListEndpoint] Reordered ${updatedLists.length} lists in board $boardId',
+    );
+
+    // Broadcast list reordered event
+    BoardBroadcastService.listReordered(
+      session,
+      boardId: boardId,
+      actorId: numericUserId,
+      orderedListIds: orderedListIds,
     );
 
     return updatedLists;
@@ -255,6 +282,14 @@ class CardListEndpoint extends Endpoint {
 
     session.log(
       '[CardListEndpoint] Soft deleted list "${cardList.title}" by user $numericUserId',
+    );
+
+    // Broadcast list deleted event
+    BoardBroadcastService.listDeleted(
+      session,
+      boardId: cardList.boardId,
+      listId: listId,
+      actorId: numericUserId,
     );
   }
 
