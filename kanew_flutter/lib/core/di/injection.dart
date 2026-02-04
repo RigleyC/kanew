@@ -15,6 +15,7 @@ import '../../features/board/data/comment_repository.dart';
 import '../../features/board/data/activity_repository.dart';
 import '../../features/board/data/label_repository.dart';
 import '../../features/board/data/attachment_repository.dart';
+import '../../features/board/data/board_stream_service.dart';
 import '../../features/board/presentation/controllers/boards_page_controller.dart';
 import '../../features/board/presentation/controllers/board_view_controller.dart';
 import '../../features/board/presentation/controllers/card_detail_controller.dart';
@@ -150,12 +151,18 @@ Future<void> setupDependencies() async {
     () => BoardsPageController(repository: getIt<BoardRepository>()),
   );
 
+  // Register BoardStreamService as Factory (new instance per board)
+  getIt.registerFactory<BoardStreamService>(
+    () => BoardStreamService(client: getIt<Client>()),
+  );
+
   getIt.registerFactory<BoardViewPageController>(
     () => BoardViewPageController(
       boardRepo: getIt<BoardRepository>(),
       listRepo: getIt<ListRepository>(),
       cardRepo: getIt<CardRepository>(),
       boardStore: getIt<BoardStore>(),
+      streamService: getIt<BoardStreamService>(),
     ),
   );
 

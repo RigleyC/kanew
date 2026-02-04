@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/background/dot_background.dart';
+import '../../../../core/widgets/reconnecting_toast.dart';
+import '../../data/board_stream_service.dart';
 import '../controllers/board_view_controller.dart';
 import '../widgets/board_header.dart';
 import '../widgets/kanban_board.dart';
@@ -53,6 +55,16 @@ class _BoardViewPageState extends State<BoardViewPage> {
     return ListenableBuilder(
       listenable: _controller,
       builder: (context, _) {
+        // Handle board deleted
+        if (_controller.boardDeleted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Board foi deletado')),
+            );
+          });
+        }
+
         if (_localError != null) {
           return Scaffold(
             backgroundColor: colorScheme.surface,
@@ -123,6 +135,21 @@ class _BoardViewPageState extends State<BoardViewPage> {
                     ),
                   ),
                 ],
+              ),
+              // Reconnecting toast
+              ValueListenableBuilder<StreamStatus>(
+                valueListenable: _controller.streamStatus,
+                builder: (context, status, _) {
+                  if (status == StreamStatus.reconnecting) {
+                    return const Positioned(
+                      bottom: 16,
+                      left: 0,
+                      right: 0,
+                      child: Center(child: ReconnectingToast()),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
               ),
             ],
           ),

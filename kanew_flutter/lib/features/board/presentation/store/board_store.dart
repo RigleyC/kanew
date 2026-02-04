@@ -54,16 +54,76 @@ class BoardStore extends ChangeNotifier {
     }
   }
 
+  /// Updates card and sorts if priority changed
+  /// Used by realtime events to update and potentially reorder
+  void updateCardAndSort(Card updatedCard) {
+    final index = _cardSummaries.indexWhere((c) => c.card.id == updatedCard.id);
+    if (index != -1) {
+      final oldPriority = _cardSummaries[index].card.priority;
+      _cardSummaries[index] = _cardSummaries[index].copyWith(card: updatedCard);
+
+      // Sort if priority changed
+      if (oldPriority != updatedCard.priority) {
+        _sortCards();
+      }
+
+      // Invalidate detail cache
+      _cardDetailCache.remove(updatedCard.id);
+      notifyListeners();
+    }
+  }
+
   /// Adds new card (receives CardSummary from endpoint)
   void addCard(CardSummary summary) {
     _cardSummaries.add(summary);
+    _sortCards();
     notifyListeners();
+  }
+
+  /// Adds card from realtime event (avoiding duplicates)
+  void addCardFromEvent(CardSummary summary) {
+    final exists = _cardSummaries.any((c) => c.card.id == summary.card.id);
+    if (!exists) {
+      _cardSummaries.add(summary);
+      _sortCards();
+      notifyListeners();
+    }
+  }
+
+  /// Moves card from realtime event
+  void moveCardFromEvent({
+    required int cardId,
+    required int newListId,
+    required String newRank,
+    required CardPriority priority,
+  }) {
+    final index = _cardSummaries.indexWhere((c) => c.card.id == cardId);
+    if (index != -1) {
+      final updatedCard = _cardSummaries[index].card.copyWith(
+        listId: newListId,
+        rank: newRank,
+        priority: priority,
+      );
+      _cardSummaries[index] = _cardSummaries[index].copyWith(card: updatedCard);
+      _sortCards();
+      notifyListeners();
+    }
   }
 
   void removeCard(int cardId) {
     _cardSummaries.removeWhere((c) => c.card.id == cardId);
     _cardDetailCache.remove(cardId);
     notifyListeners();
+  }
+
+  /// Sorts cards by priority DESC, then rank ASC
+  /// This mirrors the server sorting logic
+  void _sortCards() {
+    _cardSummaries.sort((a, b) {
+      final priorityCompare = b.card.priority.index.compareTo(a.card.priority.index);
+      if (priorityCompare != 0) return priorityCompare;
+      return a.card.rank.compareTo(b.card.rank);
+    });
   }
 
   /// Clears the state (useful when leaving the board)
@@ -117,6 +177,20 @@ class BoardStore extends ChangeNotifier {
       _context = _context!.copyWith(lists: newLists);
       notifyListeners();
     }
+  }
+
+  /// Reorders lists from realtime event (receives ordered IDs)
+  void reorderListsFromEvent(List<int> orderedIds) {
+    if (_context == null) return;
+
+    final reordered = <CardList>[];
+    for (final id in orderedIds) {
+      final list = lists.firstWhere((l) => l.id == id, orElse: () => throw Exception('List $id not found'));
+      reordered.add(list);
+    }
+
+    _context = _context!.copyWith(lists: reordered);
+    notifyListeners();
   }
 
   void _updateCardSummaryFromDetail(CardDetail detail) {

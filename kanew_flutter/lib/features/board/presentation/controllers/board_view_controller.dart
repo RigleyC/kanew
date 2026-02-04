@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:kanew_client/kanew_client.dart';
 import '../../data/board_repository.dart';
 import '../../data/list_repository.dart';
 import '../../data/card_repository.dart';
+import '../../data/board_stream_service.dart';
 import '../store/board_store.dart';
 
 class BoardViewPageController extends ChangeNotifier {
@@ -10,24 +12,31 @@ class BoardViewPageController extends ChangeNotifier {
   final ListRepository _listRepo;
   final CardRepository _cardRepo;
   final BoardStore _boardStore;
+  final BoardStreamService _streamService;
 
   bool _isLoading = false;
   String? _error;
+  bool _boardDeleted = false;
+  StreamSubscription<BoardEvent>? _eventSubscription;
 
   BoardViewPageController({
     required BoardRepository boardRepo,
     required ListRepository listRepo,
     required CardRepository cardRepo,
     required BoardStore boardStore,
-  }) : _boardRepo = boardRepo,
-       _listRepo = listRepo,
-       _cardRepo = cardRepo,
-       _boardStore = boardStore {
+    required BoardStreamService streamService,
+  })  : _boardRepo = boardRepo,
+        _listRepo = listRepo,
+        _cardRepo = cardRepo,
+        _boardStore = boardStore,
+        _streamService = streamService {
     _boardStore.addListener(notifyListeners);
   }
 
   @override
   void dispose() {
+    _eventSubscription?.cancel();
+    _streamService.dispose();
     _boardStore.removeListener(notifyListeners);
     super.dispose();
   }
@@ -39,6 +48,10 @@ class BoardViewPageController extends ChangeNotifier {
   List<CardSummary> get allCards => _boardStore.cards;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get boardDeleted => _boardDeleted;
+
+  /// Exposes stream status for UI (reconnecting toast)
+  ValueListenable<StreamStatus> get streamStatus => _streamService.statusNotifier;
 
   List<CardSummary> getCardsForList(int listId) {
     return _boardStore.getCardsForList(listId);
@@ -46,7 +59,7 @@ class BoardViewPageController extends ChangeNotifier {
 
   // Load board using slugs only (no workspaceId needed)
   Future<void> load(String workspaceSlug, String boardSlug) async {
-    print('DEBUG: BoardViewPageController.load($workspaceSlug, $boardSlug)');
+    debugPrint('DEBUG: BoardViewPageController.load($workspaceSlug, $boardSlug)');
 
     _isLoading = true;
     _error = null;
@@ -54,23 +67,173 @@ class BoardViewPageController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('DEBUG: Calling getBoardWithCards($workspaceSlug, $boardSlug)');
+      debugPrint('DEBUG: Calling getBoardWithCards($workspaceSlug, $boardSlug)');
       final boardWithCards = await _boardRepo.getBoardWithCards(
         workspaceSlug,
         boardSlug,
       );
-      print(
+      debugPrint(
         'DEBUG: BoardWithCards loaded: ${boardWithCards.cards.length} cards',
       );
 
       _boardStore.initFromBoardWithCards(boardWithCards);
+
+      // Start streaming after successful load
+      await _startStreaming();
     } catch (e) {
-      print('DEBUG: Error loading board: $e');
+      debugPrint('DEBUG: Error loading board: $e');
       _error = 'Erro ao carregar board';
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> _startStreaming() async {
+    if (board == null) return;
+
+    try {
+      await _streamService.connect(board!.id!);
+
+      // Subscribe to events
+      _eventSubscription = _streamService.events.listen(_handleEvent);
+
+      debugPrint('[BoardViewPageController] Streaming started for board ${board!.id}');
+    } catch (e) {
+      debugPrint('[BoardViewPageController] Failed to start streaming: $e');
+    }
+  }
+
+  void _handleEvent(BoardEvent event) {
+    // Note: We don't filter by actorId for now.
+    // The client already does optimistic updates, so these events
+    // mainly benefit other users or handle edge cases.
+    
+    debugPrint('[BoardViewPageController] Handling event: ${event.eventType}');
+
+    switch (event.eventType) {
+      case BoardEventType.cardCreated:
+        _handleCardCreated(event);
+      case BoardEventType.cardUpdated:
+        _handleCardUpdated(event);
+      case BoardEventType.cardMoved:
+        _handleCardMoved(event);
+      case BoardEventType.cardDeleted:
+        _handleCardDeleted(event);
+      case BoardEventType.listCreated:
+        _handleListCreated(event);
+      case BoardEventType.listUpdated:
+        _handleListUpdated(event);
+      case BoardEventType.listReordered:
+        _handleListReordered(event);
+      case BoardEventType.listDeleted:
+        _handleListDeleted(event);
+      case BoardEventType.boardUpdated:
+        _handleBoardUpdated(event);
+      case BoardEventType.boardDeleted:
+        _handleBoardDeleted(event);
+      default:
+        debugPrint('[BoardViewPageController] Unknown event type: ${event.eventType}');
+    }
+  }
+
+  void _handleCardCreated(BoardEvent event) {
+    // TODO: Implement when server sends full CardSummary in payload
+    // For now, we could reload cards or ignore
+    debugPrint('[BoardViewPageController] Card created (not implemented)');
+  }
+
+  void _handleCardUpdated(BoardEvent event) {
+    final cardData = event.payload as Map<String, dynamic>?;
+    if (cardData == null) return;
+
+    try {
+      final card = Card.fromJson(cardData);
+      _boardStore.updateCardAndSort(card);
+    } catch (e) {
+      debugPrint('[BoardViewPageController] Error handling cardUpdated: $e');
+    }
+  }
+
+  void _handleCardMoved(BoardEvent event) {
+    final payload = event.payload as Map<String, dynamic>?;
+    if (payload == null || event.cardId == null) return;
+
+    try {
+      _boardStore.moveCardFromEvent(
+        cardId: event.cardId!,
+        newListId: payload['newListId'] as int,
+        newRank: payload['newRank'] as String,
+        priority: CardPriority.values.byName(payload['priority'] as String),
+      );
+    } catch (e) {
+      debugPrint('[BoardViewPageController] Error handling cardMoved: $e');
+    }
+  }
+
+  void _handleCardDeleted(BoardEvent event) {
+    if (event.cardId != null) {
+      _boardStore.removeCard(event.cardId!);
+    }
+  }
+
+  void _handleListCreated(BoardEvent event) {
+    final listData = event.payload as Map<String, dynamic>?;
+    if (listData == null) return;
+
+    try {
+      final list = CardList.fromJson(listData);
+      _boardStore.addList(list);
+    } catch (e) {
+      debugPrint('[BoardViewPageController] Error handling listCreated: $e');
+    }
+  }
+
+  void _handleListUpdated(BoardEvent event) {
+    final listData = event.payload as Map<String, dynamic>?;
+    if (listData == null) return;
+
+    try {
+      final list = CardList.fromJson(listData);
+      _boardStore.updateList(list);
+    } catch (e) {
+      debugPrint('[BoardViewPageController] Error handling listUpdated: $e');
+    }
+  }
+
+  void _handleListReordered(BoardEvent event) {
+    final payload = event.payload as Map<String, dynamic>?;
+    if (payload == null) return;
+
+    try {
+      final orderedIds = (payload['orderedListIds'] as List).cast<int>();
+      _boardStore.reorderListsFromEvent(orderedIds);
+    } catch (e) {
+      debugPrint('[BoardViewPageController] Error handling listReordered: $e');
+    }
+  }
+
+  void _handleListDeleted(BoardEvent event) {
+    if (event.listId != null) {
+      _boardStore.removeList(event.listId!);
+    }
+  }
+
+  void _handleBoardUpdated(BoardEvent event) {
+    final boardData = event.payload as Map<String, dynamic>?;
+    if (boardData == null) return;
+
+    try {
+      final updatedBoard = Board.fromJson(boardData);
+      _boardStore.updateBoard(updatedBoard);
+    } catch (e) {
+      debugPrint('[BoardViewPageController] Error handling boardUpdated: $e');
+    }
+  }
+
+  void _handleBoardDeleted(BoardEvent event) {
+    _boardDeleted = true;
+    notifyListeners();
   }
 
   /// Recarrega apenas os cards do board (mais leve que reload completo)
