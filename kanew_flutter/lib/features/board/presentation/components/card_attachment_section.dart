@@ -3,9 +3,6 @@ import '../controllers/card_detail_controller.dart';
 import '../widgets/attachment_card.dart';
 import '../../../../core/utils/ui_helpers.dart';
 
-/// Section that displays and manages card attachments.
-///
-/// Shows a list of attachments with upload button and feedback.
 class CardAttachmentSection extends StatelessWidget {
   final CardDetailPageController controller;
 

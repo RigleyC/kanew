@@ -25,7 +25,6 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
   @override
   void initState() {
     super.initState();
-    // Defer initialization to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initialize();
     });
@@ -42,7 +41,6 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
   Future<void> _initialize() async {
     final viewModel = getIt<WorkspaceController>();
 
-    // Use init() which auto-loads if needed
     await viewModel.init();
 
     if (widget.workspaceSlug.isNotEmpty) {

@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../features/auth/viewmodel/auth_controller.dart';
 import '../di/injection.dart';
@@ -32,6 +33,7 @@ final appRouter = GoRouter(
   refreshListenable: Listenable.merge([
     getIt<AuthController>(),
     getIt<WorkspaceController>(),
+    getIt<FlutterAuthSessionManager>().authInfoListenable,
   ]),
   redirect: (context, state) {
     final authViewModel = getIt<AuthController>();

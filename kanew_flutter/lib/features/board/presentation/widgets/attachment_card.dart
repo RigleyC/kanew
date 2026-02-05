@@ -21,8 +21,7 @@ class AttachmentCard extends StatelessWidget {
     }
   }
 
- 
-
+  //TODO Mover pra classe utils
   String _formatSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
@@ -37,14 +36,17 @@ class AttachmentCard extends StatelessWidget {
       onTap: _download,
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           border: Border.all(color: colorScheme.outlineVariant),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
+          spacing: 12,
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
+            /*   Container(
               width: 56,
               height: 56,
               decoration: BoxDecoration(
@@ -52,11 +54,18 @@ class AttachmentCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Image.network(attachment.fileUrl!),
+            ), */
+            Icon(
+              Icons.insert_drive_file_rounded,
+              size: 16,
+              color: colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(width: 12),
+      
             Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
+              spacing: 2,
               children: [
                 Text(
                   attachment.fileName,
@@ -70,7 +79,6 @@ class AttachmentCard extends StatelessWidget {
                 ),
               ],
             ),
-            Spacer(),
             IconButton(
               icon: const Icon(Icons.close, size: 18),
               onPressed: onDelete,

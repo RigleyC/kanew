@@ -8,6 +8,7 @@ import '../../../../core/widgets/background/dot_background.dart';
 import '../../../../core/widgets/reconnecting_toast.dart';
 import '../../data/board_stream_service.dart';
 import '../controllers/board_view_controller.dart';
+import '../dialogs/add_list_dialog.dart';
 import '../widgets/board_header.dart';
 import '../widgets/kanban_board.dart';
 
@@ -37,7 +38,6 @@ class _BoardViewPageState extends State<BoardViewPage> {
   }
 
   Future<void> _loadBoard() async {
-    // Carrega diretamente usando slugs da URL - sem depender do WorkspaceController
     await _controller.load(widget.workspaceSlug, widget.boardSlug);
   }
 
@@ -111,6 +111,18 @@ class _BoardViewPageState extends State<BoardViewPage> {
         }
 
         return Scaffold(
+          appBar: BoardHeader(
+            board: board,
+            workspaceSlug: widget.workspaceSlug,
+            onBack: context.pop,
+            onTitleChanged: (newTitle) async {
+              await _controller.updateBoard(board.id!, newTitle);
+            },
+            onAddList: () => showAddListDialog(
+              context,
+              (title) => _controller.createList(title),
+            ),
+          ),
           body: Stack(
             children: [
               const Positioned.fill(
@@ -118,21 +130,13 @@ class _BoardViewPageState extends State<BoardViewPage> {
               ),
               Column(
                 children: [
-                  BoardHeader(
-                    board: board,
+                  KanbanBoard(
+                    controller: _controller,
                     workspaceSlug: widget.workspaceSlug,
-                    onBack: context.pop,
-                    onTitleChanged: (newTitle) async {
-                      await _controller.updateBoard(board.id!, newTitle);
-                    },
-                  ),
-                  Expanded(
-                    child: KanbanBoard(
-                      controller: _controller,
-                      workspaceSlug: widget.workspaceSlug,
-                      boardSlug: widget.boardSlug,
-                      board: board,
-                    ),
+                    boardSlug: widget.boardSlug,
+                    board: board,
+                    onAddCard: (listId, title) =>
+                        _controller.createCard(listId, title),
                   ),
                 ],
               ),

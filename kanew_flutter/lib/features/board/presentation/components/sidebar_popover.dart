@@ -34,6 +34,10 @@ class _SidebarPopoverState extends State<SidebarPopover> {
   @override
   Widget build(BuildContext context) {
     return MenuAnchor(
+      style: MenuStyle(
+        backgroundColor: WidgetStateProperty.all(Colors.red),
+        elevation: WidgetStateProperty.all(4),
+      ),
       controller: _controller,
       alignmentOffset: widget.offset ?? const Offset(-280, 8),
       menuChildren: [

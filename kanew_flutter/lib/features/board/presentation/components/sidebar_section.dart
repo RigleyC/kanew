@@ -23,28 +23,32 @@ class SidebarSection extends StatelessWidget {
 
     return Padding(
       padding: padding ?? const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      child: Column(
-        spacing: 8,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: colorScheme.onSurfaceVariant,
+      child: InkWell(
+        splashColor: Colors.transparent,
+
+        child: Column(
+          spacing: 8,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-              if (trailing != null) ...[
-                const Spacer(),
-                trailing!,
+                if (trailing != null) ...[
+                  const Spacer(),
+                  trailing!,
+                ],
               ],
-            ],
-          ),
-          if (content != null) content,
-        ],
+            ),
+            if (content != null) content,
+          ],
+        ),
       ),
     );
   }

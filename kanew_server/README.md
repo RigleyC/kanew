@@ -13,3 +13,16 @@ Then you can start the Serverpod server.
 When you are finished, you can shut down Serverpod with `Ctrl-C`, then stop Postgres and Redis.
 
     docker compose stop
+
+## Realtime Board Sync
+
+For realtime board updates to work, ensure Redis is enabled in `config/development.yaml`:
+
+```yaml
+redis:
+  enabled: true
+  host: localhost
+  port: 8091
+```
+
+Make sure Redis is running (via Docker Compose) for the realtime features to broadcast events between connected clients.

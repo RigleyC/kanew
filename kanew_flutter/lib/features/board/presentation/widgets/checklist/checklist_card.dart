@@ -29,6 +29,7 @@ class ChecklistCard extends StatefulWidget {
 
 class _ChecklistCardState extends State<ChecklistCard> {
   bool _isAddingItem = false;
+  final MenuController _menuController = MenuController();
 
   void _handleDelete() {
     showConfirmDialog(
@@ -62,21 +63,44 @@ class _ChecklistCardState extends State<ChecklistCard> {
                     completedCount: completedCount,
                     totalCount: items.length,
                   ),
-                PopupMenuButton(
-                  icon: const Icon(Icons.more_vert_rounded),
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      onTap: _handleDelete,
-                      child: const Text('Excluir'),
+                IconButton(
+                  onPressed: () => setState(() => _isAddingItem = true),
+                  icon: const Icon(Icons.add_rounded),
+                ),
+                MenuAnchor(
+                  controller: _menuController,
+                  menuChildren: [
+                    MenuItemButton(
+                      onPressed: _handleDelete,
+                      leadingIcon: Icon(
+                        Icons.delete_outline,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      child: Text(
+                        'Excluir',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
                     ),
                   ],
+                  builder: (context, controller, child) {
+                    return IconButton(
+                      onPressed: () {
+                        if (controller.isOpen) {
+                          controller.close();
+                        } else {
+                          controller.open();
+                        }
+                      },
+                      icon: const Icon(Icons.more_vert_rounded),
+                    );
+                  },
                 ),
               ],
             ),
           ],
         ),
-
-        const SizedBox(height: 16),
 
         // Items
         ...items.map(
@@ -86,8 +110,6 @@ class _ChecklistCardState extends State<ChecklistCard> {
             onDelete: () => widget.onDeleteItem(item.id!),
           ),
         ),
-
-        // Add Item Button/Input
         if (_isAddingItem)
           AddChecklistItemInput(
             onSubmit: (title) {
@@ -95,14 +117,6 @@ class _ChecklistCardState extends State<ChecklistCard> {
               setState(() => _isAddingItem = false);
             },
             onCancel: () => setState(() => _isAddingItem = false),
-          )
-        else
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: TextButton(
-              onPressed: () => setState(() => _isAddingItem = true),
-              child: const Text('Adicionar um item'),
-            ),
           ),
       ],
     );

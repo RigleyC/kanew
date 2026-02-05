@@ -110,8 +110,9 @@ class BoardDataAdapter {
 
     if (toIndex < items.length - 1 && toIndex >= 0) {
       final nextItem = items[toIndex + 1];
-      if (nextItem is CardBoardItem)
+      if (nextItem is CardBoardItem) {
         beforeRank = nextItem.cardSummary.card.rank;
+      }
     }
 
     if (toIndex < items.length && toIndex >= 0) {

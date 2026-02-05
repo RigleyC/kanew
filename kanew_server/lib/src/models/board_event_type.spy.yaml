@@ -12,6 +12,12 @@ values:
   - listReordered
   - listDeleted
   - listArchived
+  # Label events
+  - labelCreated
+  - labelUpdated
+  - labelDeleted
+  # Card label events
+  - cardLabelsUpdated
   # Board events
   - boardUpdated
   - boardDeleted

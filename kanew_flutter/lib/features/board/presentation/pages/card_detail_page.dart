@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart' hide Card;
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kanew_client/kanew_client.dart';
 import 'package:kanew_flutter/features/board/presentation/components/card_title_editor.dart';
@@ -15,9 +16,6 @@ import '../components/card_comment_input.dart';
 import '../components/card_attachment_section.dart';
 import '../widgets/checklist/checklist_section.dart';
 
-/// Card Detail Page - Two-column layout following kan.bn design
-///
-/// Refactored to use dedicated components for Header, Sidebar, Editors, etc.
 class CardDetailPage extends StatefulWidget {
   final String workspaceSlug;
   final String boardSlug;
@@ -177,7 +175,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
         // Sidebar
         VerticalDivider(width: 1, color: colorScheme.outlineVariant),
         SizedBox(
-          width: 280,
+          width: 300,
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: CardDetailSidebar(
@@ -186,7 +184,6 @@ class _CardDetailPageState extends State<CardDetailPage> {
               boardLists: _controller.boardLists,
               labels: _controller.labels,
               boardLabels: _controller.boardLabels,
-              onAddChecklist: () => _showAddChecklistDialog(context),
               onDueDateChanged: (date) {
                 _controller.updateCard(dueDate: date);
               },
@@ -229,7 +226,6 @@ class _CardDetailPageState extends State<CardDetailPage> {
             boardLists: _controller.boardLists,
             labels: _controller.labels,
             boardLabels: _controller.boardLabels,
-            onAddChecklist: () => _showAddChecklistDialog(context),
             onDueDateChanged: (date) {
               _controller.updateCard(dueDate: date);
             },
@@ -271,9 +267,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
           initialDescription: card.descriptionDocument,
           onSave: (newDesc) => _controller.updateCard(description: newDesc),
         ),
-        const SizedBox(height: 12),
-        const Divider(),
-        const SizedBox(height: 12),
+        const SizedBox(height: 24),
 
         // Checklists
         if (_controller.checklists.isNotEmpty) ...[
@@ -285,13 +279,35 @@ class _CardDetailPageState extends State<CardDetailPage> {
             onToggleItem: _controller.toggleItem,
             onDeleteItem: _controller.deleteItem,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
         ],
-        const Divider(),
-        const SizedBox(height: 16),
+        SizedBox(height: 24),
+
         // Attachments
         CardAttachmentSection(controller: _controller),
         const SizedBox(height: 32),
+        
+        //Add Checklist Button
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              onPressed: () async {
+                _showAddChecklistDialog(context);
+              },
+              icon: SvgPicture.asset(
+                'assets/icons/check.svg',
+                width: 16,
+                height: 16,
+                colorFilter: ColorFilter.mode(
+                  colorScheme.onSurface,
+                  BlendMode.srcIn,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 48),
 
         // Activity
         CardActivitySection(controller: _controller),

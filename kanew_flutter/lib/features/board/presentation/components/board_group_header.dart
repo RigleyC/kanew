@@ -1,20 +1,20 @@
 import 'package:appflowy_board/appflowy_board.dart';
 import 'package:flutter/material.dart';
 import 'package:kanew_client/kanew_client.dart';
+import 'package:kanew_flutter/features/board/presentation/dialogs/add_card_dialog.dart';
 
-/// Group header widget for AppFlowyBoard
-///
-/// Shows the list title, card count, and actions menu.
 class BoardGroupHeader extends StatelessWidget {
   final AppFlowyGroupData groupData;
   final List<CardList> lists;
   final Future<void> Function(int listId) onDelete;
+  final Future<void> Function(int listId, String title) onAddCard;
 
   const BoardGroupHeader({
     super.key,
     required this.groupData,
     required this.lists,
     required this.onDelete,
+    required this.onAddCard,
   });
 
   @override
@@ -24,28 +24,39 @@ class BoardGroupHeader extends StatelessWidget {
     final cardList = lists.where((l) => l.id == listId).firstOrNull;
     final title = cardList?.title ?? groupData.headerData.groupName;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: colorScheme.onSurface,
+          Row(
+            spacing: 12,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-            ),
+              Text(
+                '${groupData.items.length}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
           ),
-          Text(
-            '${groupData.items.length}',
-            style: TextStyle(
-              fontSize: 12,
-              color: colorScheme.onSurfaceVariant,
-            ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: () async {
+                  await showAddCardDialog(
+                    context,
+                    int.parse(groupData.id),
+                    onAddCard,
+                  );
+                },
+                icon: const Icon(Icons.add_rounded),
+              ),
+              _buildActionsMenu(context, colorScheme, listId),
+            ],
           ),
-          _buildActionsMenu(context, colorScheme, listId),
         ],
       ),
     );
@@ -56,35 +67,35 @@ class BoardGroupHeader extends StatelessWidget {
     ColorScheme colorScheme,
     int listId,
   ) {
-    return PopupMenuButton<String>(
-      icon: Icon(
-        Icons.more_horiz,
-        size: 18,
-        color: colorScheme.onSurfaceVariant,
-      ),
-      padding: EdgeInsets.zero,
-      splashRadius: 16,
-      onSelected: (value) async {
-        if (value == 'delete') {
-          await onDelete(listId);
-        }
-      },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 'delete',
-          child: Row(
-            children: [
-              Icon(
-                Icons.delete_outline,
-                size: 18,
-                color: colorScheme.error,
-              ),
-              const SizedBox(width: 8),
-              Text('Excluir', style: TextStyle(color: colorScheme.error)),
-            ],
+    return MenuAnchor(
+      menuChildren: [
+        MenuItemButton(
+          onPressed: () async {
+            await onDelete(listId);
+          },
+          leadingIcon: Icon(
+            Icons.delete_outline,
+            size: 16,
+            color: colorScheme.error,
+          ),
+          child: Text(
+            'Excluir',
+            style: TextStyle(color: colorScheme.error),
           ),
         ),
       ],
+      builder: (context, controller, child) {
+        return IconButton(
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+          icon: const Icon(Icons.more_horiz_rounded),
+        );
+      },
     );
   }
 }

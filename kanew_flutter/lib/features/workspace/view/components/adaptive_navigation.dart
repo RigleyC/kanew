@@ -103,7 +103,6 @@ class _DesktopNavigation extends StatelessWidget {
           onLogout: () async {
             await authViewModel.logout();
             workspaceVM.clear();
-            // AuthController listener in AppRouter will handle redirection
           },
         );
       },
@@ -204,21 +203,18 @@ class _ToggleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: isCollapsed ? 'Expandir sidebar' : 'Recolher sidebar',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onToggle,
-          borderRadius: BorderRadius.circular(6),
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: AnimatedRotation(
-              duration: const Duration(milliseconds: 200),
-              turns: isCollapsed ? 0.5 : 0,
-              child: Icon(
-                Icons.chevron_left,
-                size: 18,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+      child: InkWell(
+        onTap: onToggle,
+        borderRadius: BorderRadius.circular(6),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: AnimatedRotation(
+            duration: const Duration(milliseconds: 200),
+            turns: isCollapsed ? 0.5 : 0,
+            child: Icon(
+              Icons.chevron_left,
+              size: 18,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ),

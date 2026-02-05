@@ -16,33 +16,30 @@ class ChecklistProgressBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final progress = totalCount > 0 ? completedCount / totalCount : 0.0;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: backgroundColor ?? colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(
-          color: colorScheme.outlineVariant,
-          width: 1,
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+
       child: Row(
-        spacing: 12,
+        spacing: 6,
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(
-              value: progress,
-              strokeWidth: 2,
-              backgroundColor: colorScheme.surfaceContainerHighest,
-              valueColor: AlwaysStoppedAnimation(
-                progressColor ?? colorScheme.primary,
-              ),
+          SizedBox.square(
+            dimension: 26,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0, end: progress),
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, child) {
+                return CircularProgressIndicator(
+                  value: value,
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation(
+                    progressColor ?? Color(0xFF4EA7FC),
+                  ),
+                );
+              },
             ),
           ),
 

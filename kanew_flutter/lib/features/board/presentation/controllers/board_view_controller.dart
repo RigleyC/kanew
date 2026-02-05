@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:kanew_client/kanew_client.dart';
 import '../../data/board_repository.dart';
@@ -105,49 +106,77 @@ class BoardViewPageController extends ChangeNotifier {
   }
 
   void _handleEvent(BoardEvent event) {
-    // Note: We don't filter by actorId for now.
-    // The client already does optimistic updates, so these events
-    // mainly benefit other users or handle edge cases.
-    
     debugPrint('[BoardViewPageController] Handling event: ${event.eventType}');
 
     switch (event.eventType) {
       case BoardEventType.cardCreated:
         _handleCardCreated(event);
+        break;
       case BoardEventType.cardUpdated:
         _handleCardUpdated(event);
+        break;
       case BoardEventType.cardMoved:
         _handleCardMoved(event);
+        break;
       case BoardEventType.cardDeleted:
         _handleCardDeleted(event);
+        break;
       case BoardEventType.listCreated:
         _handleListCreated(event);
+        break;
       case BoardEventType.listUpdated:
         _handleListUpdated(event);
+        break;
       case BoardEventType.listReordered:
         _handleListReordered(event);
+        break;
       case BoardEventType.listDeleted:
         _handleListDeleted(event);
+        break;
+      case BoardEventType.labelCreated:
+        _handleLabelCreated(event);
+        break;
+      case BoardEventType.labelUpdated:
+        _handleLabelUpdated(event);
+        break;
+      case BoardEventType.labelDeleted:
+        _handleLabelDeleted(event);
+        break;
+      case BoardEventType.cardLabelsUpdated:
+        _handleCardLabelsUpdated(event);
+        break;
       case BoardEventType.boardUpdated:
         _handleBoardUpdated(event);
+        break;
       case BoardEventType.boardDeleted:
         _handleBoardDeleted(event);
+        break;
       default:
         debugPrint('[BoardViewPageController] Unknown event type: ${event.eventType}');
     }
   }
 
   void _handleCardCreated(BoardEvent event) {
-    // TODO: Implement when server sends full CardSummary in payload
-    // For now, we could reload cards or ignore
-    debugPrint('[BoardViewPageController] Card created (not implemented)');
+    if (event.payload == null) return;
+
+    try {
+      final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
+      final cardData = payload['card'] as Map<String, dynamic>?;
+      if (cardData == null) return;
+      final summary = CardSummary.fromJson(cardData);
+      _boardStore.addCardFromEvent(summary);
+    } catch (e) {
+      debugPrint('[BoardViewPageController] Error handling cardCreated: $e');
+    }
   }
 
   void _handleCardUpdated(BoardEvent event) {
-    final cardData = event.payload as Map<String, dynamic>?;
-    if (cardData == null) return;
+    if (event.payload == null) return;
 
     try {
+      final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
+      final cardData = payload['card'] as Map<String, dynamic>?;
+      if (cardData == null) return;
       final card = Card.fromJson(cardData);
       _boardStore.updateCardAndSort(card);
     } catch (e) {
@@ -156,10 +185,10 @@ class BoardViewPageController extends ChangeNotifier {
   }
 
   void _handleCardMoved(BoardEvent event) {
-    final payload = event.payload as Map<String, dynamic>?;
-    if (payload == null || event.cardId == null) return;
+    if (event.payload == null || event.cardId == null) return;
 
     try {
+      final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
       _boardStore.moveCardFromEvent(
         cardId: event.cardId!,
         newListId: payload['newListId'] as int,
@@ -178,22 +207,29 @@ class BoardViewPageController extends ChangeNotifier {
   }
 
   void _handleListCreated(BoardEvent event) {
-    final listData = event.payload as Map<String, dynamic>?;
-    if (listData == null) return;
+    if (event.payload == null) return;
 
     try {
+      final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
+      final listData = payload['list'] as Map<String, dynamic>?;
+      if (listData == null) return;
       final list = CardList.fromJson(listData);
-      _boardStore.addList(list);
+      final exists = lists.any((l) => l.id == list.id);
+      if (!exists) {
+        _boardStore.addList(list);
+      }
     } catch (e) {
       debugPrint('[BoardViewPageController] Error handling listCreated: $e');
     }
   }
 
   void _handleListUpdated(BoardEvent event) {
-    final listData = event.payload as Map<String, dynamic>?;
-    if (listData == null) return;
+    if (event.payload == null) return;
 
     try {
+      final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
+      final listData = payload['list'] as Map<String, dynamic>?;
+      if (listData == null) return;
       final list = CardList.fromJson(listData);
       _boardStore.updateList(list);
     } catch (e) {
@@ -202,10 +238,10 @@ class BoardViewPageController extends ChangeNotifier {
   }
 
   void _handleListReordered(BoardEvent event) {
-    final payload = event.payload as Map<String, dynamic>?;
-    if (payload == null) return;
+    if (event.payload == null) return;
 
     try {
+      final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
       final orderedIds = (payload['orderedListIds'] as List).cast<int>();
       _boardStore.reorderListsFromEvent(orderedIds);
     } catch (e) {
@@ -219,11 +255,72 @@ class BoardViewPageController extends ChangeNotifier {
     }
   }
 
-  void _handleBoardUpdated(BoardEvent event) {
-    final boardData = event.payload as Map<String, dynamic>?;
-    if (boardData == null) return;
+  void _handleLabelCreated(BoardEvent event) {
+    if (event.payload == null) return;
 
     try {
+      final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
+      final labelData = payload['label'] as Map<String, dynamic>?;
+      if (labelData == null) return;
+      final label = LabelDef.fromJson(labelData);
+      final exists = _boardStore.labels.any((l) => l.id == label.id);
+      if (!exists) {
+        _boardStore.addLabel(label);
+      }
+    } catch (e) {
+      debugPrint('[BoardViewPageController] Error handling labelCreated: $e');
+    }
+  }
+
+  void _handleLabelUpdated(BoardEvent event) {
+    if (event.payload == null) return;
+
+    try {
+      final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
+      final labelData = payload['label'] as Map<String, dynamic>?;
+      if (labelData == null) return;
+      final label = LabelDef.fromJson(labelData);
+      _boardStore.updateLabel(label);
+    } catch (e) {
+      debugPrint('[BoardViewPageController] Error handling labelUpdated: $e');
+    }
+  }
+
+  void _handleLabelDeleted(BoardEvent event) {
+    if (event.payload == null) return;
+
+    try {
+      final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
+      final labelId = payload['labelId'] as int?;
+      if (labelId != null) {
+        _boardStore.removeLabel(labelId);
+      }
+    } catch (e) {
+      debugPrint('[BoardViewPageController] Error handling labelDeleted: $e');
+    }
+  }
+
+  void _handleCardLabelsUpdated(BoardEvent event) {
+    if (event.payload == null || event.cardId == null) return;
+
+    try {
+      final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
+      final labelsData = payload['labels'] as List?;
+      if (labelsData == null) return;
+      final labels = labelsData.map((l) => LabelDef.fromJson(l as Map<String, dynamic>)).toList();
+      _boardStore.updateCardLabels(event.cardId!, labels);
+    } catch (e) {
+      debugPrint('[BoardViewPageController] Error handling cardLabelsUpdated: $e');
+    }
+  }
+
+  void _handleBoardUpdated(BoardEvent event) {
+    if (event.payload == null) return;
+
+    try {
+      final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
+      final boardData = payload['board'] as Map<String, dynamic>?;
+      if (boardData == null) return;
       final updatedBoard = Board.fromJson(boardData);
       _boardStore.updateBoard(updatedBoard);
     } catch (e) {

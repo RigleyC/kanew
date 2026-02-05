@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // --- TEMA CLARO (LIGHT) ---
   static ThemeData get light {
     return ThemeData(
-      useMaterial3: true,
-      fontFamily: 'GeistSans', // Conforme tailwind.config.ts
+      fontFamily: GoogleFonts.inter().fontFamily,
       brightness: Brightness.light,
 
       // Cores de Fundo (Scaffold & Surface)
@@ -112,20 +112,20 @@ class AppTheme {
         ),
       ),
 
-      // Dropdowns / Popups (Dropdown.tsx)
-      // Classes: rounded-md border border-light-200 bg-light-50 shadow-lg
-      popupMenuTheme: PopupMenuThemeData(
-        color: const Color(0xFFFAFAFA), // bg-light-50
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-          side: const BorderSide(
-            color: Color(0xFFE5E5E5),
-            width: 1,
-          ), // border-light-200
+      menuTheme: MenuThemeData(
+        style: MenuStyle(
+          backgroundColor: WidgetStateProperty.all(const Color(0xFFFFFFFF)),
+          elevation: WidgetStateProperty.all(8),
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: const BorderSide(
+                color: Color(0xFFE5E5E5),
+              ),
+            ),
+          ),
+          padding: WidgetStateProperty.all(EdgeInsets.zero),
         ),
-        textStyle: const TextStyle(color: Color(0xFF171717), fontSize: 14),
-        elevation: 4, // shadow-lg
       ),
 
       // Botões (Button.tsx)
@@ -174,8 +174,8 @@ class AppTheme {
 
       // Cores de Fundo
       // Mapeado de bg-dark-50
-      scaffoldBackgroundColor: const Color(0xFF0A0A0A),
-      canvasColor: const Color(0xFF171717),
+      scaffoldBackgroundColor: const Color(0xFF101012),
+      canvasColor: const Color(0xFF0E0E10),
 
       // Esquema de Cores Principal
       colorScheme: const ColorScheme.dark(
@@ -275,17 +275,34 @@ class AppTheme {
       // Dropdowns (Dropdown.tsx - Dark Mode)
       // Classes: border-dark-400 bg-dark-300
       popupMenuTheme: PopupMenuThemeData(
+        menuPadding: EdgeInsets.symmetric(horizontal: 32, vertical: 8),
         color: const Color(0xFF404040), // bg-dark-300
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(8),
           side: const BorderSide(
             color: Color(0xFF525252),
             width: 1,
-          ), // border-dark-400 approx
+          ),
         ),
         textStyle: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 14),
-        elevation: 4,
+        elevation: 8,
+      ),
+
+      menuTheme: MenuThemeData(
+        style: MenuStyle(
+          backgroundColor: WidgetStateProperty.all(const Color(0xFF262626)),
+          elevation: WidgetStateProperty.all(12),
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: const BorderSide(
+                color: Color(0xFF404040),
+              ),
+            ),
+          ),
+          padding: WidgetStateProperty.all(EdgeInsets.fromLTRB(14, 12, 14, 12)),
+        ),
       ),
 
       // Botões (Button.tsx - Dark Mode)
@@ -319,9 +336,10 @@ class AppTheme {
 
       // Divisores
       dividerTheme: const DividerThemeData(
-        color: Color(0xFF404040), // dark-300
+        color: Color.fromARGB(255, 92, 92, 92),
         thickness: 1,
       ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(year2023: false),
     );
   }
 }

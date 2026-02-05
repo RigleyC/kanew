@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/board_view_controller.dart';
-
 /// Shows a dialog to add a new list
 Future<void> showAddListDialog(
   BuildContext context,
-  BoardViewPageController controller,
+  Future<void> Function(String title) onCreateList,
 ) async {
   final textController = TextEditingController();
 
@@ -37,6 +35,6 @@ Future<void> showAddListDialog(
   );
 
   if (result != null && result.trim().isNotEmpty) {
-    await controller.createList(result.trim());
+    await onCreateList(result.trim());
   }
 }

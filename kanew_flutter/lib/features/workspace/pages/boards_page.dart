@@ -9,7 +9,6 @@ import '../../../core/widgets/sidebar/sidebar.dart';
 import '../../../core/widgets/base/button.dart';
 import '../../board/presentation/controllers/boards_page_controller.dart';
 
-/// Boards page - lista de boards do workspace
 class BoardsPage extends StatefulWidget {
   final String workspaceSlug;
 
@@ -45,66 +44,26 @@ class _BoardsPageState extends State<BoardsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final provider = SidebarProvider.maybeOf(context);
     final isMobile = provider?.isMobile ?? false;
 
     return ListenableBuilder(
       listenable: _controller,
       builder: (context, _) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context, colorScheme, isMobile, _controller),
-            Expanded(
-              child: Padding(
+        return Scaffold(
+          appBar: AppBar(
+            leading: isMobile ? const SidebarTrigger() : null,
+          ),
+          body: Column(
+            children: [
+              Padding(
                 padding: const EdgeInsets.all(24),
                 child: _buildContent(_controller),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
-    );
-  }
-
-  Widget _buildHeader(
-    BuildContext context,
-    ColorScheme colorScheme,
-    bool isMobile,
-    BoardsPageController controller,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant),
-        ),
-      ),
-      child: Row(
-        children: [
-          if (isMobile)
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: SidebarTrigger(),
-            ),
-          Text(
-            'Boards',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const Spacer(),
-          KanbnButton(
-            label: 'Novo',
-            variant: ButtonVariant.primary,
-            iconLeft: const Icon(FIcons.plus),
-            onPressed: controller.isLoading
-                ? null
-                : () => _showCreateBoardDialog(context, controller),
-          ),
-        ],
-      ),
     );
   }
 
@@ -114,28 +73,26 @@ class _BoardsPageState extends State<BoardsPage> {
     }
 
     if (controller.error != null && controller.boards.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.warning_amber_rounded,
-              size: 48,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              controller.error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-            const SizedBox(height: 16),
-            KanbnButton(
-              label: 'Tentar novamente',
-              variant: ButtonVariant.secondary,
-              onPressed: () => _controller.loadBoards(widget.workspaceSlug),
-            ),
-          ],
-        ),
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            size: 48,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            controller.error!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+          const SizedBox(height: 16),
+          KanbnButton(
+            label: 'Tentar novamente',
+            variant: ButtonVariant.secondary,
+            onPressed: () => _controller.loadBoards(widget.workspaceSlug),
+          ),
+        ],
       );
     }
 

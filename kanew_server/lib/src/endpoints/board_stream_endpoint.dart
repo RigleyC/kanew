@@ -54,7 +54,9 @@ class BoardStreamEndpoint extends Endpoint {
 
     // Criar stream para o canal do board
     final channelName = BoardBroadcastService.channelName(boardId);
-    final updateStream = session.messages.createStream<BoardEvent>(channelName);
+    final updateStream = session.messages.createStream<BoardEvent>(
+      channelName,
+    );
 
     // Retransmitir todos os eventos para o cliente
     await for (final event in updateStream) {

@@ -32,32 +32,71 @@ class SidebarItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isCollapsed = SidebarData.isCollapsedOf(context);
     final colorScheme = Theme.of(context).colorScheme;
+    final selectedBackgroundColor = colorScheme.primaryContainer.withValues(
+      alpha: 0.3,
+    );
+    final borderRadius = BorderRadius.circular(8);
 
-    final item = Material(
+    if (isCollapsed) {
+      const collapsedIconBoxSize = 40.0;
+
+      return Tooltip(
+        message: label,
+        preferBelow: false,
+        child: InkWell(
+          onTap: onPress,
+          borderRadius: borderRadius,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            child: Center(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: collapsedIconBoxSize,
+                height: collapsedIconBoxSize,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? selectedBackgroundColor
+                      : Colors.transparent,
+                  borderRadius: borderRadius,
+                ),
+                child: IconTheme(
+                  data: IconThemeData(
+                    color: selected
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                    size: 20,
+                  ),
+                  child: icon,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onPress,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: borderRadius,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(
             horizontal: 12,
             vertical: 10,
           ),
-          margin: EdgeInsets.symmetric(
-            horizontal: isCollapsed ? 8 : 12,
+          margin: const EdgeInsets.symmetric(
+            horizontal: 12,
             vertical: 2,
           ),
           decoration: BoxDecoration(
-            color: selected
-                ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            color: selected ? selectedBackgroundColor : Colors.transparent,
+            borderRadius: borderRadius,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Icon
               IconTheme(
                 data: IconThemeData(
                   color: selected
@@ -67,27 +106,21 @@ class SidebarItem extends StatelessWidget {
                 ),
                 child: icon,
               ),
-
-              // Label (only when expanded)
-              if (!isCollapsed) ...[
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                      color: selected
-                          ? colorScheme.primary
-                          : colorScheme.onSurface,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    color: selected
+                        ? colorScheme.primary
+                        : colorScheme.onSurface,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-
-              // Trailing (only when expanded)
-              if (!isCollapsed && trailing != null) ...[
+              ),
+              if (trailing != null) ...[
                 const SizedBox(width: 8),
                 trailing!,
               ],
@@ -96,16 +129,5 @@ class SidebarItem extends StatelessWidget {
         ),
       ),
     );
-
-    // Wrap with tooltip when collapsed
-    if (isCollapsed) {
-      return Tooltip(
-        message: label,
-        preferBelow: false,
-        child: item,
-      );
-    }
-
-    return item;
   }
 }

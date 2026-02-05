@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:forui/forui.dart';
 import 'package:kanew_client/kanew_client.dart';
+import 'package:forui/forui.dart';
 
 import '../../../../core/di/injection.dart';
 import '../store/board_filter_store.dart';
 import 'filter_popover.dart';
 
-/// Board Header - displays board title and actions
-///
-/// Shows the board title (editable inline), back button, and action menu.
-class BoardHeader extends StatefulWidget {
+class BoardHeader extends StatefulWidget implements PreferredSizeWidget {
   final Board board;
   final String workspaceSlug;
   final VoidCallback onBack;
   final Future<void> Function(String newTitle)? onTitleChanged;
+  final Future<void> Function()? onAddList;
 
   const BoardHeader({
     super.key,
@@ -21,10 +19,14 @@ class BoardHeader extends StatefulWidget {
     required this.workspaceSlug,
     required this.onBack,
     this.onTitleChanged,
+    this.onAddList,
   });
 
   @override
   State<BoardHeader> createState() => _BoardHeaderState();
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class _BoardHeaderState extends State<BoardHeader> {
@@ -90,44 +92,21 @@ class _BoardHeaderState extends State<BoardHeader> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant),
+    return AppBar(
+      //TODO Mudar a sidebar pra quando clicar no nome "board" ele descartar as outras paginas e navegar de volta pra listagem e entao remover isso aqui
+      automaticallyImplyLeading: true,
+      title: _isEditing ? _buildEditableTitle() : _buildTitle(colorScheme),
+      actions: [
+        IconButton(
+          icon: const Icon(FIcons.plus),
+          tooltip: 'Adicionar lista',
+          onPressed: widget.onAddList,
         ),
-      ),
-      child: Row(
-        children: [
-          // Back button
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: widget.onBack,
-            tooltip: 'Voltar aos boards',
-          ),
-
-          const SizedBox(width: 8),
-
-          // Board title (editable)
-          Expanded(
-            child: _isEditing
-                ? _buildEditableTitle()
-                : _buildTitle(colorScheme),
-          ),
-
-          // Filter button
-          FilterPopover(
-            filterStore: getIt<BoardFilterStore>(),
-          ),
-
-          const SizedBox(width: 8),
-
-          // Actions menu
-          _buildActionsMenu(colorScheme),
-        ],
-      ),
+        FilterPopover(
+          filterStore: getIt<BoardFilterStore>(),
+        ),
+        _buildActionsMenu(colorScheme),
+      ],
     );
   }
 
@@ -145,12 +124,6 @@ class _BoardHeaderState extends State<BoardHeader> {
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              FIcons.pen,
-              size: 14,
-              color: colorScheme.onSurfaceVariant,
             ),
           ],
         ),
@@ -186,44 +159,42 @@ class _BoardHeaderState extends State<BoardHeader> {
   }
 
   Widget _buildActionsMenu(ColorScheme colorScheme) {
-    return PopupMenuButton<String>(
-      icon: Icon(
-        Icons.more_vert,
-        color: colorScheme.onSurface,
-      ),
-      tooltip: 'Ações do board',
-      onSelected: (value) {
-        switch (value) {
-          case 'rename':
-            _startEditing();
-            break;
-          case 'delete':
-            _showDeleteConfirmation();
-            break;
-        }
-      },
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'rename',
-          child: Row(
-            children: [
-              Icon(Icons.edit_outlined, size: 20),
-              SizedBox(width: 12),
-              Text('Renomear'),
-            ],
-          ),
+    return MenuAnchor(
+      menuChildren: [
+        MenuItemButton(
+          onPressed: _startEditing,
+          leadingIcon: const Icon(Icons.edit_outlined, size: 20),
+          child: const Text('Renomear'),
         ),
-        PopupMenuItem(
-          value: 'delete',
-          child: Row(
-            children: [
-              Icon(Icons.delete_outline, size: 20, color: colorScheme.error),
-              const SizedBox(width: 12),
-              Text('Excluir', style: TextStyle(color: colorScheme.error)),
-            ],
+        MenuItemButton(
+          onPressed: _showDeleteConfirmation,
+          leadingIcon: Icon(
+            Icons.delete_outline,
+            size: 20,
+            color: colorScheme.error,
+          ),
+          child: Text(
+            'Excluir',
+            style: TextStyle(color: colorScheme.error),
           ),
         ),
       ],
+      builder: (context, controller, child) {
+        return IconButton(
+          icon: Icon(
+            Icons.more_vert,
+            color: colorScheme.onSurface,
+          ),
+          tooltip: 'Ações do board',
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+        );
+      },
     );
   }
 

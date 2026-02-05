@@ -3,6 +3,7 @@ import '../generated/protocol.dart';
 import '../services/permission_service.dart';
 import '../services/auth_helper.dart';
 import '../services/activity_service.dart';
+import '../services/board_broadcast_service.dart';
 
 class LabelEndpoint extends Endpoint {
   @override
@@ -69,7 +70,17 @@ class LabelEndpoint extends Endpoint {
       colorHex: colorHex,
     );
 
-    return await LabelDef.db.insertRow(session, label);
+    final created = await LabelDef.db.insertRow(session, label);
+
+    BoardBroadcastService.labelCreated(
+      session,
+      boardId: boardId,
+      labelId: created.id!,
+      actorId: numericUserId,
+      label: created,
+    );
+
+    return created;
   }
 
   /// Updates a label definition
@@ -105,7 +116,17 @@ class LabelEndpoint extends Endpoint {
       colorHex: colorHex,
     );
 
-    return await LabelDef.db.updateRow(session, updated);
+    final result = await LabelDef.db.updateRow(session, updated);
+
+    BoardBroadcastService.labelUpdated(
+      session,
+      boardId: label.boardId,
+      labelId: labelId,
+      actorId: numericUserId,
+      label: result,
+    );
+
+    return result;
   }
 
   /// Deletes a label definition (soft delete)
@@ -139,6 +160,13 @@ class LabelEndpoint extends Endpoint {
     );
 
     await LabelDef.db.updateRow(session, updated);
+
+    BoardBroadcastService.labelDeleted(
+      session,
+      boardId: label.boardId,
+      labelId: labelId,
+      actorId: numericUserId,
+    );
   }
 
   /// Attaches a label to a card
@@ -193,6 +221,16 @@ class LabelEndpoint extends Endpoint {
       type: ActivityType.update,
       details: 'Added label "${label.name}"',
     );
+
+    final updatedLabels = await _getCardLabelsSync(session, cardId);
+    BoardBroadcastService.cardLabelsUpdated(
+      session,
+      boardId: board.id!,
+      cardId: cardId,
+      listId: card.listId,
+      actorId: numericUserId,
+      labels: updatedLabels,
+    );
   }
 
   /// Detaches a label from a card
@@ -237,6 +275,16 @@ class LabelEndpoint extends Endpoint {
         details: 'Removed label "${label.name}"',
       );
     }
+
+    final updatedLabels = await _getCardLabelsSync(session, cardId);
+    BoardBroadcastService.cardLabelsUpdated(
+      session,
+      boardId: board.id!,
+      cardId: cardId,
+      listId: card.listId,
+      actorId: numericUserId,
+      labels: updatedLabels,
+    );
   }
 
   /// Get labels attached to a card
@@ -298,6 +346,26 @@ class LabelEndpoint extends Endpoint {
     var labels = <LabelDef>[];
     for (var id in labelIds) {
       final l = await LabelDef.db.findById(session, id);
+      if (l != null && l.deletedAt == null) {
+        labels.add(l);
+      }
+    }
+
+    return labels;
+  }
+
+  /// Helper to get card labels synchronously (used for broadcasts)
+  Future<List<LabelDef>> _getCardLabelsSync(Session session, int cardId) async {
+    final relations = await CardLabel.db.find(
+      session,
+      where: (cl) => cl.cardId.equals(cardId),
+    );
+
+    if (relations.isEmpty) return [];
+
+    var labels = <LabelDef>[];
+    for (final relation in relations) {
+      final l = await LabelDef.db.findById(session, relation.labelDefId);
       if (l != null && l.deletedAt == null) {
         labels.add(l);
       }

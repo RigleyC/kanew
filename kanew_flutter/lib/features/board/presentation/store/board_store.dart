@@ -193,6 +193,39 @@ class BoardStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- Label Operations ---
+
+  void addLabel(LabelDef label) {
+    if (_context != null) {
+      _context = _context!.copyWith(labels: [...labels, label]);
+      notifyListeners();
+    }
+  }
+
+  void updateLabel(LabelDef updatedLabel) {
+    if (_context == null) return;
+
+    final updatedLabels = labels.map((l) => l.id == updatedLabel.id ? updatedLabel : l).toList();
+    _context = _context!.copyWith(labels: updatedLabels);
+    notifyListeners();
+  }
+
+  void removeLabel(int labelId) {
+    if (_context == null) return;
+
+    _context = _context!.copyWith(labels: labels.where((l) => l.id != labelId).toList());
+    notifyListeners();
+  }
+
+  void updateCardLabels(int cardId, List<LabelDef> cardLabels) {
+    final index = _cardSummaries.indexWhere((c) => c.card.id == cardId);
+    if (index != -1) {
+      _cardSummaries[index] = _cardSummaries[index].copyWith(cardLabels: cardLabels);
+      _cardDetailCache.remove(cardId);
+      notifyListeners();
+    }
+  }
+
   void _updateCardSummaryFromDetail(CardDetail detail) {
     final index = _cardSummaries.indexWhere((c) => c.card.id == detail.card.id);
     if (index != -1) {

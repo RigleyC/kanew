@@ -28,7 +28,7 @@ class _ChecklistItemTileState extends State<ChecklistItemTile> {
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
         child: Row(
           children: [
             SizedBox(

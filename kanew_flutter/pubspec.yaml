@@ -53,6 +53,7 @@ dependencies:
   flutter_svg: ^2.0.19
   flutter_web_plugins:
     sdk: flutter
+  google_fonts: ^6.3.3
 dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'
   flutter_test:
@@ -81,10 +82,13 @@ flutter:
   # https://flutter.dev/assets-and-images/#from-packages
   assets:
     - assets/config.json
+    - assets/
     - assets/icons/priority_high.svg
     - assets/icons/priority_medium.svg
     - assets/icons/priority_low.svg
     - assets/icons/priority_none.svg
+    - assets/icons/priority_urgent.svg
+    - assets/icons/check.svg
 dependency_overrides:
   flutter_secure_storage: ^10.0.0
 

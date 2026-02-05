@@ -181,7 +181,74 @@ class _PaymentsPageState extends State<PaymentsPage> {
 ---
 
 ## Components, Snackbar, Dialogs, Sheets
+
 **Centralize** os componentes em uma pasta no core, eles podem ser chamados de qualquer lugar e recebem um widget ou texto. São responsáveis apenas por exibir onde o conteudo é passado ao chamar. O context pode ser passado tambem.
+
+### Dialogs - Padrão com Callbacks
+
+Dialogs **não devem receber controllers**. Em vez disso, recebem callbacks para executar ações:
+
+```dart
+/// Shows a dialog to create a payment
+Future<void> showCreatePaymentDialog(
+  BuildContext context,
+  Future<void> Function(String title, double amount) onSubmit,
+) async {
+  final titleController = TextEditingController();
+  final amountController = TextEditingController();
+
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Novo Pagamento'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: titleController,
+            decoration: const InputDecoration(labelText: 'Título'),
+          ),
+          TextField(
+            controller: amountController,
+            decoration: const InputDecoration(labelText: 'Valor'),
+            keyboardType: TextInputType.number,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('Criar'),
+        ),
+      ],
+    ),
+  );
+
+  if (result == true) {
+    await onSubmit(titleController.text, double.parse(amountController.text));
+  }
+
+  titleController.dispose();
+  amountController.dispose();
+}
+```
+
+**Na página/widget que chama o dialog:**
+
+```dart
+// Correto: passa callback
+onPressed: () => showCreatePaymentDialog(
+  context,
+  (title, amount) => _controller.createPayment(title, amount),
+)
+
+// Incorreto: passa controller
+onPressed: () => showCreatePaymentDialog(context, _controller)
+```
 ---
 
 ## Separação de componentes e boas práticas

@@ -243,4 +243,92 @@ class BoardBroadcastService {
       ),
     );
   }
+
+  // === LABEL EVENTS ===
+
+  static void labelCreated(
+    Session session, {
+    required int boardId,
+    required int labelId,
+    required UuidValue actorId,
+    required LabelDef label,
+  }) {
+    broadcast(
+      session,
+      event: BoardEvent(
+        eventType: BoardEventType.labelCreated,
+        boardId: boardId,
+        actorId: actorId,
+        payload: jsonEncode({
+          'label': label.toJson(),
+        }),
+        timestamp: DateTime.now(),
+      ),
+    );
+  }
+
+  static void labelUpdated(
+    Session session, {
+    required int boardId,
+    required int labelId,
+    required UuidValue actorId,
+    required LabelDef label,
+  }) {
+    broadcast(
+      session,
+      event: BoardEvent(
+        eventType: BoardEventType.labelUpdated,
+        boardId: boardId,
+        actorId: actorId,
+        payload: jsonEncode({
+          'label': label.toJson(),
+        }),
+        timestamp: DateTime.now(),
+      ),
+    );
+  }
+
+  static void labelDeleted(
+    Session session, {
+    required int boardId,
+    required int labelId,
+    required UuidValue actorId,
+  }) {
+    broadcast(
+      session,
+      event: BoardEvent(
+        eventType: BoardEventType.labelDeleted,
+        boardId: boardId,
+        actorId: actorId,
+        payload: jsonEncode({
+          'labelId': labelId,
+        }),
+        timestamp: DateTime.now(),
+      ),
+    );
+  }
+
+  static void cardLabelsUpdated(
+    Session session, {
+    required int boardId,
+    required int cardId,
+    required int listId,
+    required UuidValue actorId,
+    required List<LabelDef> labels,
+  }) {
+    broadcast(
+      session,
+      event: BoardEvent(
+        eventType: BoardEventType.cardLabelsUpdated,
+        boardId: boardId,
+        cardId: cardId,
+        listId: listId,
+        actorId: actorId,
+        payload: jsonEncode({
+          'labels': labels.map((l) => l.toJson()).toList(),
+        }),
+        timestamp: DateTime.now(),
+      ),
+    );
+  }
 }

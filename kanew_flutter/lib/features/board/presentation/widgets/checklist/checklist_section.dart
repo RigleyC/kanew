@@ -28,6 +28,7 @@ class ChecklistSection extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 16,
       children: [
         ...checklists.map(
           (checklist) {

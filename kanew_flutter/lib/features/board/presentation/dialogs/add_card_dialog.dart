@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/board_view_controller.dart';
-
 /// Shows a dialog to add a new card
 Future<void> showAddCardDialog(
   BuildContext context,
   int listId,
-  BoardViewPageController controller,
+  Future<void> Function(int listId, String title) onAddCard,
 ) async {
   final textController = TextEditingController();
 
@@ -38,6 +36,6 @@ Future<void> showAddCardDialog(
   );
 
   if (result != null && result.trim().isNotEmpty) {
-    await controller.createCard(listId, result.trim());
+    await onAddCard(listId, result);
   }
 }

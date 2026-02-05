@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide Card;
 import 'package:kanew_client/kanew_client.dart';
+import 'package:kanew_flutter/core/widgets/checklist_progress_badge.dart';
 import 'package:kanew_flutter/features/board/presentation/components/label_chip.dart';
 import 'package:kanew_flutter/features/board/presentation/components/priority_chip.dart';
 
@@ -24,14 +25,26 @@ class KanbanCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        color: Colors.red,
+        decoration: BoxDecoration(
+          color: Color(0XFF222222),
+          borderRadius: BorderRadius.circular(8),
+        ),
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 4,
           children: [
             Row(
-              children: [PriorityChip(priority: priority)],
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (priority != CardPriority.none)
+                  PriorityChip(priority: priority),
+                if (cardSummary.checklistTotal > 0)
+                  ChecklistProgressBadge(
+                    completedCount: cardSummary.checklistCompleted,
+                    totalCount: cardSummary.checklistTotal,
+                  ),
+              ],
             ),
             Text(
               card.title,
@@ -41,39 +54,44 @@ class KanbanCard extends StatelessWidget {
               Text(
                 card.descriptionDocument!,
                 style: Theme.of(context).textTheme.bodySmall,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
               ),
-            if (labels.isNotEmpty)
-              Row(
-                children: [
-                  Wrap(
-                    spacing: 4,
-                    children: labels
-                        .map(
-                          (label) => LabelChip(
-                            name: label.name,
-                            colorHex: label.colorHex,
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ],
+            if (labels.isNotEmpty) ...[
+              Wrap(
+                spacing: 4,
+                runSpacing: 2,
+                children: labels
+                    .map(
+                      (label) => LabelChip(
+                        name: label.name,
+                        colorHex: label.colorHex,
+                      ),
+                    )
+                    .toList(),
               ),
+              SizedBox(height: 4),
+            ],
             // Badges for counts
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               spacing: 8,
               children: [
-                if (cardSummary.attachmentCount > 0)
-                  _Badge(
-                    Icons.attach_file,
-                    cardSummary.attachmentCount.toString(),
-                  ),
-                if (cardSummary.commentCount > 0)
-                  _Badge(Icons.comment, cardSummary.commentCount.toString()),
-                if (cardSummary.checklistTotal > 0)
-                  _Badge(
-                    Icons.check_box,
-                    '${cardSummary.checklistCompleted}/${cardSummary.checklistTotal}',
-                  ),
+                Row(
+                  spacing: 16,
+                  children: [
+                    if (cardSummary.attachmentCount > 0)
+                      _Badge(
+                        Icons.attach_file,
+                        cardSummary.attachmentCount.toString(),
+                      ),
+                    if (cardSummary.commentCount > 0)
+                      _Badge(
+                        Icons.comment,
+                        cardSummary.commentCount.toString(),
+                      ),
+                  ],
+                ),
               ],
             ),
           ],

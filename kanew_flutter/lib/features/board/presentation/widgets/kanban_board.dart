@@ -7,12 +7,8 @@ import 'package:kanew_client/kanew_client.dart';
 
 import '../../../../core/router/route_paths.dart';
 import '../../../../core/di/injection.dart';
-import '../components/add_list_card.dart';
-import '../components/board_group_footer.dart';
 import '../components/board_group_header.dart';
 import '../controllers/board_view_controller.dart';
-import '../dialogs/add_card_dialog.dart';
-import '../dialogs/add_list_dialog.dart';
 import '../store/board_filter_store.dart';
 import '../utils/board_data_adapter.dart';
 import 'kanban_card.dart';
@@ -22,6 +18,7 @@ class KanbanBoard extends StatefulWidget {
   final String workspaceSlug;
   final String boardSlug;
   final Board board;
+  final Future<void> Function(int listId, String title) onAddCard;
 
   const KanbanBoard({
     super.key,
@@ -29,6 +26,7 @@ class KanbanBoard extends StatefulWidget {
     required this.workspaceSlug,
     required this.boardSlug,
     required this.board,
+    required this.onAddCard,
   });
 
   @override
@@ -157,8 +155,6 @@ class _KanbanBoardState extends State<KanbanBoard> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     if (widget.controller.isLoading && widget.controller.lists.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -172,33 +168,27 @@ class _KanbanBoardState extends State<KanbanBoard> {
             child: AppFlowyBoard(
               controller: _boardController,
               boardScrollController: _scrollController,
-              groupConstraints: const BoxConstraints.tightFor(width: 280),
+              groupConstraints: const BoxConstraints.tightFor(width: 300),
               config: AppFlowyBoardConfig(
-                groupBackgroundColor: colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.5),
+                groupBackgroundColor: Theme.of(context).canvasColor,
                 stretchGroupHeight: false,
-                groupCornerRadius: 12,
+                groupCornerRadius: 8,
                 groupBodyPadding: const EdgeInsets.all(8),
               ),
               headerBuilder: (context, groupData) => BoardGroupHeader(
                 groupData: groupData,
                 lists: widget.controller.lists,
                 onDelete: (listId) => widget.controller.deleteList(listId),
+                onAddCard: (listId, title) => widget.onAddCard(listId, title),
               ),
-              footerBuilder: (context, groupData) => BoardGroupFooter(
-                groupData: groupData,
-                onAddCard: () => showAddCardDialog(
-                  context,
-                  int.parse(groupData.id),
-                  widget.controller,
-                ),
-              ),
+
               cardBuilder: (context, group, groupItem) {
                 if (groupItem is! CardBoardItem) {
                   return const SizedBox();
                 }
                 final cardItem = groupItem;
                 return AppFlowyGroupCard(
+                  decoration: BoxDecoration(color: Colors.transparent),
                   key: ObjectKey(cardItem),
                   child: KanbanCard(
                     cardSummary: cardItem.cardSummary,
@@ -225,10 +215,6 @@ class _KanbanBoardState extends State<KanbanBoard> {
                 );
               },
             ),
-          ),
-          const SizedBox(width: 16),
-          AddListCard(
-            onTap: () => showAddListDialog(context, widget.controller),
           ),
         ],
       ),
