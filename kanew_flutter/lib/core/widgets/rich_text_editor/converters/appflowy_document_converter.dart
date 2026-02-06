@@ -10,9 +10,18 @@ class AppFlowyDocumentConverter implements DocumentConverter {
     try {
       final data = jsonDecode(json) as Map<String, dynamic>;
       final document = Document.fromJson(data);
+
+      // Verificar se o documento tem nós filhos
+      // Documentos antigos podem ter sido salvos sem filhos
+      if (document.root.children.isEmpty) {
+        print('[AppFlowyConverter] fromJson: document has no children, adding empty paragraph');
+        return emptyEditorState();
+      }
+
       return EditorState(document: document);
     } catch (e) {
       // Fallback: trata como texto simples
+      print('[AppFlowyConverter] fromJson error: $e, treating as plain text');
       return _createParagraphEditorState(json);
     }
   }
@@ -47,7 +56,13 @@ class AppFlowyDocumentConverter implements DocumentConverter {
 
   @override
   EditorState emptyEditorState() {
-    return EditorState(document: Document.blank());
+    // Document.blank() cria um documento vazio SEM nós filhos,
+    // o que impede o editor de receber foco/edição.
+    // Criamos um documento com parágrafo vazio para permitir edição.
+    final document = Document(
+      root: pageNode(children: [paragraphNode(text: '')]),
+    );
+    return EditorState(document: document);
   }
 
   @override

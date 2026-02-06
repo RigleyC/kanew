@@ -79,6 +79,7 @@ class _RichTextEditorState extends State<RichTextEditor> {
             editorState: editorState,
             editable: !widget.config.readOnly,
             shrinkWrap: true,
+            autoFocus: !widget.config.readOnly,
             editorStyle: _buildEditorStyle(colorScheme),
             blockComponentBuilders: _buildBlockBuilders(),
             characterShortcutEvents: _buildCharacterShortcuts(),
