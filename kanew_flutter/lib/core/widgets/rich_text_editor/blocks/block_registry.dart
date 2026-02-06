@@ -1,4 +1,5 @@
 import 'package:appflowy_editor/appflowy_editor.dart';
+import 'package:flutter/material.dart';
 import '../rich_text_editor_config.dart';
 
 /// Registro de blocos disponíveis
@@ -9,7 +10,6 @@ class BlockRegistry {
     RichTextEditorConfig config,
   ) {
     final builders = <String, BlockComponentBuilder>{};
-
 
     builders['page'] = PageBlockComponentBuilder();
 
@@ -46,7 +46,17 @@ class BlockRegistry {
     ),
     EditorBlockType.bulletedList: _BlockEntry(
       key: BulletedListBlockKeys.type,
-      builder: BulletedListBlockComponentBuilder(),
+      builder: BulletedListBlockComponentBuilder(
+        configuration: BlockComponentConfiguration(
+          padding: (_) => EdgeInsets.zero,
+          textStyle: (node, {textSpan}) => const TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF37352F),
+            height: 1.3,
+          ),
+        ),
+      ),
     ),
     EditorBlockType.numberedList: _BlockEntry(
       key: NumberedListBlockKeys.type,

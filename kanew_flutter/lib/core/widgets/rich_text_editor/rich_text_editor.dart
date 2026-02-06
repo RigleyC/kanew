@@ -89,10 +89,8 @@ class _RichTextEditorState extends State<RichTextEditor> {
               maxHeight: 400,
             ),
             padding: _platformAdapter.keyboardPadding,
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(8),
-            ),
+            
+
             child: AppFlowyEditor(
               editorState: editorState,
               editable: !widget.config.readOnly,
@@ -103,6 +101,8 @@ class _RichTextEditorState extends State<RichTextEditor> {
               blockComponentBuilders: _buildBlockBuilders(),
               characterShortcutEvents: _buildCharacterShortcuts(),
               commandShortcutEvents: _buildCommandShortcuts(),
+            
+              
             ),
           ),
         );
@@ -112,7 +112,7 @@ class _RichTextEditorState extends State<RichTextEditor> {
 
   EditorStyle _buildEditorStyle(ColorScheme colorScheme) {
     return EditorStyle(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.zero,
       cursorColor: colorScheme.primary,
       selectionColor: colorScheme.primary.withValues(alpha: 0.3),
       dragHandleColor: colorScheme.primary,
