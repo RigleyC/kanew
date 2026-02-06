@@ -42,21 +42,17 @@ class MemberEndpoint extends Endpoint {
     final result = <MemberWithUser>[];
 
     for (final member in members) {
-      // TODO: Implement user lookup when API is known
-      /*
-      final userInfo = await Users.findUserByUserIdentifier(
+      final userInfo = await Users.findUserByIdentifier(
         session,
         member.authUserId.toString(),
       );
-      */
 
-      // Placeholder
       result.add(
         MemberWithUser(
           member: member,
-          userName: 'User',
-          userEmail: 'user@example.com',
-          userImageUrl: null,
+          userName: userInfo?.userName ?? 'Usuario',
+          userEmail: userInfo?.email ?? 'email@exemplo.com',
+          userImageUrl: userInfo?.imageUrl,
         ),
       );
     }

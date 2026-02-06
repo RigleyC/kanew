@@ -5,12 +5,12 @@ import 'package:kanew_client/kanew_client.dart' hide Card;
 import '../../../core/di/injection.dart';
 import '../../../core/widgets/sidebar/sidebar.dart';
 import '../../../core/widgets/base/button.dart';
+import '../../../core/dialogs/members/invite_member_dialog.dart';
+import '../../../core/dialogs/members/transfer_ownership_dialog.dart';
+import '../../../core/dialogs/members/pending_invites_list.dart';
+import '../../../core/widgets/member/permission_matrix.dart';
 import '../presentation/controllers/members_page_controller.dart';
 import '../presentation/widgets/members/member_list_tile.dart';
-import '../presentation/widgets/members/pending_invites_list.dart';
-import '../presentation/widgets/members/invite_dialog.dart';
-import '../presentation/widgets/members/transfer_ownership_dialog.dart';
-import '../presentation/widgets/members/permission_matrix.dart';
 
 import '../viewmodel/workspace_controller.dart';
 
@@ -244,7 +244,7 @@ class _MembersPageState extends State<MembersPage> {
   void _showInviteDialog() {
     showDialog(
       context: context,
-      builder: (context) => InviteDialog(
+      builder: (context) => InviteMemberDialog(
         allPermissions: _controller.allPermissions
             .map((p) => PermissionInfo(permission: p, granted: false))
             .toList(),
