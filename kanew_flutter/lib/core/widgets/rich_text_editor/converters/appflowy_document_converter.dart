@@ -26,16 +26,22 @@ class AppFlowyDocumentConverter implements DocumentConverter {
   @override
   String normalize(String? content) {
     if (content == null || content.isEmpty) {
-      return toJson(emptyEditorState());
+      final emptyJson = toJson(emptyEditorState());
+      print('[AppFlowyConverter] normalize: empty content -> $emptyJson');
+      return emptyJson;
     }
 
     // Tenta parsear como JSON
     try {
       jsonDecode(content);
+      print('[AppFlowyConverter] normalize: already JSON -> ${content.substring(0, content.length > 100 ? 100 : content.length)}...');
       return content; // Já é JSON válido
     } catch (_) {
       // É texto simples, converter para formato AppFlowy
-      return toJson(_createParagraphEditorState(content));
+      print('[AppFlowyConverter] normalize: plain text -> converting: $content');
+      final converted = toJson(_createParagraphEditorState(content));
+      print('[AppFlowyConverter] normalize: converted to -> $converted');
+      return converted;
     }
   }
 

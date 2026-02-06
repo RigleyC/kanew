@@ -77,6 +77,8 @@ class _RichTextEditorState extends State<RichTextEditor> {
           ),
           child: AppFlowyEditor(
             editorState: editorState,
+            editable: !widget.config.readOnly,
+            shrinkWrap: true,
             editorStyle: _buildEditorStyle(colorScheme),
             blockComponentBuilders: _buildBlockBuilders(),
             characterShortcutEvents: _buildCharacterShortcuts(),
