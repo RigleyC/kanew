@@ -33,6 +33,7 @@ class _RichTextEditorState extends State<RichTextEditor> {
   @override
   void initState() {
     super.initState();
+
     _converter = AppFlowyDocumentConverter();
     _platformAdapter = EditorPlatformAdapter.current();
 
@@ -65,25 +66,44 @@ class _RichTextEditorState extends State<RichTextEditor> {
           return const SizedBox.shrink();
         }
 
-        return Container(
-          constraints: BoxConstraints(
-            minHeight: _platformAdapter.minHeight,
-            maxHeight: 400, // Altura máxima para evitar overflow
-          ),
-          padding: _platformAdapter.keyboardPadding,
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: AppFlowyEditor(
-            editorState: editorState,
-            editable: !widget.config.readOnly,
-            shrinkWrap: true,
-            autoFocus: !widget.config.readOnly,
-            editorStyle: _buildEditorStyle(colorScheme),
-            blockComponentBuilders: _buildBlockBuilders(),
-            characterShortcutEvents: _buildCharacterShortcuts(),
-            commandShortcutEvents: _buildCommandShortcuts(),
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (!widget.config.readOnly) {
+              // Move cursor to end of document on tap
+              final lastNode = editorState.document.root.children.lastOrNull;
+              if (lastNode != null) {
+                final selection = Selection.collapsed(
+                  Position(
+                    path: lastNode.path,
+                    offset: lastNode.delta?.length ?? 0,
+                  ),
+                );
+                editorState.selection = selection;
+              }
+            }
+          },
+          child: Container(
+            constraints: BoxConstraints(
+              minHeight: 100, // Altura mínima garantida para clicar
+              maxHeight: 400,
+            ),
+            padding: _platformAdapter.keyboardPadding,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: AppFlowyEditor(
+              editorState: editorState,
+              editable: !widget.config.readOnly,
+              shrinkWrap:
+                  false, // Remover shrinkWrap para ocupar o espaço mínimo
+              autoFocus: false, // Desabilitar autoFocus para evitar conflitos
+              editorStyle: _buildEditorStyle(colorScheme),
+              blockComponentBuilders: _buildBlockBuilders(),
+              characterShortcutEvents: _buildCharacterShortcuts(),
+              commandShortcutEvents: _buildCommandShortcuts(),
+            ),
           ),
         );
       },

@@ -10,6 +10,9 @@ class BlockRegistry {
   ) {
     final builders = <String, BlockComponentBuilder>{};
 
+
+    builders['page'] = PageBlockComponentBuilder();
+
     for (final blockType in config.enabledBlocks) {
       final entry = _blockBuilders[blockType];
       if (entry != null) {
@@ -23,7 +26,11 @@ class BlockRegistry {
   static final Map<EditorBlockType, _BlockEntry> _blockBuilders = {
     EditorBlockType.paragraph: _BlockEntry(
       key: ParagraphBlockKeys.type,
-      builder: ParagraphBlockComponentBuilder(),
+      builder: ParagraphBlockComponentBuilder(
+        configuration: BlockComponentConfiguration(
+          placeholderText: (_) => '',
+        ),
+      ),
     ),
     EditorBlockType.heading1: _BlockEntry(
       key: HeadingBlockKeys.type,
