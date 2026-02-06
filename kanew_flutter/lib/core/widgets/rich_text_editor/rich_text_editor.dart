@@ -68,6 +68,7 @@ class _RichTextEditorState extends State<RichTextEditor> {
         return Container(
           constraints: BoxConstraints(
             minHeight: _platformAdapter.minHeight,
+            maxHeight: 400, // Altura máxima para evitar overflow
           ),
           padding: _platformAdapter.keyboardPadding,
           decoration: BoxDecoration(
