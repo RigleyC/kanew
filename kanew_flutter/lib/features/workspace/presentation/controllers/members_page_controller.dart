@@ -1,14 +1,21 @@
 import 'package:flutter/foundation.dart';
 import 'package:kanew_client/kanew_client.dart';
-import '../../data/member_repository.dart';
+import '../../data/workspace_repository.dart';
+import '../../domain/repositories/member_repository.dart';
 
 /// Controller for Members Page
 class MembersPageController extends ChangeNotifier {
   final MemberRepository _repository;
+  final WorkspaceRepository _workspaceRepository;
+
+  int? _workspaceId;
+  String? _initError;
 
   MembersPageController({
     required MemberRepository repository,
-  }) : _repository = repository;
+    required WorkspaceRepository workspaceRepository,
+  })  : _repository = repository,
+        _workspaceRepository = workspaceRepository;
 
   // State
   List<MemberWithUser> _members = [];
@@ -23,6 +30,41 @@ class MembersPageController extends ChangeNotifier {
   List<Permission> get allPermissions => _allPermissions;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  int? get workspaceId => _workspaceId;
+  String? get initError => _initError;
+  bool get isInitialized => _workspaceId != null && _initError == null;
+
+  /// Initializes the controller by loading workspace and member data
+  Future<bool> init(String workspaceSlug) async {
+    _initError = null;
+    notifyListeners();
+
+    try {
+      final existing = _workspaceRepository
+          .getWorkspaces()
+          .then((list) => list.where((w) => w.slug == workspaceSlug).firstOrNull);
+
+      Workspace? workspace = await existing;
+
+      if (workspace == null) {
+        workspace = await _workspaceRepository.getBySlug(workspaceSlug);
+      }
+
+      if (workspace == null) {
+        _initError = 'Workspace não encontrado';
+        notifyListeners();
+        return false;
+      }
+
+      _workspaceId = workspace.id;
+      await loadData(workspace.id!);
+      return true;
+    } catch (e) {
+      _initError = 'Erro ao carregar workspace: $e';
+      notifyListeners();
+      return false;
+    }
+  }
 
   /// Loads members and invites for a workspace
   Future<void> loadData(int workspaceId) async {
@@ -149,7 +191,6 @@ class MembersPageController extends ChangeNotifier {
         return false;
       },
       (_) {
-        // Reload data to reflect changes
         loadData(workspaceId);
         return true;
       },

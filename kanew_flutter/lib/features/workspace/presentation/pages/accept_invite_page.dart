@@ -6,7 +6,7 @@ import 'package:kanew_client/kanew_client.dart' hide Card;
 import '../../../../core/di/injection.dart';
 import '../../../../core/router/auth_route_helper.dart';
 import '../../../../core/router/route_paths.dart';
-import '../../data/member_repository.dart';
+import '../../domain/repositories/member_repository.dart';
 import '../../../auth/viewmodel/auth_controller.dart';
 import '../../viewmodel/workspace_controller.dart';
 

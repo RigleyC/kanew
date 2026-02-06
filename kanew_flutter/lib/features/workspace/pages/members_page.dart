@@ -12,8 +12,6 @@ import '../../../core/widgets/member/permission_matrix.dart';
 import '../presentation/controllers/members_page_controller.dart';
 import '../presentation/widgets/members/member_list_tile.dart';
 
-import '../viewmodel/workspace_controller.dart';
-
 class MembersPage extends StatefulWidget {
   final String workspaceSlug;
 
@@ -28,48 +26,12 @@ class MembersPage extends StatefulWidget {
 
 class _MembersPageState extends State<MembersPage> {
   late final MembersPageController _controller;
-  late final WorkspaceController _workspaceController;
-  Object? _initError;
-  int? _workspaceId;
 
   @override
   void initState() {
     super.initState();
-    _workspaceController = getIt<WorkspaceController>();
     _controller = getIt<MembersPageController>();
-    _loadWorkspace();
-  }
-
-  Future<void> _loadWorkspace() async {
-    try {
-      final success = await _workspaceController.setCurrentWorkspaceBySlug(
-        widget.workspaceSlug,
-      );
-
-      if (!success) {
-        throw Exception('Workspace not found');
-      }
-
-      final workspace = _workspaceController.currentWorkspace!;
-
-      if (mounted) {
-        setState(() {
-          _workspaceId = workspace.id;
-          _initError = null;
-        });
-      }
-
-      if (_workspaceId != null) {
-        await _controller.loadData(_workspaceId!);
-      }
-    } catch (e) {
-      debugPrint('[MembersPage] Error loading workspace: $e');
-      if (mounted) {
-        setState(() {
-          _initError = e;
-        });
-      }
-    }
+    _controller.init(widget.workspaceSlug);
   }
 
   @override
@@ -87,7 +49,6 @@ class _MembersPageState extends State<MembersPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           decoration: BoxDecoration(
@@ -118,10 +79,12 @@ class _MembersPageState extends State<MembersPage> {
             ],
           ),
         ),
-        // Content
         Expanded(
-          child: _initError != null
-              ? Center(
+          child: ListenableBuilder(
+            listenable: _controller,
+            builder: (context, _) {
+              if (_controller.initError != null) {
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     spacing: 16,
@@ -131,111 +94,109 @@ class _MembersPageState extends State<MembersPage> {
                         size: 64,
                         color: Colors.red,
                       ),
-                      Text('Erro ao carregar workspace: $_initError'),
+                      Text('Erro ao carregar workspace: ${_controller.initError}'),
                       FilledButton(
-                        onPressed: _loadWorkspace,
+                        onPressed: () => _controller.init(widget.workspaceSlug),
                         child: const Text('Tentar novamente'),
                       ),
                     ],
                   ),
-                )
-              : _workspaceId == null
-              ? const Center(child: CircularProgressIndicator())
-              : ListenableBuilder(
-                  listenable: _controller,
-                  builder: (context, _) {
-                    if (_controller.isLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+                );
+              }
 
-                    if (_controller.error != null) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          spacing: 16,
-                          children: [
-                            const Icon(
-                              Icons.error_outline,
-                              size: 64,
-                              color: Colors.red,
-                            ),
-                            Text(_controller.error!),
-                            FilledButton(
-                              onPressed: () =>
-                                  _controller.loadData(_workspaceId!),
-                              child: const Text('Tentar novamente'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
+              if (_controller.workspaceId == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 24,
-                        children: [
-                          // Members list
-                          Text(
-                            'Membros Ativos',
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
+              if (_controller.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (_controller.error != null) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 16,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.red,
+                      ),
+                      Text(_controller.error!),
+                      FilledButton(
+                        onPressed: () =>
+                            _controller.loadData(_controller.workspaceId!),
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 24,
+                  children: [
+                    Text(
+                      'Membros Ativos',
+                      style: Theme.of(context).textTheme.titleLarge
+                          ?.copyWith(
+                            fontWeight: FontWeight.w600,
                           ),
-                          Card(
-                            child: Column(
-                              children: _controller.members.map((
-                                memberWithUser,
-                              ) {
-                                final isOwner =
-                                    memberWithUser.member.role ==
-                                    MemberRole.owner;
-                                return MemberListTile(
-                                  memberWithUser: memberWithUser,
-                                  canEdit: !isOwner,
-                                  onRemove: () => _confirmRemoveMember(
-                                    context,
+                    ),
+                    Card(
+                      child: Column(
+                        children: _controller.members.map(
+                          (memberWithUser) {
+                            final isOwner =
+                                memberWithUser.member.role ==
+                                MemberRole.owner;
+                            return MemberListTile(
+                              memberWithUser: memberWithUser,
+                              canEdit: !isOwner,
+                              onRemove: () => _confirmRemoveMember(
+                                context,
+                                memberWithUser.member.id!,
+                                memberWithUser.userName,
+                              ),
+                              onChangeRole: (newRole) => _changeMemberRole(
+                                memberWithUser.member.id!,
+                                newRole,
+                              ),
+                              onManagePermissions: () =>
+                                  _showPermissionsDialog(
                                     memberWithUser.member.id!,
                                     memberWithUser.userName,
                                   ),
-                                  onChangeRole: (newRole) => _changeMemberRole(
-                                    memberWithUser.member.id!,
-                                    newRole,
-                                  ),
-                                  onManagePermissions: () =>
-                                      _showPermissionsDialog(
-                                        memberWithUser.member.id!,
-                                        memberWithUser.userName,
-                                      ),
-                                  onTransferOwnership: () =>
-                                      _showTransferOwnershipDialog(),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-
-                          // Pending invites
-                          const SizedBox(height: 32),
-                          Text(
-                            'Convites Pendentes',
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                          Card(
-                            child: PendingInvitesList(
-                              invites: _controller.invites,
-                              onRevoke: _revokeInvite,
-                            ),
-                          ),
-                        ],
+                              onTransferOwnership: () =>
+                                  _showTransferOwnershipDialog(),
+                            );
+                          },
+                        ).toList(),
                       ),
-                    );
-                  },
+                    ),
+                    const SizedBox(height: 32),
+                    Text(
+                      'Convites Pendentes',
+                      style: Theme.of(context).textTheme.titleLarge
+                          ?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    Card(
+                      child: PendingInvitesList(
+                        invites: _controller.invites,
+                        onRevoke: _revokeInvite,
+                      ),
+                    ),
+                  ],
                 ),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -250,7 +211,7 @@ class _MembersPageState extends State<MembersPage> {
             .toList(),
         onCreateInvite: (permissionIds, email) {
           return _controller.createInvite(
-            _workspaceId!,
+            _controller.workspaceId!,
             permissionIds,
             email: email,
           );
@@ -346,9 +307,7 @@ class _MembersPageState extends State<MembersPage> {
                   child: SingleChildScrollView(
                     child: PermissionMatrix(
                       permissions: permissions,
-                      onChanged: (selectedIds) {
-                        // Update will be triggered on save button
-                      },
+                      onChanged: (selectedIds) {},
                     ),
                   ),
                 ),
@@ -377,7 +336,8 @@ class _MembersPageState extends State<MembersPage> {
       builder: (context) => TransferOwnershipDialog(
         members: _controller.members,
         onTransfer: (newOwnerId) {
-          return _controller.transferOwnership(_workspaceId!, newOwnerId);
+          return _controller.transferOwnership(
+              _controller.workspaceId!, newOwnerId);
         },
       ),
     );

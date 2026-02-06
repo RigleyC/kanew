@@ -1,7 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kanew_client/kanew_client.dart';
 import 'package:kanew_flutter/features/workspace/presentation/controllers/members_page_controller.dart';
-import 'package:kanew_flutter/features/workspace/data/member_repository.dart';
+import 'package:kanew_flutter/features/workspace/domain/repositories/member_repository.dart';
+import 'package:kanew_flutter/features/workspace/data/workspace_repository.dart';
 import 'package:kanew_flutter/core/error/failures.dart';
 import 'package:dartz/dartz.dart';
 
@@ -9,8 +10,12 @@ void main() {
   group('MembersPageController', () {
     test('should initialize with correct default state', () {
       // Arrange
-      final mockRepository = _MockMemberRepository();
-      final controller = MembersPageController(repository: mockRepository);
+      final mockMemberRepository = _MockMemberRepository();
+      final mockWorkspaceRepository = _MockWorkspaceRepository();
+      final controller = MembersPageController(
+        repository: mockMemberRepository,
+        workspaceRepository: mockWorkspaceRepository,
+      );
 
       // Assert
       expect(controller.isLoading, false);
@@ -18,6 +23,9 @@ void main() {
       expect(controller.members, isEmpty);
       expect(controller.invites, isEmpty);
       expect(controller.allPermissions, isEmpty);
+      expect(controller.workspaceId, null);
+      expect(controller.initError, null);
+      expect(controller.isInitialized, false);
 
       // Cleanup
       controller.dispose();
@@ -25,8 +33,12 @@ void main() {
 
     test('should clear error when clearError is called', () {
       // Arrange
-      final mockRepository = _MockMemberRepository();
-      final controller = MembersPageController(repository: mockRepository);
+      final mockMemberRepository = _MockMemberRepository();
+      final mockWorkspaceRepository = _MockWorkspaceRepository();
+      final controller = MembersPageController(
+        repository: mockMemberRepository,
+        workspaceRepository: mockWorkspaceRepository,
+      );
 
       // Act
       controller.clearError();
@@ -124,5 +136,32 @@ class _MockMemberRepository implements MemberRepository {
   @override
   Future<Either<Failure, List<Permission>>> getAllPermissions() async {
     return const Right([]);
+  }
+}
+
+class _MockWorkspaceRepository implements WorkspaceRepository {
+  @override
+  Future<List<Workspace>> getWorkspaces() async {
+    return [];
+  }
+
+  @override
+  Future<Workspace?> getBySlug(String slug) async {
+    return null;
+  }
+
+  @override
+  Future<Workspace> createWorkspace(String title, {String? slug}) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Workspace> updateWorkspace(int workspaceId, String title, {String? slug}) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteWorkspace(int workspaceId) async {
+    throw UnimplementedError();
   }
 }

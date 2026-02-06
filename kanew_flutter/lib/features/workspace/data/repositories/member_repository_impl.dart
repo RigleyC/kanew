@@ -1,16 +1,16 @@
 import 'package:dartz/dartz.dart';
 import 'package:kanew_client/kanew_client.dart';
 
-import '../../../core/di/injection.dart';
-import '../../../core/error/failures.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/error/failures.dart';
+import '../../domain/repositories/member_repository.dart';
 
-/// Repository for workspace member operations
-class MemberRepository {
+class MemberRepositoryImpl implements MemberRepository {
   final Client _client;
 
-  MemberRepository({Client? client}) : _client = client ?? getIt<Client>();
+  MemberRepositoryImpl({Client? client}) : _client = client ?? getIt<Client>();
 
-  /// Gets all members of a workspace
+  @override
   Future<Either<Failure, List<MemberWithUser>>> getMembers(
     int workspaceId,
   ) async {
@@ -22,7 +22,7 @@ class MemberRepository {
     }
   }
 
-  /// Removes a member from workspace
+  @override
   Future<Either<Failure, void>> removeMember(int memberId) async {
     try {
       await _client.member.removeMember(memberId);
@@ -32,7 +32,7 @@ class MemberRepository {
     }
   }
 
-  /// Updates member role
+  @override
   Future<Either<Failure, WorkspaceMember>> updateMemberRole(
     int memberId,
     MemberRole role,
@@ -45,7 +45,7 @@ class MemberRepository {
     }
   }
 
-  /// Gets member permissions with granted status
+  @override
   Future<Either<Failure, List<PermissionInfo>>> getMemberPermissions(
     int memberId,
   ) async {
@@ -57,7 +57,7 @@ class MemberRepository {
     }
   }
 
-  /// Updates member permissions
+  @override
   Future<Either<Failure, void>> updateMemberPermissions(
     int memberId,
     List<int> permissionIds,
@@ -70,7 +70,7 @@ class MemberRepository {
     }
   }
 
-  /// Transfers workspace ownership
+  @override
   Future<Either<Failure, void>> transferOwnership(
     int workspaceId,
     int newOwnerId,
@@ -83,9 +83,7 @@ class MemberRepository {
     }
   }
 
-  // ============ INVITE METHODS ============
-
-  /// Creates a new workspace invite
+  @override
   Future<Either<Failure, WorkspaceInvite>> createInvite(
     int workspaceId,
     List<int> permissionIds, {
@@ -103,7 +101,7 @@ class MemberRepository {
     }
   }
 
-  /// Gets all pending invites for workspace
+  @override
   Future<Either<Failure, List<WorkspaceInvite>>> getInvites(
     int workspaceId,
   ) async {
@@ -115,7 +113,7 @@ class MemberRepository {
     }
   }
 
-  /// Revokes an invite
+  @override
   Future<Either<Failure, void>> revokeInvite(int inviteId) async {
     try {
       await _client.invite.revokeInvite(inviteId);
@@ -125,10 +123,8 @@ class MemberRepository {
     }
   }
 
-  /// Gets invite by code (public, no auth required)
-  Future<Either<Failure, InviteDetails?>> getInviteByCode(
-    String code,
-  ) async {
+  @override
+  Future<Either<Failure, InviteDetails?>> getInviteByCode(String code) async {
     try {
       final details = await _client.invite.getInviteByCode(code);
       return Right(details);
@@ -137,7 +133,7 @@ class MemberRepository {
     }
   }
 
-  /// Accepts an invite and joins workspace
+  @override
   Future<Either<Failure, AcceptInviteResult>> acceptInvite(String code) async {
     try {
       final result = await _client.invite.acceptInvite(code);
@@ -147,7 +143,7 @@ class MemberRepository {
     }
   }
 
-  /// Gets all available permissions in the system
+  @override
   Future<Either<Failure, List<Permission>>> getAllPermissions() async {
     try {
       final permissions = await _client.member.getAllPermissions();

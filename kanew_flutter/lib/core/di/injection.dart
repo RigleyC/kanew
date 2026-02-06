@@ -22,7 +22,8 @@ import '../../features/board/presentation/controllers/card_detail_controller.dar
 import '../../features/board/presentation/store/board_store.dart';
 import '../../features/board/presentation/store/board_filter_store.dart';
 import '../../features/workspace/data/workspace_repository.dart';
-import '../../features/workspace/data/member_repository.dart';
+import '../../features/workspace/domain/repositories/member_repository.dart';
+import '../../features/workspace/data/repositories/member_repository_impl.dart';
 import '../../features/workspace/viewmodel/workspace_controller.dart';
 import '../../features/workspace/presentation/controllers/members_page_controller.dart';
 import '../services/file_picker_service.dart';
@@ -79,9 +80,9 @@ Future<void> setupDependencies() async {
     () => WorkspaceRepository(client: getIt<Client>()),
   );
 
-  getIt.registerLazySingleton<MemberRepository>(
-    () => MemberRepository(client: getIt<Client>()),
-  );
+getIt.registerLazySingleton<MemberRepository>(
+      () => MemberRepositoryImpl(client: getIt<Client>()),
+    );
 
   getIt.registerLazySingleton<BoardRepository>(
     () => BoardRepository(client: getIt<Client>()),
@@ -179,11 +180,12 @@ Future<void> setupDependencies() async {
     ),
   );
 
-  getIt.registerFactory<MembersPageController>(
-    () => MembersPageController(
-      repository: getIt<MemberRepository>(),
-    ),
-  );
+getIt.registerFactory<MembersPageController>(
+      () => MembersPageController(
+        repository: getIt<MemberRepository>(),
+        workspaceRepository: getIt<WorkspaceRepository>(),
+      ),
+    );
 }
 
 /// Gets the Serverpod client
