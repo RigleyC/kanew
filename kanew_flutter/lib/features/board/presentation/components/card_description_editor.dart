@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/rich_text_editor/rich_text_editor.dart';
-import '../../../../core/widgets/rich_text_editor/rich_text_editor_config.dart';
+import 'package:kanew_flutter/core/widgets/rich_text_editor/rich_text_editor_super.dart';
+import 'package:kanew_flutter/core/widgets/rich_text_editor/rich_text_editor_config.dart';
 
 /// Wrapper que conecta RichTextEditor ao contexto do Card
 /// Este é o único arquivo que "sabe" sobre Cards
@@ -18,7 +18,7 @@ class CardDescriptionEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RichTextEditor(
+    return RichTextEditorSuper(
       initialContent: initialDescription,
       config: RichTextEditorConfig.cardDescription(
         readOnly: !canEdit,

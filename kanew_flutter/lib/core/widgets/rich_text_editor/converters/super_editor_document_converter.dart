@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:super_editor/super_editor.dart';
 import 'document_converter_base.dart';
 
@@ -96,8 +97,8 @@ class SuperEditorDocumentConverter implements DocumentConverter<EditorState> {
         editor: editor,
       );
     } catch (e) {
-      print('[SuperEditorConverter] Error parsing markdown: $e');
       // Em caso de erro, trata como texto plano
+      debugPrint('[SuperEditorConverter] Error parsing markdown: $e');
       return _createEditorStateFromPlainText(markdown);
     }
   }

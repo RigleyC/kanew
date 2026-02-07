@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/widgets/rich_text_editor/rich_text_editor_super.dart';
-import '../../../core/widgets/rich_text_editor/rich_text_editor_config.dart';
+import 'package:kanew_flutter/core/widgets/rich_text_editor/rich_text_editor_super.dart';
+import 'package:kanew_flutter/core/widgets/rich_text_editor/rich_text_editor_config.dart';
 
 /// Wrapper que conecta RichTextEditorSuper ao contexto do Card
 class CardDescriptionEditorSuper extends StatelessWidget {
