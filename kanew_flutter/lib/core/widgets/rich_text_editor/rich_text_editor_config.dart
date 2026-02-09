@@ -23,6 +23,8 @@ class RichTextEditorConfig {
   final int maxDocumentSizeBytes;
   final String placeholder;
   final bool readOnly;
+  final double? minHeight;
+  final double? maxHeight;
 
   const RichTextEditorConfig({
     this.enabledBlocks = const {
@@ -40,6 +42,8 @@ class RichTextEditorConfig {
     this.maxDocumentSizeBytes = 50 * 1024, // 50KB
     this.placeholder = 'Digite "/" para comandos...',
     this.readOnly = false,
+    this.minHeight = 150,
+    this.maxHeight = 400,
   });
 
   /// Preset para descrição de Card
@@ -71,6 +75,8 @@ class RichTextEditorConfig {
     int? maxDocumentSizeBytes,
     String? placeholder,
     bool? readOnly,
+    double? minHeight,
+    double? maxHeight,
   }) {
     return RichTextEditorConfig(
       enabledBlocks: enabledBlocks ?? this.enabledBlocks,
@@ -80,6 +86,8 @@ class RichTextEditorConfig {
       maxDocumentSizeBytes: maxDocumentSizeBytes ?? this.maxDocumentSizeBytes,
       placeholder: placeholder ?? this.placeholder,
       readOnly: readOnly ?? this.readOnly,
+      minHeight: minHeight ?? this.minHeight,
+      maxHeight: maxHeight ?? this.maxHeight,
     );
   }
 }

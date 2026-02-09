@@ -11,6 +11,8 @@ dependencies:
   serverpod_auth_idp_server: 3.2.0
   serverpod_auth_core_server: 3.2.0
   serverpod_auth_server: 3.2.0
+  aws_common: ^0.7.12
+  aws_signature_v4: ^0.6.4
   uuid: ^4.5.1
 
 dev_dependencies:

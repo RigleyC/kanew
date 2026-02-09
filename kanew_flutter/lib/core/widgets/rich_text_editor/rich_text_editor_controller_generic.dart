@@ -7,24 +7,34 @@ import 'converters/super_editor_document_converter.dart';
 class RichTextEditorController<T> extends ChangeNotifier {
   final DocumentConverter<T> _converter;
   final Duration _debounce;
-  final void Function(String json)? _onSave;
+  final Future<void> Function(String content)? _onSave;
+  final int _maxSizeBytes;
 
   T? _editorState;
   Timer? _debounceTimer;
   String? _lastSavedContent;
   bool _isDirty = false;
 
+  bool _isSaving = false;
+  String? _lastSaveError;
+  void Function(dynamic)? _documentListener;
+  bool _isDisposed = false;
+  bool _pendingSave = false;
+
   RichTextEditorController({
     required DocumentConverter<T> converter,
     required Duration debounce,
-    void Function(String json)? onSave,
+    Future<void> Function(String content)? onSave,
+    int maxSizeBytes = 50 * 1024,
   })  : _converter = converter,
         _debounce = debounce,
-        _onSave = onSave;
+        _onSave = onSave,
+        _maxSizeBytes = maxSizeBytes;
 
   T? get editorState => _editorState;
   bool get isDirty => _isDirty;
-  bool get isSaving => _debounceTimer?.isActive ?? false;
+  bool get isSaving => _isSaving;
+  String? get lastSaveError => _lastSaveError;
 
   /// Inicializa com conteúdo
   void initialize(String? content) {
@@ -43,15 +53,17 @@ class RichTextEditorController<T> extends ChangeNotifier {
   void _setupChangeListener() {
     if (_editorState is EditorState) {
       final editorState = _editorState as EditorState;
-      editorState.document.addListener((_) {
-        _onContentChanged();
-      });
+      _documentListener = (_) => _onContentChanged();
+      editorState.document.addListener(_documentListener!);
     }
   }
 
   void _onContentChanged() {
+    final wasDirty = _isDirty;
     _isDirty = true;
-    notifyListeners();
+    if (!wasDirty) {
+      _safeNotify();
+    }
 
     // Cancelar timer anterior
     _debounceTimer?.cancel();
@@ -60,29 +72,87 @@ class RichTextEditorController<T> extends ChangeNotifier {
     _debounceTimer = Timer(_debounce, _save);
   }
 
-  void _save() {
+  Future<void> _save() async {
     final state = _editorState;
     if (state == null || _onSave == null) return;
 
-    final json = _converter.toJson(state);
-
-    // Evitar saves desnecessários
-    if (json == _lastSavedContent) {
-      _isDirty = false;
-      notifyListeners();
+    if (_isSaving) {
+      _pendingSave = true;
       return;
     }
 
-    _lastSavedContent = json;
-    _onSave(json);
-    _isDirty = false;
-    notifyListeners();
+    final content = _converter.toJson(state);
+
+    if (content.length > _maxSizeBytes) {
+      _lastSaveError = 'Documento excede o limite de ${(_maxSizeBytes / 1024).round()}KB.';
+      _safeNotify();
+      return;
+    }
+
+    // Evitar saves desnecessários
+    if (content == _lastSavedContent) {
+      final wasDirty = _isDirty;
+      _isDirty = false;
+      if (wasDirty) {
+        _safeNotify();
+      }
+      return;
+    }
+
+    _isSaving = true;
+    _lastSaveError = null;
+    _safeNotify();
+
+    try {
+      await _onSave(content);
+      _isDirty = false;
+      _lastSavedContent = content;
+    } catch (e) {
+      _lastSaveError = 'Falha ao salvar: ${e.toString()}';
+    } finally {
+      _isSaving = false;
+      _safeNotify();
+      if (_pendingSave) {
+        _pendingSave = false;
+        unawaited(_save());
+      }
+    }
   }
 
   /// Força save imediato (para quando sair da tela)
-  void saveNow() {
+  Future<void> saveNow() async {
     _debounceTimer?.cancel();
-    _save();
+    await _save();
+  }
+
+  /// Best-effort save meant to be called right before disposal.
+  ///
+  /// This method captures the current serialized content synchronously and then
+  /// performs the save without emitting state notifications. This avoids async
+  /// work trying to read editor state after disposal.
+  Future<void> saveNowBestEffort() async {
+    final state = _editorState;
+    if (state == null || _onSave == null) return;
+
+    _debounceTimer?.cancel();
+
+    final content = _converter.toJson(state);
+
+    if (content.length > _maxSizeBytes) {
+      return;
+    }
+
+    if (content == _lastSavedContent) {
+      return;
+    }
+
+    try {
+      await _onSave(content);
+      _lastSavedContent = content;
+      _isDirty = false;
+    } catch (_) {
+      // Ignore errors on best-effort save.
+    }
   }
 
   /// Retorna texto plano para preview
@@ -94,13 +164,22 @@ class RichTextEditorController<T> extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     _debounceTimer?.cancel();
-    
-    // Dispose do editor state se necessário
+
     if (_editorState is EditorState) {
-      (_editorState as EditorState).dispose();
+      final state = _editorState as EditorState;
+      if (_documentListener != null) {
+        state.document.removeListener(_documentListener!);
+      }
+      state.dispose();
     }
-    
+
     super.dispose();
+  }
+
+  void _safeNotify() {
+    if (_isDisposed) return;
+    notifyListeners();
   }
 }

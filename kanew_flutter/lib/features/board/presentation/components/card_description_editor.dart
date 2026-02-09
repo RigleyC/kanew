@@ -6,7 +6,7 @@ import 'package:kanew_flutter/core/widgets/rich_text_editor/rich_text_editor_con
 /// Este é o único arquivo que "sabe" sobre Cards
 class CardDescriptionEditor extends StatelessWidget {
   final String? initialDescription;
-  final ValueChanged<String> onSave;
+  final Future<void> Function(String content) onSave;
   final bool canEdit;
 
   const CardDescriptionEditor({

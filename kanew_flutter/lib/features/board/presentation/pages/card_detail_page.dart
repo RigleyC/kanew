@@ -166,9 +166,13 @@ class _CardDetailPageState extends State<CardDetailPage> {
       children: [
         // Main content
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
-            child: _buildMainContent(colorScheme, card),
+          child: CustomScrollView(
+            slivers: _buildMainContentSlivers(
+              context,
+              colorScheme,
+              card,
+              padding: const EdgeInsets.all(32),
+            ),
           ),
         ),
 
@@ -211,114 +215,149 @@ class _CardDetailPageState extends State<CardDetailPage> {
   }
 
   Widget _buildMobileLayout(ColorScheme colorScheme, Card card) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildMainContent(colorScheme, card),
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 16),
-          CardDetailSidebar(
-            card: card,
-            listName: _getListName(card.listId),
-            boardLists: _controller.boardLists,
-            labels: _controller.labels,
-            boardLabels: _controller.boardLabels,
-            onDueDateChanged: (date) {
-              _controller.updateCard(dueDate: date);
-            },
-            onToggleLabel: (labelId) {
-              if (_controller.labels.any((l) => l.id == labelId)) {
-                _controller.detachLabel(labelId);
-              } else {
-                _controller.attachLabel(labelId);
-              }
-            },
-            onCreateLabel: (name, color) {
-              _controller.createLabel(name, color);
-            },
-            onListChanged: (newListId) {
-              _controller.moveCardToList(newListId);
-            },
-            onPriorityChanged: (priority) {
-              _controller.updateCard(priority: priority);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMainContent(ColorScheme colorScheme, Card card) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Title
-        CardTitleEditor(
-          initialTitle: card.title,
-          onSave: (newTitle) => _controller.updateCard(title: newTitle),
+    return CustomScrollView(
+      slivers: [
+        ..._buildMainContentSlivers(
+          context,
+          colorScheme,
+          card,
+          padding: const EdgeInsets.all(16),
         ),
-        const SizedBox(height: 24),
-
-        // Description
-        CardDescriptionEditor(
-          initialDescription: card.descriptionDocument,
-          onSave: (newDesc) => _controller.updateCard(description: newDesc),
-        ),
-        const SizedBox(height: 24),
-
-        // Checklists
-        if (_controller.checklists.isNotEmpty) ...[
-          ChecklistSection(
-            checklists: _controller.checklists,
-            checklistItems: _controller.checklistItems,
-            onAddItem: _controller.addItem,
-            onDeleteChecklist: _controller.deleteChecklist,
-            onToggleItem: _controller.toggleItem,
-            onDeleteItem: _controller.deleteItem,
-          ),
-          const SizedBox(height: 8),
-        ],
-        SizedBox(height: 24),
-
-        // Attachments
-        CardAttachmentSection(controller: _controller),
-        const SizedBox(height: 32),
-        
-        //Add Checklist Button
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              onPressed: () async {
-                _showAddChecklistDialog(context);
-              },
-              icon: SvgPicture.asset(
-                'assets/icons/check.svg',
-                width: 16,
-                height: 16,
-                colorFilter: ColorFilter.mode(
-                  colorScheme.onSurface,
-                  BlendMode.srcIn,
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 16),
+                CardDetailSidebar(
+                  card: card,
+                  listName: _getListName(card.listId),
+                  boardLists: _controller.boardLists,
+                  labels: _controller.labels,
+                  boardLabels: _controller.boardLabels,
+                  onDueDateChanged: (date) {
+                    _controller.updateCard(dueDate: date);
+                  },
+                  onToggleLabel: (labelId) {
+                    if (_controller.labels.any((l) => l.id == labelId)) {
+                      _controller.detachLabel(labelId);
+                    } else {
+                      _controller.attachLabel(labelId);
+                    }
+                  },
+                  onCreateLabel: (name, color) {
+                    _controller.createLabel(name, color);
+                  },
+                  onListChanged: (newListId) {
+                    _controller.moveCardToList(newListId);
+                  },
+                  onPriorityChanged: (priority) {
+                    _controller.updateCard(priority: priority);
+                  },
                 ),
-              ),
+                const SizedBox(height: 32),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: 48),
-
-        // Activity
-        CardActivitySection(controller: _controller),
-        const SizedBox(height: 24),
-
-        // Comment input
-        CardCommentInput(
-          onSubmit: (text) => _controller.createComment(text),
+          ),
         ),
       ],
     );
+  }
+
+  List<Widget> _buildMainContentSlivers(
+    BuildContext context,
+    ColorScheme colorScheme,
+    Card card, {
+    required EdgeInsets padding,
+  }) {
+    return [
+      SliverPadding(
+        padding: padding.copyWith(bottom: 0),
+        sliver: SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CardTitleEditor(
+                initialTitle: card.title,
+                onSave: (newTitle) => _controller.updateCard(title: newTitle),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: EdgeInsets.symmetric(horizontal: padding.left),
+        sliver: CardDescriptionEditor(
+          initialDescription: card.descriptionDocument,
+          onSave: (newDesc) => _controller.updateCard(description: newDesc),
+          canEdit: true,
+        ),
+      ),
+      SliverPadding(
+        padding: padding.copyWith(top: 0),
+        sliver: SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 24),
+
+              // Checklists
+              if (_controller.checklists.isNotEmpty) ...[
+                ChecklistSection(
+                  checklists: _controller.checklists,
+                  checklistItems: _controller.checklistItems,
+                  onAddItem: _controller.addItem,
+                  onDeleteChecklist: _controller.deleteChecklist,
+                  onToggleItem: _controller.toggleItem,
+                  onDeleteItem: _controller.deleteItem,
+                ),
+                const SizedBox(height: 8),
+              ],
+              const SizedBox(height: 24),
+
+              // Attachments
+              CardAttachmentSection(controller: _controller),
+              const SizedBox(height: 32),
+
+              // Add Checklist Button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    onPressed: () async {
+                      _showAddChecklistDialog(context);
+                    },
+                    icon: SvgPicture.asset(
+                      'assets/icons/check.svg',
+                      width: 16,
+                      height: 16,
+                      colorFilter: ColorFilter.mode(
+                        colorScheme.onSurface,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 48),
+
+              // Activity
+              CardActivitySection(controller: _controller),
+              const SizedBox(height: 24),
+
+              // Comment input
+              CardCommentInput(
+                onSubmit: (text) => _controller.createComment(text),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
   }
 
   Widget _buildNotFoundPage(BuildContext context, ColorScheme colorScheme) {

@@ -8,6 +8,7 @@ import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
 import 'src/services/workspace_service.dart';
 import 'src/services/permission_service.dart';
+import 'src/services/railway_object_storage_cloud_storage.dart';
 import 'src/web/routes/app_config_route.dart';
 import 'src/web/routes/root.dart';
 
@@ -15,6 +16,14 @@ import 'src/web/routes/root.dart';
 void run(List<String> args) async {
   // Initialize Serverpod and connect it with your generated code.
   final pod = Serverpod(args, Protocol(), Endpoints());
+
+  final bucketStorage = RailwayObjectStorageCloudStorage.tryFromEnvironment(
+    storageId: 'public',
+  );
+  if (bucketStorage != null) {
+    pod.addCloudStorage(bucketStorage);
+    stdout.writeln('[Storage] Using Railway bucket for "${bucketStorage.storageId}".');
+  }
 
   // Initialize authentication services for server.
   setupAuth(pod);

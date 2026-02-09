@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:super_editor/super_editor.dart';
 import 'document_converter_base.dart';
@@ -22,12 +23,47 @@ class SuperEditorDocumentConverter implements DocumentConverter<EditorState> {
   @override
   String normalize(String? content) {
     if (content == null || content.isEmpty) {
-      // Retorna documento vazio em Markdown
       return '';
     }
 
+    final trimmed = content.trim();
+
+    // Detectar JSON legado (AppFlowy, Quill, etc)
+    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+        (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+      try {
+        // Tentar extrair texto simples do JSON ou converter para Markdown básico
+        // Se for um objeto complexo, convertemos para texto plano para evitar "lixo" na UI
+        debugPrint('[SuperEditorConverter] JSON detectado, convertendo para texto plano.');
+        return _jsonToPlainText(trimmed);
+      } catch (e) {
+        debugPrint('[SuperEditorConverter] Falha ao processar JSON: $e');
+        // Fallback para texto cru
+        return trimmed;
+      }
+    }
+
     // Se já parece ser Markdown ou texto plano, retorna como está
-    return content;
+    return trimmed;
+  }
+
+  String _jsonToPlainText(String json) {
+    try {
+      // Tentar decodificar e extrair texto
+      final decoded = jsonDecode(json);
+      if (decoded is Map) {
+        // Tentar encontrar campos comuns de texto (text, content, value)
+        final text = decoded['text'] ?? decoded['content'] ?? decoded['value'] ?? decoded['delta'];
+        if (text != null && text is String) return text;
+        // Se for um objeto complexo, serializar de forma simples
+        return decoded.toString();
+      } else if (decoded is List) {
+        return decoded.join('\n');
+      }
+      return decoded.toString();
+    } catch (_) {
+      return json;
+    }
   }
 
   @override

@@ -170,7 +170,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
               boardScrollController: _scrollController,
               groupConstraints: const BoxConstraints.tightFor(width: 300),
               config: AppFlowyBoardConfig(
-                groupBackgroundColor: Theme.of(context).canvasColor,
+                groupBackgroundColor: Color(0XFFF2F2F2),
                 stretchGroupHeight: false,
                 groupCornerRadius: 8,
                 groupBodyPadding: const EdgeInsets.all(8),
