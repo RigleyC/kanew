@@ -28,11 +28,11 @@ webServer:
 # This is the database setup for your servers.
 # Using Railway's internal network for secure connections.
 database:
-  host: postgres.railway.internal
-  port: 5432
-  name: railway
-  user: postgres
-  requireSsl: false
+  host: '%DB_HOST%'
+  port: %DB_PORT%
+  name: '%DB_NAME%'
+  user: '%DB_USER%'
+  requireSsl: %DB_REQUIRE_SSL%
   #isUnixSocket: true # defaults to false
   #maxConnectionCount: 10 # Defaults to 10, a negative or null value removes the limit
 
