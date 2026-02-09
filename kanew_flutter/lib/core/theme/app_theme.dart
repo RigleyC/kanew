@@ -159,7 +159,7 @@ class AppTheme {
         color: Color(0xFFE5E5E5), // light-200
         thickness: 1,
       ),
-      progressIndicatorTheme: ProgressIndicatorThemeData(year2023: false),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(),
     );
   }
 
@@ -337,7 +337,7 @@ class AppTheme {
         color: Color.fromARGB(255, 92, 92, 92),
         thickness: 1,
       ),
-      progressIndicatorTheme: ProgressIndicatorThemeData(year2023: false),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(),
     );
   }
 }

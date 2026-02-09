@@ -336,9 +336,6 @@ final appRouter = GoRouter(
                             : '';
                         final boardSlug =
                             state.pathParameters['boardSlug'] ?? '';
-                        print(
-                          'DEBUG ROUTER: uri=$uri, pathSegments=$pathSegments, workspaceSlug=$workspaceSlug, boardSlug=$boardSlug',
-                        );
                         return NoTransitionPage(
                           key: state.pageKey,
                           child: BoardViewPage(

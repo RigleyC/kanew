@@ -1,4 +1,4 @@
-/// Modelo centralizado de falhas para uso com Either<Failure, T>
+/// Modelo centralizado de falhas para uso com `Either<Failure, T>`
 ///
 /// Seguindo as diretrizes do AGENTS.md, todas as operações que podem
 /// falhar devem retornar `Future<Either<Failure, T>>`.

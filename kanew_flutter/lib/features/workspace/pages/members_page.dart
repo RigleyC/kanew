@@ -221,35 +221,36 @@ class _MembersPageState extends State<MembersPage> {
   }
 
   void _confirmRemoveMember(
-    BuildContext context,
+    BuildContext parentContext,
     int memberId,
     String userName,
   ) {
     showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: parentContext,
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Remover Membro'),
         content: Text('Tem certeza que deseja remover $userName do workspace?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancelar'),
           ),
           FilledButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
+              final messenger = ScaffoldMessenger.of(parentContext);
               final success = await _controller.removeMember(memberId);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      success
-                          ? 'Membro removido com sucesso'
-                          : 'Erro ao remover membro',
-                    ),
+              if (!mounted) return;
+
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(
+                    success
+                        ? 'Membro removido com sucesso'
+                        : 'Erro ao remover membro',
                   ),
-                );
-              }
+                ),
+              );
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Remover'),

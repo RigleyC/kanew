@@ -46,9 +46,7 @@ class MembersPageController extends ChangeNotifier {
 
       Workspace? workspace = await existing;
 
-      if (workspace == null) {
-        workspace = await _workspaceRepository.getBySlug(workspaceSlug);
-      }
+      workspace ??= await _workspaceRepository.getBySlug(workspaceSlug);
 
       if (workspace == null) {
         _initError = 'Workspace não encontrado';

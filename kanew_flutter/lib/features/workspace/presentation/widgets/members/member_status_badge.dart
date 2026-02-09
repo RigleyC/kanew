@@ -21,10 +21,10 @@ class MemberStatusBadge extends StatelessWidget {
           ? const EdgeInsets.symmetric(horizontal: 6, vertical: 2)
           : const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
