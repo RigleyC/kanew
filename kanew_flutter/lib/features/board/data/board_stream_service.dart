@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:kanew_client/kanew_client.dart';
-import '../../../core/auth/auth_service.dart';
 
 enum StreamStatus {
   disconnected,
@@ -101,8 +100,9 @@ class BoardStreamService {
       _reconnectTimer?.cancel();
       _subscription?.cancel();
       _subscription = null;
-      unawaited(AuthService.signOut());
-      debugPrint('[BoardStreamService] Auth error, disconnecting stream');
+      debugPrint(
+        '[BoardStreamService] Auth error (${error.runtimeType}), stopping reconnect',
+      );
       return;
     }
 
@@ -110,7 +110,7 @@ class BoardStreamService {
     _subscription?.cancel();
     _subscription = null;
 
-    // Retry after 3 seconds
+    // Retry with exponential backoff (with jitter)
     _reconnectTimer?.cancel();
     _reconnectAttempts++;
     final delay = _computeReconnectDelay(_reconnectAttempts);
@@ -123,8 +123,8 @@ class BoardStreamService {
   }
 
   Duration _computeReconnectDelay(int attempt) {
-    const baseSeconds = 3;
-    final exponent = attempt.clamp(0, 4).toInt();
+    const baseSeconds = 1;
+    final exponent = (attempt - 1).clamp(0, 4).toInt();
     final baseDelay = Duration(seconds: baseSeconds * (1 << exponent));
     final jitterMs = Random().nextInt(500);
     return baseDelay + Duration(milliseconds: jitterMs);
@@ -132,12 +132,15 @@ class BoardStreamService {
 
   bool _isAuthError(Object? error) {
     if (error == null) return false;
+
+    if (error is ServerpodClientException) {
+      return error.statusCode == 401 || error.statusCode == 403;
+    }
+
     final message = error.toString().toLowerCase();
-    return message.contains('jwt') ||
-        message.contains('unauthorized') ||
-        message.contains('not authenticated') ||
-        message.contains('authentication') ||
-        (message.contains('refresh') && message.contains('token'));
+    return message.contains('unauthorized') ||
+        message.contains('forbidden') ||
+        message.contains('not authenticated');
   }
 
   void _updateStatus(StreamStatus newStatus) {

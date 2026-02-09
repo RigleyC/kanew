@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
-import '../../features/auth/viewmodel/auth_controller.dart';
 import '../di/injection.dart';
 import '../../features/auth/view/login_screen.dart';
 import '../../features/auth/view/signup_screen.dart';
@@ -31,14 +30,13 @@ final appRouter = GoRouter(
   initialLocation: '/',
   debugLogDiagnostics: false,
   refreshListenable: Listenable.merge([
-    getIt<AuthController>(),
     getIt<WorkspaceController>(),
     getIt<FlutterAuthSessionManager>().authInfoListenable,
   ]),
   redirect: (context, state) {
-    final authViewModel = getIt<AuthController>();
+    final authManager = getIt<FlutterAuthSessionManager>();
     final workspaceViewModel = getIt<WorkspaceController>();
-    final isAuthenticated = authViewModel.isAuthenticated;
+    final isAuthenticated = authManager.isAuthenticated;
     final path = state.uri.path;
     final isAuthRoute = path.startsWith('/auth');
 
@@ -56,7 +54,10 @@ final appRouter = GoRouter(
         'Redirecting to login (not authenticated)',
         name: 'app_router',
       );
-      return '${RoutePaths.login}?redirect=$path';
+      return Uri(
+        path: RoutePaths.login,
+        queryParameters: {'redirect': state.uri.toString()},
+      ).toString();
     }
 
     if (isAuthenticated && (path == '/auth/login' || path == '/auth/signup')) {
@@ -138,9 +139,8 @@ final appRouter = GoRouter(
         listenable: getIt<WorkspaceController>(),
         builder: (context, child) {
           final viewModel = getIt<WorkspaceController>();
-          final authViewModel = getIt<AuthController>();
 
-          if (authViewModel.isAuthenticated &&
+          if (getIt<FlutterAuthSessionManager>().isAuthenticated &&
               !viewModel.hasWorkspaces &&
               !viewModel.isLoading) {
             WidgetsBinding.instance.addPostFrameCallback((_) {

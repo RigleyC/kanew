@@ -8,6 +8,14 @@ if [ -n "$RAILWAY_PUBLIC_DOMAIN" ] && [ -f "config/production.yaml" ]; then
   sed -i "s|%RAILWAY_PUBLIC_DOMAIN%|$RAILWAY_PUBLIC_DOMAIN|g" config/production.yaml
 fi
 
+if [ -f "config/production.yaml" ]; then
+  REDIS_ENABLED_VALUE="false"
+  if [ "${REDIS_ENABLED:-}" = "true" ]; then
+    REDIS_ENABLED_VALUE="true"
+  fi
+  sed -i "s|%REDIS_ENABLED%|$REDIS_ENABLED_VALUE|g" config/production.yaml
+fi
+
 echo "========================================="
 echo "Starting Kanew Serverpod Backend"
 echo "========================================="

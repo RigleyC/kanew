@@ -1,0 +1,68 @@
+# Railway deployment notes (kanew / production)
+#
+# This file exists to keep the repository aligned with the Railway dashboard.
+# It is not consumed by Railway at runtime.
+#
+# What is deployed today
+deployment:
+  kanew-backend:
+    builder: dockerfile
+    dockerfilePath: "Dockerfile"
+    start:
+      entrypoint: "kanew_server/start.sh (called by CMD in Dockerfile)"
+    healthCheck:
+      path: "/health"
+
+  kanew-web:
+    builder: dockerfile
+    dockerfilePath: "kanew_flutter/Dockerfile"
+    healthCheck:
+      path: "/"
+
+# Environment variables
+#
+# These are the variables that should exist (or be avoided) for each service.
+variables:
+  kanew-web:
+    keep:
+      - API_BASE_URL
+    removeUnlessUsed:
+      - AUTH_TOKEN
+      - DEFAULT_LANGUAGE
+      - ENABLE_DARK_MODE
+      - STREAMING_URL
+    rationale:
+      - "kanew_flutter/Dockerfile only uses API_BASE_URL to generate assets/assets/config.json."
+      - "Avoid secrets on frontend service."
+
+  kanew-backend:
+    keep:
+      - SERVERPOD_PASSWORD_database
+      - SERVERPOD_PASSWORD_redis
+      - SERVERPOD_PASSWORD_jwtRefreshTokenHashPepper
+      - SERVERPOD_PASSWORD_jwtHmacSha512PrivateKey
+      - SERVERPOD_PASSWORD_emailSecretHashPepper
+      # Default to "false" in Railway to avoid placeholder issues.
+      - REDIS_ENABLED
+    keepIfUsingObjectStorage:
+      - OBJECT_STORAGE_BUCKET
+      - OBJECT_STORAGE_ACCESS_KEY_ID
+      - OBJECT_STORAGE_SECRET_ACCESS_KEY
+      - OBJECT_STORAGE_ENDPOINT
+      - OBJECT_STORAGE_REGION
+      - OBJECT_STORAGE_FORCE_PATH_STYLE
+      - OBJECT_STORAGE_PRESIGNED_EXPIRES_SECONDS
+    removeUnlessUsed:
+      - AUTH_TOKEN
+      - JWT_SECRET
+      - SECRET_KEY
+      - ADMIN_PORT
+      - STREAMING_PORT
+      - MAX_FILE_SIZE
+      - ALLOWED_FILE_TYPES
+      - DATABASE_URL
+      - REDIS_URL
+    rationale:
+      - "Serverpod resolves passwords via kanew_server/config/passwords.yaml (placeholders read from env)."
+      - "Ports are configured in kanew_server/config/production.yaml."
+      - "REDIS_ENABLED toggles the redis feature in production.yaml."

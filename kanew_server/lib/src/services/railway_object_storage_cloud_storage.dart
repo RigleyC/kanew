@@ -1,9 +1,12 @@
+// ignore_for_file: implementation_imports
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:math';
 
 import 'package:aws_common/aws_common.dart';
 import 'package:aws_signature_v4/aws_signature_v4.dart';
 import 'package:serverpod/serverpod.dart';
+import 'package:serverpod/src/generated/cloud_storage_direct_upload.dart';
 
 class RailwayObjectStorageCloudStorage extends CloudStorage {
   RailwayObjectStorageCloudStorage({
@@ -269,9 +272,41 @@ class RailwayObjectStorageCloudStorage extends CloudStorage {
     Duration expirationDuration = const Duration(minutes: 10),
     int maxFileSize = 10 * 1024 * 1024,
   }) async {
-    // Not currently used by the Kanew client. Keeping it unsupported avoids
-    // mismatches with Serverpod's uploader semantics (method/headers).
-    return null;
+    final config = session.server.serverpod.config;
+
+    final expiration = DateTime.now().add(expirationDuration);
+
+    final uploadEntry = CloudStorageDirectUploadEntry(
+      storageId: storageId,
+      path: path,
+      expiration: expiration,
+      authKey: _generateAuthKey(),
+    );
+
+    final inserted = await CloudStorageDirectUploadEntry.db.insertRow(
+      session,
+      uploadEntry,
+    );
+
+    final uri = Uri(
+      scheme: config.apiServer.publicScheme,
+      host: config.apiServer.publicHost,
+      port: config.apiServer.publicPort,
+      path: '/serverpod_cloud_storage',
+      queryParameters: {
+        'method': 'upload',
+        'storage': storageId,
+        'path': path,
+        'key': inserted.authKey,
+      },
+    );
+
+    final uploadDescriptionData = {
+      'url': uri.toString(),
+      'type': 'binary',
+    };
+
+    return SerializationManager.encode(uploadDescriptionData);
   }
 
   @override
@@ -279,6 +314,19 @@ class RailwayObjectStorageCloudStorage extends CloudStorage {
     required Session session,
     required String path,
   }) async {
-    return false;
+    return fileExists(session: session, path: path);
+  }
+
+  static String _generateAuthKey() {
+    const len = 16;
+    const chars =
+        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    final rnd = Random();
+    return String.fromCharCodes(
+      Iterable.generate(
+        len,
+        (_) => chars.codeUnitAt(rnd.nextInt(chars.length)),
+      ),
+    );
   }
 }

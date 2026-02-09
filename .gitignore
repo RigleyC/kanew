@@ -51,5 +51,8 @@ coverage/
 *.pyc
 __pycache__/
 
+# Railway exports
+docs/railway/vars/
+
 # Windows reserved names
 nul

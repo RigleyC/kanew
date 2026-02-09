@@ -16,12 +16,16 @@ class AuthController extends ChangeNotifier {
 
   AuthState _state = const AuthInitial();
   String? _currentEmail;
+  late final VoidCallback _authListener;
 
   AuthController({
     required AuthRepository repository,
     required FlutterAuthSessionManager authManager,
   }) : _repository = repository,
-       _authManager = authManager;
+       _authManager = authManager {
+    _authListener = _onAuthInfoChanged;
+    _authManager.authInfoListenable.addListener(_authListener);
+  }
 
 
   AuthState get state => _state;
@@ -34,6 +38,22 @@ class AuthController extends ChangeNotifier {
       _state is AuthError ? (_state as AuthError).message : null;
 
   bool get isAuthenticated => _authManager.isAuthenticated;
+
+  void _onAuthInfoChanged() {
+    // Keep UI listening to AuthController in sync with session changes that
+    // may happen outside of this controller (e.g. token refresh or sign-out).
+    if (!_authManager.isAuthenticated && _state is AuthAuthenticated) {
+      reset();
+      return;
+    }
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _authManager.authInfoListenable.removeListener(_authListener);
+    super.dispose();
+  }
 
 
   void _setState(AuthState newState) {

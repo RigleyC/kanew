@@ -39,7 +39,8 @@ database:
 # This is the setup for Redis.
 # Using Railway's internal network for secure connections.
 redis:
-  enabled: false
+  # Toggle with env var: REDIS_ENABLED=true|false (default: false)
+  enabled: %REDIS_ENABLED%
   host: redis.railway.internal
   port: 6379
   #user: # defaults to empty

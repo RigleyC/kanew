@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:kanew_client/kanew_client.dart';
@@ -104,6 +106,28 @@ getIt.registerLazySingleton<MemberRepository>(
       repository: getIt<WorkspaceRepository>(),
     ),
   );
+
+  // Keep workspace state consistent with authentication changes.
+  // - On sign-out: clear cached workspaces to avoid leaking stale state.
+  // - On sign-in: (re)load workspaces.
+  final workspaceController = getIt<WorkspaceController>();
+  var lastIsAuthenticated = authManager.isAuthenticated;
+  authManager.authInfoListenable.addListener(() {
+    final isAuthenticated = authManager.isAuthenticated;
+    if (isAuthenticated == lastIsAuthenticated) return;
+    lastIsAuthenticated = isAuthenticated;
+
+    if (!isAuthenticated) {
+      workspaceController.clear();
+      return;
+    }
+
+    unawaited(workspaceController.init());
+  });
+
+  if (authManager.isAuthenticated) {
+    unawaited(workspaceController.init());
+  }
 
   getIt.registerLazySingleton<ListRepository>(
     () => ListRepository(client: getIt<Client>()),

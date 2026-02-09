@@ -1,0 +1,50 @@
+# Railway deploy reference (source of truth)
+#
+# IMPORTANT:
+# - Railway is configured via the Railway dashboard / service settings.
+# - This file documents the *current* real deployment setup for review and onboarding.
+#
+# Project: kanew
+# Environment: production
+#
+# Services
+services:
+  kanew-backend:
+    description: "Serverpod backend (API + Insights + Web/Streaming) built from Dockerfile"
+    dockerfile: "Dockerfile"
+    runtimeNotes:
+      - "Reads Serverpod config from kanew_server/config/production.yaml"
+      - "Resolves secrets from kanew_server/config/passwords.yaml (SERVERPOD_PASSWORD_*)"
+      - "At container start, kanew_server/start.sh substitutes %RAILWAY_PUBLIC_DOMAIN% using $RAILWAY_PUBLIC_DOMAIN"
+    requiredVariables:
+      # Used by kanew_server/config/passwords.yaml (production section)
+      - "SERVERPOD_PASSWORD_database"
+      - "SERVERPOD_PASSWORD_redis"
+      - "SERVERPOD_PASSWORD_jwtRefreshTokenHashPepper"
+      - "SERVERPOD_PASSWORD_jwtHmacSha512PrivateKey"
+      - "SERVERPOD_PASSWORD_emailSecretHashPepper"
+    optionalVariables:
+      # Enables redis integration in production.yaml (default: false)
+      - "REDIS_ENABLED"
+      # Only needed if attachments/object storage is enabled.
+      - "OBJECT_STORAGE_BUCKET"
+      - "OBJECT_STORAGE_ACCESS_KEY_ID"
+      - "OBJECT_STORAGE_SECRET_ACCESS_KEY"
+      - "OBJECT_STORAGE_ENDPOINT"
+      - "OBJECT_STORAGE_REGION"
+      - "OBJECT_STORAGE_FORCE_PATH_STYLE"
+      - "OBJECT_STORAGE_PRESIGNED_EXPIRES_SECONDS"
+    notes:
+      - "Avoid adding generic secrets/URLs that the server doesn't read (ex: AUTH_TOKEN, JWT_SECRET, SECRET_KEY) unless code uses them."
+      - "DATABASE_URL / REDIS_URL are provided by Railway but Serverpod uses production.yaml + passwords.yaml by default."
+
+  kanew-web:
+    description: "Flutter Web app served by a lightweight container"
+    dockerfile: "kanew_flutter/Dockerfile"
+    requiredVariables:
+      # Used at runtime to generate /assets/assets/config.json which AppConfig reads.
+      - "API_BASE_URL"
+    notes:
+      - "API_BASE_URL must be the Serverpod base URL (example: https://kanew-backend-production.up.railway.app/)."
+      - "No STREAMING_URL is required: Serverpod client derives websocket path (/v1/websocket) from the base URL."
+      - "Do not store secrets on the web service: any env var can be exposed in a static frontend context."

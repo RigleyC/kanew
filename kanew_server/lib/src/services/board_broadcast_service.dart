@@ -12,14 +12,15 @@ class BoardBroadcastService {
     Session session, {
     required BoardEvent event,
   }) {
+    final useGlobal = session.serverpod.redisController != null;
     session.messages.postMessage(
       channelName(event.boardId),
       event,
-      global: true,
+      global: useGlobal,
     );
 
     session.log(
-      '[BoardBroadcast] ${event.eventType.name} on board ${event.boardId}',
+      '[BoardBroadcast] ${event.eventType.name} on board ${event.boardId} (global=$useGlobal)',
     );
   }
 
