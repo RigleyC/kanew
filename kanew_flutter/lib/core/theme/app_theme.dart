@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // --- TEMA CLARO (LIGHT) ---
   static ThemeData get light {
     return ThemeData(
       fontFamily: GoogleFonts.inter().fontFamily,
@@ -78,10 +77,8 @@ class AppTheme {
         ),
       ),
 
-      // Cards (Card.tsx)
-      // Classes: rounded-md border border-light-200 bg-light-50
       cardTheme: CardThemeData(
-        color: const Color(0xFFFAFAFA), // bg-light-50
+        color: const Color(0xFFF2F2F2), // bg-light-50
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
@@ -162,6 +159,7 @@ class AppTheme {
         color: Color(0xFFE5E5E5), // light-200
         thickness: 1,
       ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(year2023: false),
     );
   }
 

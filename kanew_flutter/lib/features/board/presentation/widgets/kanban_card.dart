@@ -26,7 +26,7 @@ class KanbanCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Color(0XFF222222),
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(8),
         ),
         padding: const EdgeInsets.all(16),

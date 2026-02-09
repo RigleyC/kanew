@@ -94,37 +94,50 @@ class SidebarItem extends StatelessWidget {
             color: selected ? selectedBackgroundColor : Colors.transparent,
             borderRadius: borderRadius,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconTheme(
-                data: IconThemeData(
-                  color: selected
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                  size: 20,
-                ),
-                child: icon,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                    color: selected
-                        ? colorScheme.primary
-                        : colorScheme.onSurface,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final canShowLabel = constraints.maxWidth >= 120;
+              final canShowGap = constraints.maxWidth >= 60;
+
+              return Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: canShowLabel
+                    ? MainAxisAlignment.start
+                    : MainAxisAlignment.center,
+                children: [
+                  IconTheme(
+                    data: IconThemeData(
+                      color: selected
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                      size: 20,
+                    ),
+                    child: icon,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (trailing != null) ...[
-                const SizedBox(width: 8),
-                trailing!,
-              ],
-            ],
+                  if (canShowGap) const SizedBox(width: 12),
+                  if (canShowLabel)
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: selected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: selected
+                              ? colorScheme.primary
+                              : colorScheme.onSurface,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  if (canShowLabel && trailing != null) ...[
+                    const SizedBox(width: 8),
+                    trailing!,
+                  ],
+                ],
+              );
+            },
           ),
         ),
       ),

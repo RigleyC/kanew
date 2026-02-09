@@ -7,6 +7,7 @@ build/
 *.iml
 .idea/
 *.log
+*.md
 
 # Serverpod
 .dart_tool/

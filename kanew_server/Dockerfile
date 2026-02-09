@@ -16,8 +16,8 @@ ENV serverid=default
 ENV logging=normal
 ENV role=monolith
 
-# Copy runtime dependencies
-COPY --from=build /runtime/ /
+# Install runtime dependencies for Dart AOT-compiled binaries on Alpine
+RUN apk add --no-cache libc6-compat ca-certificates
 
 # Copy compiled server executable
 COPY --from=build /app/bin/server server
@@ -35,5 +35,8 @@ EXPOSE 8080
 EXPOSE 8081
 EXPOSE 8082
 
-# Define the entrypoint command
-ENTRYPOINT ./server --mode=$runmode --server-id=$serverid --logging=$logging --role=$role
+# Startup script (applies migrations, then runs server)
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh && sed -i 's/\r$//' ./start.sh
+
+CMD ["./start.sh"]

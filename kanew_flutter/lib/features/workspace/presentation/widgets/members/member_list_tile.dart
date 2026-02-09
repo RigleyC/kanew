@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kanew_client/kanew_client.dart';
-import 'member_avatar.dart';
-import 'member_role_badge.dart';
-import 'member_status_badge.dart';
+import '../../../../../core/widgets/member/member_avatar.dart';
+import '../../../../../core/widgets/member/member_role_badge.dart';
+import '../../../../../core/widgets/member/member_status_badge.dart';
 
 /// List tile displaying member info with actions menu
 class MemberListTile extends StatelessWidget {

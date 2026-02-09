@@ -10,6 +10,14 @@ class AttachmentEndpoint extends Endpoint {
   @override
   bool get requireLogin => true;
 
+  Future<String?> _publicUrl(Session session, String storagePath) async {
+    final uri = await session.storage.getPublicUrl(
+      storageId: 'public',
+      path: storagePath,
+    );
+    return uri?.toString();
+  }
+
   /// Uploads a file directly via ByteData.
   /// This is a simpler approach that doesn't require the FileUploader client.
   ///
@@ -58,10 +66,7 @@ class AttachmentEndpoint extends Endpoint {
     );
 
     // 4. Get the public URL
-    final publicUrlUri = await session.storage.getPublicUrl(
-      storageId: 'public',
-      path: storagePath,
-    );
+    final publicUrl = await _publicUrl(session, storagePath);
 
     // 5. Create Attachment Record
     final size = fileData.lengthInBytes;
@@ -74,7 +79,7 @@ class AttachmentEndpoint extends Endpoint {
       storageKey: storagePath,
       uploaderId: numericUserId,
       createdAt: DateTime.now(),
-      fileUrl: publicUrlUri?.toString(),
+      fileUrl: null,
     );
 
     final result = await Attachment.db.insertRow(session, attachment);
@@ -88,7 +93,7 @@ class AttachmentEndpoint extends Endpoint {
       details: 'adicionou o anexo "$fileName"',
     );
 
-    return result;
+    return result.copyWith(fileUrl: publicUrl);
   }
 
   /// Returns an upload description for uploading a file to the server.
@@ -200,10 +205,7 @@ class AttachmentEndpoint extends Endpoint {
     }
 
     // 3. Create Attachment Record
-    final publicUrlUri = await session.storage.getPublicUrl(
-      storageId: 'public',
-      path: storagePath,
-    );
+    final publicUrl = await _publicUrl(session, storagePath);
 
     final attachment = Attachment(
       cardId: cardId,
@@ -214,7 +216,7 @@ class AttachmentEndpoint extends Endpoint {
       storageKey: storagePath,
       uploaderId: numericUserId,
       createdAt: DateTime.now(),
-      fileUrl: publicUrlUri?.toString(),
+      fileUrl: null,
     );
 
     final result = await Attachment.db.insertRow(session, attachment);
@@ -228,7 +230,7 @@ class AttachmentEndpoint extends Endpoint {
       details: 'adicionou o anexo "$fileName"',
     );
 
-    return result;
+    return result.copyWith(fileUrl: publicUrl);
   }
 
   /// Lists all active attachments for a card.
@@ -261,11 +263,20 @@ class AttachmentEndpoint extends Endpoint {
       throw Exception('User does not have permission to read this card');
     }
 
-    return await Attachment.db.find(
+    final rows = await Attachment.db.find(
       session,
       where: (a) => a.cardId.equals(cardId) & a.deletedAt.equals(null),
       orderBy: (a) => a.createdAt,
       orderDescending: true,
+    );
+
+    return Future.wait(
+      rows.map((a) async {
+        final url = a.storageKey.isNotEmpty
+            ? await _publicUrl(session, a.storageKey)
+            : null;
+        return a.copyWith(fileUrl: url ?? a.fileUrl);
+      }),
     );
   }
 
@@ -307,6 +318,16 @@ class AttachmentEndpoint extends Endpoint {
       throw Exception(
         'User does not have permission to delete this attachment',
       );
+    }
+
+    // Best-effort delete from storage
+    try {
+      await session.storage.deleteFile(
+        storageId: 'public',
+        path: attachment.storageKey,
+      );
+    } catch (e) {
+      session.log('[AttachmentEndpoint] Failed to delete file from storage: $e');
     }
 
     // Soft delete

@@ -30,7 +30,18 @@ class CardDetailPageController extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isUploading = false;
+  bool _isDisposed = false;
   String? _error;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
+  void _safeNotify() {
+    if (!_isDisposed) notifyListeners();
+  }
 
   CardDetailPageController({
     required CardRepository repository,
@@ -75,7 +86,7 @@ class CardDetailPageController extends ChangeNotifier {
   Future<void> load(String cardUuid) async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    _safeNotify();
 
     final result = await _repository.getCardDetailByUuid(cardUuid);
 
@@ -109,7 +120,7 @@ class CardDetailPageController extends ChangeNotifier {
     );
 
     _isLoading = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<void> _loadActivities(int cardId) async {
@@ -130,7 +141,7 @@ class CardDetailPageController extends ChangeNotifier {
         _comments.insert(0, comment);
         // Reload activity to show the "commented" log
         _loadActivities(_card!.id!);
-        notifyListeners();
+        _safeNotify();
       },
     );
   }
@@ -141,7 +152,7 @@ class CardDetailPageController extends ChangeNotifier {
       (f) => _error = f.message,
       (_) {
         _comments.removeWhere((c) => c.id == commentId);
-        notifyListeners();
+        _safeNotify();
       },
     );
   }
@@ -155,7 +166,7 @@ class CardDetailPageController extends ChangeNotifier {
       (checklist) {
         _checklists.add(checklist);
         _checklistItems[checklist.id!] = [];
-        notifyListeners();
+        _safeNotify();
       },
     );
   }
@@ -167,7 +178,7 @@ class CardDetailPageController extends ChangeNotifier {
       (_) {
         _checklists.removeWhere((c) => c.id == checklistId);
         _checklistItems.remove(checklistId);
-        notifyListeners();
+        _safeNotify();
       },
     );
   }
@@ -180,7 +191,7 @@ class CardDetailPageController extends ChangeNotifier {
         final items = _checklistItems[checklistId] ?? [];
         items.add(item);
         _checklistItems[checklistId] = items;
-        notifyListeners();
+        _safeNotify();
       },
     );
   }
@@ -195,7 +206,7 @@ class CardDetailPageController extends ChangeNotifier {
 
     final oldItem = items[index];
     items[index] = oldItem.copyWith(isChecked: isChecked);
-    notifyListeners();
+    _safeNotify();
 
     final result = await _checklistRepo.updateItem(
       itemId,
@@ -206,12 +217,12 @@ class CardDetailPageController extends ChangeNotifier {
         // Revert
         items[index] = oldItem;
         _error = f.message;
-        notifyListeners();
+        _safeNotify();
       },
       (updatedItem) {
         // Confirm
         items[index] = updatedItem;
-        notifyListeners();
+        _safeNotify();
       },
     );
   }
@@ -223,7 +234,7 @@ class CardDetailPageController extends ChangeNotifier {
 
     final originalItems = List<ChecklistItem>.from(items);
     items.removeWhere((i) => i.id == itemId);
-    notifyListeners();
+    _safeNotify();
 
     final result = await _checklistRepo.deleteItem(itemId);
     result.fold(
@@ -231,7 +242,7 @@ class CardDetailPageController extends ChangeNotifier {
         // Revert
         _checklistItems[checklistId] = originalItems;
         _error = f.message;
-        notifyListeners();
+        _safeNotify();
       },
       (_) {}, // Success
     );
@@ -246,14 +257,14 @@ class CardDetailPageController extends ChangeNotifier {
     // Optimistic update
     final labelToAdd = boardLabels.firstWhere((l) => l.id == labelId);
     _labels.add(labelToAdd);
-    notifyListeners();
+    _safeNotify();
 
     final result = await _labelRepo.attachLabel(_card!.id!, labelId);
     result.fold(
       (f) {
         _labels.removeWhere((l) => l.id == labelId);
         _error = f.message;
-        notifyListeners();
+        _safeNotify();
       },
       (_) => _loadActivities(_card!.id!), // Reload activity to show label added
     );
@@ -265,14 +276,14 @@ class CardDetailPageController extends ChangeNotifier {
     // Optimistic update
     final labelToRemove = _labels.firstWhere((l) => l.id == labelId);
     _labels.removeWhere((l) => l.id == labelId);
-    notifyListeners();
+    _safeNotify();
 
     final result = await _labelRepo.detachLabel(_card!.id!, labelId);
     result.fold(
       (f) {
         _labels.add(labelToRemove);
         _error = f.message;
-        notifyListeners();
+        _safeNotify();
       },
       (_) =>
           _loadActivities(_card!.id!), // Reload activity to show label removed
@@ -315,7 +326,7 @@ class CardDetailPageController extends ChangeNotifier {
     if (file == null) return null; // User cancelled
 
     _isUploading = true;
-    notifyListeners();
+    _safeNotify();
 
     final uploadResult = await _attachmentRepo.uploadAttachment(
       _card!.id!,
@@ -328,14 +339,14 @@ class CardDetailPageController extends ChangeNotifier {
       (f) {
         _lastUploadError = f.message;
         _lastUploadResult = false;
-        notifyListeners();
+        _safeNotify();
         return false;
       },
       (attachment) {
         _attachments.insert(0, attachment);
         _lastUploadResult = true;
         _loadActivities(_card!.id!);
-        notifyListeners();
+        _safeNotify();
         return true;
       },
     );
@@ -347,14 +358,14 @@ class CardDetailPageController extends ChangeNotifier {
     // Optimistic update
     final originalList = List<Attachment>.from(_attachments);
     _attachments.removeWhere((a) => a.id == attachmentId);
-    notifyListeners();
+    _safeNotify();
 
     final result = await _attachmentRepo.deleteAttachment(attachmentId);
     result.fold(
       (f) {
         _attachments = originalList;
         _error = f.message;
-        notifyListeners();
+        _safeNotify();
       },
       (_) => _loadActivities(_card!.id!),
     );
@@ -379,13 +390,13 @@ class CardDetailPageController extends ChangeNotifier {
     return result.fold(
       (f) {
         _error = f.message;
-        notifyListeners();
+        _safeNotify();
         return null;
       },
       (card) {
         _card = card;
         _boardStore.updateCard(card); // Update store!
-        notifyListeners();
+        _safeNotify();
         return card;
       },
     );
@@ -406,7 +417,7 @@ class CardDetailPageController extends ChangeNotifier {
     _list = newList;
     _card = _card!.copyWith(listId: newListId);
     _boardStore.updateCard(_card!); // Update store!
-    notifyListeners();
+    _safeNotify();
 
     final result = await _repository.moveCard(_card!.id!, newListId);
 
@@ -417,14 +428,14 @@ class CardDetailPageController extends ChangeNotifier {
         _card = _card!.copyWith(listId: oldList?.id ?? 0);
         _boardStore.updateCard(_card!); // Revert store!
         _error = f.message;
-        notifyListeners();
+        _safeNotify();
       },
       (card) {
         // Update with server data just in case
         _card = card;
         _boardStore.updateCard(card); // Confirm store!
         _loadActivities(card.id!);
-        notifyListeners();
+        _safeNotify();
       },
     );
   }
