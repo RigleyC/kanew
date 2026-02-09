@@ -110,14 +110,14 @@ void _sendPasswordResetCode(
   required Transaction? transaction,
 }) {
   // Print reset code to console (visible in terminal)
-  print('');
-  print('╔════════════════════════════════════════════════════════╗');
-  print('║  🔑 PASSWORD RESET CODE                                      ║');
-  print('╠══════════════════════════════════════════════════════╣');
-  print('║  Email: $email');
-  print('║  Code:  $verificationCode');
-  print('╚════════════════════════════════════════════════════════════╝');
-  print('');
+  stdout.writeln('');
+  stdout.writeln('╔════════════════════════════════════════════════════════╗');
+  stdout.writeln('║  🔑 PASSWORD RESET CODE                                 ║');
+  stdout.writeln('╠════════════════════════════════════════════════════════╣');
+  stdout.writeln('║  Email: $email');
+  stdout.writeln('║  Code:  $verificationCode');
+  stdout.writeln('╚════════════════════════════════════════════════════════╝');
+  stdout.writeln('');
 }
 
 /// Called when a new user account is created via email signup.
@@ -168,8 +168,8 @@ Future<void> seedPermissions(Serverpod pod) async {
   final session = await pod.createSession();
   try {
     await PermissionService.seedPermissions(session);
-    print('[Server] Permission seeding completed');
+    session.log('[Server] Permission seeding completed');
   } catch (e) {
-    print('[Server] Permission seeding failed: $e');
+    session.log('[Server] Permission seeding failed: $e');
   }
 }

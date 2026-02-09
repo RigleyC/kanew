@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 
 import 'package:appflowy_board/appflowy_board.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Card;
 import 'package:go_router/go_router.dart';
 import 'package:kanew_client/kanew_client.dart';
@@ -38,6 +39,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
   late final AppFlowyBoardScrollController _scrollController;
   late final BoardDataAdapter _adapter;
   late final BoardFilterStore _filterStore;
+  late Listenable _boardDataListenable;
 
   @override
   void initState() {
@@ -57,7 +59,8 @@ class _KanbanBoardState extends State<KanbanBoard> {
     _sync();
 
     // Listen for changes
-    widget.controller.addListener(_onControllerChanged);
+    _boardDataListenable = widget.controller.boardDataListenable;
+    _boardDataListenable.addListener(_onBoardDataChanged);
     _filterStore.addListener(_onFilterChanged);
   }
 
@@ -65,21 +68,22 @@ class _KanbanBoardState extends State<KanbanBoard> {
   void didUpdateWidget(covariant KanbanBoard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_onControllerChanged);
-      widget.controller.addListener(_onControllerChanged);
+      _boardDataListenable.removeListener(_onBoardDataChanged);
+      _boardDataListenable = widget.controller.boardDataListenable;
+      _boardDataListenable.addListener(_onBoardDataChanged);
       _sync();
     }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_onControllerChanged);
+    _boardDataListenable.removeListener(_onBoardDataChanged);
     _filterStore.removeListener(_onFilterChanged);
     _boardController.dispose();
     super.dispose();
   }
 
-  void _onControllerChanged() {
+  void _onBoardDataChanged() {
     if (mounted) {
       _sync();
     }
@@ -118,10 +122,12 @@ class _KanbanBoardState extends State<KanbanBoard> {
     String toGroupId,
     int toIndex,
   ) {
-    developer.log(
-      'Move group from $fromIndex to $toIndex',
-      name: 'kanban_board',
-    );
+    if (kDebugMode) {
+      developer.log(
+        'Move group from $fromIndex to $toIndex',
+        name: 'kanban_board',
+      );
+    }
 
     widget.controller.moveList(fromIndex, toIndex);
   }
@@ -131,10 +137,12 @@ class _KanbanBoardState extends State<KanbanBoard> {
     int fromIndex,
     int toIndex,
   ) {
-    developer.log(
-      'Move item within $groupId from $fromIndex to $toIndex',
-      name: 'kanban_board',
-    );
+    if (kDebugMode) {
+      developer.log(
+        'Move item within $groupId from $fromIndex to $toIndex',
+        name: 'kanban_board',
+      );
+    }
 
     _adapter.handleMoveCard(groupId, toIndex, widget.controller);
   }
@@ -145,10 +153,12 @@ class _KanbanBoardState extends State<KanbanBoard> {
     String toGroupId,
     int toIndex,
   ) {
-    developer.log(
-      'Move item from $fromGroupId:$fromIndex to $toGroupId:$toIndex',
-      name: 'kanban_board',
-    );
+    if (kDebugMode) {
+      developer.log(
+        'Move item from $fromGroupId:$fromIndex to $toGroupId:$toIndex',
+        name: 'kanban_board',
+      );
+    }
 
     _adapter.handleMoveCard(toGroupId, toIndex, widget.controller);
   }
@@ -194,10 +204,12 @@ class _KanbanBoardState extends State<KanbanBoard> {
                     cardSummary: cardItem.cardSummary,
                     onTap: () async {
                       widget.controller.selectCard(cardItem.cardSummary);
-                      developer.log(
-                        'Card tapped: ${cardItem.cardSummary.card.title}',
-                        name: 'kanban_board',
-                      );
+                      if (kDebugMode) {
+                        developer.log(
+                          'Card tapped: ${cardItem.cardSummary.card.title}',
+                          name: 'kanban_board',
+                        );
+                      }
                       context.go(
                         RoutePaths.cardDetail(
                           widget.workspaceSlug,

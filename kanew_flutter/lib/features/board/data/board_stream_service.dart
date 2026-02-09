@@ -37,6 +37,11 @@ class BoardStreamService {
 
   StreamStatus get status => _status;
 
+  void _debugLog(String message) {
+    if (!kDebugMode) return;
+    debugPrint(message);
+  }
+
   /// Connects to board stream with auto-reconnect
   Future<void> connect(int boardId) async {
     if (_disposed) return;
@@ -64,17 +69,17 @@ class BoardStreamService {
 
       _subscription = stream.listen(
         (event) {
-          debugPrint('[BoardStreamService] Received event: ${event.eventType}');
+          _debugLog('[BoardStreamService] Received event: ${event.eventType}');
           if (!_disposed) {
             _eventController.add(event);
           }
         },
         onError: (error, _) {
-          debugPrint('[BoardStreamService] Stream error: $error');
+          _debugLog('[BoardStreamService] Stream error: $error');
           _handleDisconnection(error: error);
         },
         onDone: () {
-          debugPrint('[BoardStreamService] Stream closed');
+          _debugLog('[BoardStreamService] Stream closed');
           _handleDisconnection();
         },
         cancelOnError: false,
@@ -82,9 +87,9 @@ class BoardStreamService {
 
       _updateStatus(StreamStatus.connected);
       _reconnectAttempts = 0;
-      debugPrint('[BoardStreamService] Connected to board $_currentBoardId');
+      _debugLog('[BoardStreamService] Connected to board $_currentBoardId');
     } catch (e) {
-      debugPrint('[BoardStreamService] Connection error: $e');
+      _debugLog('[BoardStreamService] Connection error: $e');
       _handleDisconnection(error: e);
     } finally {
       _isConnecting = false;
@@ -100,7 +105,7 @@ class BoardStreamService {
       _reconnectTimer?.cancel();
       _subscription?.cancel();
       _subscription = null;
-      debugPrint(
+      _debugLog(
         '[BoardStreamService] Auth error (${error.runtimeType}), stopping reconnect',
       );
       return;
@@ -116,7 +121,7 @@ class BoardStreamService {
     final delay = _computeReconnectDelay(_reconnectAttempts);
     _reconnectTimer = Timer(delay, () {
       if (!_disposed && _currentBoardId != null && !_authInvalid) {
-        debugPrint('[BoardStreamService] Attempting reconnect...');
+        _debugLog('[BoardStreamService] Attempting reconnect...');
         _startListening();
       }
     });

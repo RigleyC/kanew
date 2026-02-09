@@ -187,12 +187,12 @@ class AttachmentEndpoint extends Endpoint {
     }
 
     // 2. Verify File Upload
-    print('[AttachmentEndpoint] Verifying upload for path: $storagePath');
+    session.log('[AttachmentEndpoint] Verifying upload for path: $storagePath');
     final success = await session.storage.verifyDirectFileUpload(
       storageId: 'public',
       path: storagePath,
     );
-    print('[AttachmentEndpoint] Verification result: $success');
+    session.log('[AttachmentEndpoint] Verification result: $success');
 
     if (!success) {
       // Try to check if file exists
@@ -200,7 +200,7 @@ class AttachmentEndpoint extends Endpoint {
         storageId: 'public',
         path: storagePath,
       );
-      print('[AttachmentEndpoint] File exists check: $exists');
+      session.log('[AttachmentEndpoint] File exists check: $exists');
       throw Exception('File upload failed verification');
     }
 

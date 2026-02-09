@@ -15,11 +15,13 @@ import '../widgets/kanban_board.dart';
 class BoardViewPage extends StatefulWidget {
   final String workspaceSlug;
   final String boardSlug;
+  final int? boardId;
 
   const BoardViewPage({
     super.key,
     required this.workspaceSlug,
     required this.boardSlug,
+    this.boardId,
   });
 
   @override
@@ -38,7 +40,11 @@ class _BoardViewPageState extends State<BoardViewPage> {
   }
 
   Future<void> _loadBoard() async {
-    await _controller.load(widget.workspaceSlug, widget.boardSlug);
+    await _controller.load(
+      widget.workspaceSlug,
+      widget.boardSlug,
+      boardId: widget.boardId,
+    );
   }
 
   @override

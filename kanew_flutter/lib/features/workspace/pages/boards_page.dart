@@ -156,8 +156,10 @@ class _BoardsPageState extends State<BoardsPage> {
                 board: board,
                 onTap: () {
                   controller.selectBoard(board);
+                  final boardId = board.id;
                   context.go(
                     RoutePaths.boardView(widget.workspaceSlug, board.slug),
+                    extra: boardId == null ? null : {'boardId': boardId},
                   );
                 },
               ),

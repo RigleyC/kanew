@@ -850,21 +850,32 @@ class CardEndpoint extends Endpoint {
     final totalComments = results[8] as int;
     final totalActivities = results[9] as int;
 
-    // 6. For each checklist, get its items (optimized with Future.wait)
-    final checklistsWithItems = await Future.wait(
-      checklists.map((checklist) async {
-        final items = await ChecklistItem.db.find(
-          session,
-          where: (i) =>
-              i.checklistId.equals(checklist.id!) & i.deletedAt.equals(null),
-          orderBy: (i) => i.rank,
+    // 6. Fetch all checklist items in one query to avoid N+1
+    final checklistsWithItems = <ChecklistWithItems>[];
+    if (checklists.isNotEmpty) {
+      final checklistIds = checklists.map((c) => c.id!).toSet();
+      final allItems = await ChecklistItem.db.find(
+        session,
+        where: (i) =>
+            i.checklistId.inSet(checklistIds) & i.deletedAt.equals(null),
+        orderBy: (i) => i.rank,
+      );
+
+      final itemsByChecklistId = <int, List<ChecklistItem>>{};
+      for (final item in allItems) {
+        final checklistId = item.checklistId;
+        (itemsByChecklistId[checklistId] ??= <ChecklistItem>[]).add(item);
+      }
+
+      for (final checklist in checklists) {
+        checklistsWithItems.add(
+          ChecklistWithItems(
+            checklist: checklist,
+            items: itemsByChecklistId[checklist.id!] ?? const [],
+          ),
         );
-        return ChecklistWithItems(
-          checklist: checklist,
-          items: items,
-        );
-      }),
-    );
+      }
+    }
 
     // 7. Calculate canEdit permission
     final canEdit = await PermissionService.hasPermission(
@@ -929,32 +940,6 @@ class CardEndpoint extends Endpoint {
     return labels;
   }
 
-  /// Helper method to get checklist counts for a card
-  Future<Map<String, int>> _getChecklistCounts(
-    Session session,
-    int cardId,
-  ) async {
-    final checklists = await Checklist.db.find(
-      session,
-      where: (c) => c.cardId.equals(cardId) & c.deletedAt.equals(null),
-    );
-
-    if (checklists.isEmpty) {
-      return {'total': 0, 'completed': 0};
-    }
-
-    final checklistIds = checklists.map((c) => c.id!).toList();
-    final items = await ChecklistItem.db.find(
-      session,
-      where: (i) => i.checklistId.inSet(checklistIds.toSet()),
-    );
-
-    return {
-      'total': items.length,
-      'completed': items.where((i) => i.isChecked).length,
-    };
-  }
-
   /// Helper method to create CardSummary with counts
   Future<List<CardSummary>> _getCardSummaries(
     Session session,
@@ -974,26 +959,146 @@ class CardEndpoint extends Endpoint {
       return a.rank.compareTo(b.rank);
     });
 
-    return Future.wait(
-      cards.map((card) async {
-        // Fetch counts in parallel
-        final counts = await Future.wait([
-          _getChecklistCounts(session, card.id!),
-          Attachment.db.count(session, where: (a) => a.cardId.equals(card.id!)),
-          Comment.db.count(session, where: (c) => c.cardId.equals(card.id!)),
-          _getCardLabels(session, card.id!),
-        ]);
+    final cardIds = cards.map((c) => c.id!).toSet();
 
-        return CardSummary(
-          card: card,
-          cardLabels: counts[3] as List<LabelDef>,
-          checklistTotal: (counts[0] as Map<String, int>)['total']!,
-          checklistCompleted: (counts[0] as Map<String, int>)['completed']!,
-          attachmentCount: counts[1] as int,
-          commentCount: counts[2] as int,
-        );
-      }),
+    final attachmentCountFuture = _countByCardId(
+      session,
+      tableName: 'attachment',
+      cardIds: cardIds,
+      includeDeletedAtFilter: true,
     );
+    final commentCountFuture = _countByCardId(
+      session,
+      tableName: 'comment',
+      cardIds: cardIds,
+      includeDeletedAtFilter: true,
+    );
+    final checklistCountFuture =
+        _getChecklistItemCountsByCardId(session, cardIds: cardIds);
+    final labelsFuture = _getLabelsByCardId(session, cardIds: cardIds);
+
+    final attachmentCountByCardId = await attachmentCountFuture;
+    final commentCountByCardId = await commentCountFuture;
+    final checklistCountByCardId = await checklistCountFuture;
+    final labelsByCardId = await labelsFuture;
+
+    return cards.map((card) {
+      final checklistCounts =
+          checklistCountByCardId[card.id!] ?? _ChecklistCounts.empty;
+      return CardSummary(
+        card: card,
+        cardLabels: labelsByCardId[card.id!] ?? const [],
+        checklistTotal: checklistCounts.total,
+        checklistCompleted: checklistCounts.completed,
+        attachmentCount: attachmentCountByCardId[card.id!] ?? 0,
+        commentCount: commentCountByCardId[card.id!] ?? 0,
+      );
+    }).toList();
+  }
+
+  Future<Map<int, int>> _countByCardId(
+    Session session, {
+    required String tableName,
+    required Set<int> cardIds,
+    required bool includeDeletedAtFilter,
+  }) async {
+    if (cardIds.isEmpty) return {};
+
+    int toInt(Object? value) {
+      if (value is int) return value;
+      if (value is BigInt) return value.toInt();
+      if (value is num) return value.toInt();
+      throw ArgumentError('Unexpected int value type: ${value.runtimeType}');
+    }
+
+    final ids = cardIds.join(',');
+    final deletedAtClause =
+        includeDeletedAtFilter ? ' AND "deletedAt" IS NULL' : '';
+
+    final rows = await session.db.unsafeQuery(
+      'SELECT "cardId", COUNT(*) '
+      'FROM $tableName '
+      'WHERE "cardId" IN ($ids)$deletedAtClause '
+      'GROUP BY "cardId"',
+    );
+
+    final map = <int, int>{};
+    for (final row in rows) {
+      if (row.length < 2) continue;
+      final cardId = toInt(row[0]);
+      final count = toInt(row[1]);
+      map[cardId] = count;
+    }
+    return map;
+  }
+
+  Future<Map<int, _ChecklistCounts>> _getChecklistItemCountsByCardId(
+    Session session, {
+    required Set<int> cardIds,
+  }) async {
+    if (cardIds.isEmpty) return {};
+
+    int toInt(Object? value) {
+      if (value is int) return value;
+      if (value is BigInt) return value.toInt();
+      if (value is num) return value.toInt();
+      throw ArgumentError('Unexpected int value type: ${value.runtimeType}');
+    }
+
+    final ids = cardIds.join(',');
+    final rows = await session.db.unsafeQuery(
+      'SELECT c."cardId", '
+      'COUNT(i.id) AS total, '
+      'COALESCE(SUM(CASE WHEN i."isChecked" THEN 1 ELSE 0 END), 0) AS completed '
+      'FROM checklist c '
+      'LEFT JOIN checklist_item i '
+      'ON i."checklistId" = c.id AND i."deletedAt" IS NULL '
+      'WHERE c."deletedAt" IS NULL AND c."cardId" IN ($ids) '
+      'GROUP BY c."cardId"',
+    );
+
+    final map = <int, _ChecklistCounts>{};
+    for (final row in rows) {
+      if (row.length < 3) continue;
+      final cardId = toInt(row[0]);
+      final total = toInt(row[1]);
+      final completed = toInt(row[2]);
+      map[cardId] = _ChecklistCounts(total: total, completed: completed);
+    }
+    return map;
+  }
+
+  Future<Map<int, List<LabelDef>>> _getLabelsByCardId(
+    Session session, {
+    required Set<int> cardIds,
+  }) async {
+    if (cardIds.isEmpty) return {};
+
+    final cardLabelLinks = await CardLabel.db.find(
+      session,
+      where: (cl) => cl.cardId.inSet(cardIds),
+    );
+
+    if (cardLabelLinks.isEmpty) return {};
+
+    final labelIds = cardLabelLinks.map((l) => l.labelDefId).toSet();
+    final labels = await LabelDef.db.find(
+      session,
+      where: (l) => l.id.inSet(labelIds) & l.deletedAt.equals(null),
+    );
+
+    final labelById = <int, LabelDef>{for (final l in labels) l.id!: l};
+    final map = <int, List<LabelDef>>{};
+    for (final link in cardLabelLinks) {
+      final label = labelById[link.labelDefId];
+      if (label == null) continue;
+      (map[link.cardId] ??= <LabelDef>[]).add(label);
+    }
+
+    return {
+      for (final entry in map.entries)
+        entry.key: List<LabelDef>.unmodifiable(entry.value),
+    };
   }
 
   /// Gets board context with all cards (summary only)
@@ -1062,4 +1167,13 @@ class CardEndpoint extends Endpoint {
 
     return BoardWithCards(context: context, cards: cards);
   }
+}
+
+class _ChecklistCounts {
+  final int total;
+  final int completed;
+
+  const _ChecklistCounts({required this.total, required this.completed});
+
+  static const empty = _ChecklistCounts(total: 0, completed: 0);
 }

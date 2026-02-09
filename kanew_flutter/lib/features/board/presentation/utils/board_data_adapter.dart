@@ -31,6 +31,11 @@ class BoardDataAdapter {
         ? filterStore.filterCards(allCards)
         : allCards;
 
+    final cardsByListId = <int, List<CardSummary>>{};
+    for (final summary in filteredCards) {
+      (cardsByListId[summary.card.listId] ??= <CardSummary>[]).add(summary);
+    }
+
     final currentGroupIds = List<String>.from(boardController.groupIds);
     final newGroupIds = lists.map((l) => l.id.toString()).toSet();
 
@@ -42,9 +47,7 @@ class BoardDataAdapter {
 
     for (final cardList in lists) {
       final groupId = cardList.id.toString();
-      final cardsForList = filteredCards
-          .where((c) => c.card.listId == cardList.id)
-          .toList();
+      final cardsForList = cardsByListId[cardList.id] ?? const <CardSummary>[];
 
       if (!currentGroupIds.contains(groupId)) {
         final items = List<AppFlowyGroupItem>.from(
@@ -67,8 +70,10 @@ class BoardDataAdapter {
     if (group == null) return;
 
     final currentItems = List<AppFlowyGroupItem>.from(group.items);
-    final currentIds = currentItems.map((i) => i.id).toSet();
-    final newCardIds = cards.map((c) => c.card.id.toString()).toSet();
+    final currentById = <String, AppFlowyGroupItem>{
+      for (final item in currentItems) item.id: item,
+    };
+    final newCardIds = <String>{for (final c in cards) c.card.id.toString()};
 
     for (final item in currentItems) {
       if (!newCardIds.contains(item.id)) {
@@ -78,10 +83,10 @@ class BoardDataAdapter {
 
     for (final card in cards) {
       final cardId = card.card.id.toString();
-      if (!currentIds.contains(cardId)) {
+      final existingItem = currentById[cardId];
+      if (existingItem == null) {
         boardController.addGroupItem(groupId, CardBoardItem(card));
       } else {
-        final existingItem = currentItems.firstWhere((i) => i.id == cardId);
         if (existingItem is CardBoardItem &&
             existingItem.cardSummary.card != card.card) {
           existingItem.cardSummary = card;

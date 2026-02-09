@@ -9,6 +9,7 @@ class BoardStore extends ChangeNotifier {
 
   // Cards leves para o board
   List<CardSummary> _cardSummaries = [];
+  Map<int, List<CardSummary>> _cardsByListId = {};
 
   // Cache de CardDetail (carregados sob demanda)
   final Map<int, CardDetail> _cardDetailCache = {};
@@ -26,13 +27,14 @@ class BoardStore extends ChangeNotifier {
   void initFromBoardWithCards(BoardWithCards data) {
     _context = data.context;
     _cardSummaries = data.cards;
+    _rebuildCardsByListId();
     _cardDetailCache.clear();
     notifyListeners();
   }
 
   /// Returns cards filtered by list
   List<CardSummary> getCardsForList(int listId) {
-    return _cardSummaries.where((c) => c.card.listId == listId).toList();
+    return _cardsByListId[listId] ?? const [];
   }
 
   /// Adds/updates CardDetail in cache
@@ -40,6 +42,7 @@ class BoardStore extends ChangeNotifier {
     _cardDetailCache[detail.card.id!] = detail;
     // Also update the corresponding summary
     _updateCardSummaryFromDetail(detail);
+    _rebuildCardsByListId();
     notifyListeners();
   }
 
@@ -50,6 +53,7 @@ class BoardStore extends ChangeNotifier {
       _cardSummaries[index] = _cardSummaries[index].copyWith(card: updatedCard);
       // Invalidate detail cache
       _cardDetailCache.remove(updatedCard.id);
+      _rebuildCardsByListId();
       notifyListeners();
     }
   }
@@ -69,6 +73,7 @@ class BoardStore extends ChangeNotifier {
 
       // Invalidate detail cache
       _cardDetailCache.remove(updatedCard.id);
+      _rebuildCardsByListId();
       notifyListeners();
     }
   }
@@ -77,6 +82,7 @@ class BoardStore extends ChangeNotifier {
   void addCard(CardSummary summary) {
     _cardSummaries.add(summary);
     _sortCards();
+    _rebuildCardsByListId();
     notifyListeners();
   }
 
@@ -86,6 +92,7 @@ class BoardStore extends ChangeNotifier {
     if (!exists) {
       _cardSummaries.add(summary);
       _sortCards();
+      _rebuildCardsByListId();
       notifyListeners();
     }
   }
@@ -106,6 +113,7 @@ class BoardStore extends ChangeNotifier {
       );
       _cardSummaries[index] = _cardSummaries[index].copyWith(card: updatedCard);
       _sortCards();
+      _rebuildCardsByListId();
       notifyListeners();
     }
   }
@@ -113,6 +121,7 @@ class BoardStore extends ChangeNotifier {
   void removeCard(int cardId) {
     _cardSummaries.removeWhere((c) => c.card.id == cardId);
     _cardDetailCache.remove(cardId);
+    _rebuildCardsByListId();
     notifyListeners();
   }
 
@@ -130,6 +139,7 @@ class BoardStore extends ChangeNotifier {
   void clear() {
     _context = null;
     _cardSummaries = [];
+    _cardsByListId = {};
     _cardDetailCache.clear();
     notifyListeners();
   }
@@ -168,6 +178,7 @@ class BoardStore extends ChangeNotifier {
         lists: lists.where((l) => l.id != listId).toList(),
       );
       _cardSummaries.removeWhere((c) => c.card.listId == listId);
+      _rebuildCardsByListId();
       notifyListeners();
     }
   }
@@ -222,8 +233,21 @@ class BoardStore extends ChangeNotifier {
     if (index != -1) {
       _cardSummaries[index] = _cardSummaries[index].copyWith(cardLabels: cardLabels);
       _cardDetailCache.remove(cardId);
+      _rebuildCardsByListId();
       notifyListeners();
     }
+  }
+
+  void _rebuildCardsByListId() {
+    final map = <int, List<CardSummary>>{};
+    for (final summary in _cardSummaries) {
+      (map[summary.card.listId] ??= <CardSummary>[]).add(summary);
+    }
+
+    _cardsByListId = {
+      for (final entry in map.entries)
+        entry.key: List<CardSummary>.unmodifiable(entry.value),
+    };
   }
 
   void _updateCardSummaryFromDetail(CardDetail detail) {

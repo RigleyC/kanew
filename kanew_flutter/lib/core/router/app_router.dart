@@ -336,11 +336,14 @@ final appRouter = GoRouter(
                             : '';
                         final boardSlug =
                             state.pathParameters['boardSlug'] ?? '';
+                        final extra = state.extra;
+                        final boardId = extra is Map ? extra['boardId'] as int? : null;
                         return NoTransitionPage(
                           key: state.pageKey,
                           child: BoardViewPage(
                             workspaceSlug: workspaceSlug,
                             boardSlug: boardSlug,
+                            boardId: boardId,
                           ),
                         );
                       },

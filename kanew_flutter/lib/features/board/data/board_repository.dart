@@ -90,6 +90,30 @@ class BoardRepository {
     }
   }
 
+  /// Gets board with all cards by boardId (skips slug lookup)
+  Future<BoardWithCards> getBoardWithCardsById(int boardId) async {
+    developer.log(
+      'BoardRepository.getBoardWithCardsById($boardId)',
+      name: 'board_repository',
+    );
+    try {
+      final boardWithCards = await _client.card.getBoardWithCards(boardId);
+      developer.log(
+        'BoardRepository.getBoardWithCardsById success: ${boardWithCards.cards.length} cards',
+        name: 'board_repository',
+      );
+      return boardWithCards;
+    } catch (e, s) {
+      developer.log(
+        'BoardRepository.getBoardWithCardsById error',
+        name: 'board_repository',
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
+    }
+  }
+
   /// Creates a new board by workspace slug
   Future<Board> createBoardByWorkspaceSlug(
     String workspaceSlug,

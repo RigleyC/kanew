@@ -50,6 +50,7 @@ class BoardViewPageController extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get boardDeleted => _boardDeleted;
+  Listenable get boardDataListenable => _boardStore;
 
   /// Exposes stream status for UI (reconnecting toast)
   ValueListenable<StreamStatus> get streamStatus => _streamService.statusNotifier;
@@ -58,9 +59,20 @@ class BoardViewPageController extends ChangeNotifier {
     return _boardStore.getCardsForList(listId);
   }
 
+  void _debugLog(String message) {
+    if (!kDebugMode) return;
+    debugPrint(message);
+  }
+
   // Load board using slugs only (no workspaceId needed)
-  Future<void> load(String workspaceSlug, String boardSlug) async {
-    debugPrint('DEBUG: BoardViewPageController.load($workspaceSlug, $boardSlug)');
+  Future<void> load(
+    String workspaceSlug,
+    String boardSlug, {
+    int? boardId,
+  }) async {
+    _debugLog(
+      'BoardViewPageController.load($workspaceSlug, $boardSlug, boardId=$boardId)',
+    );
 
     _isLoading = true;
     _error = null;
@@ -68,21 +80,27 @@ class BoardViewPageController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      debugPrint('DEBUG: Calling getBoardWithCards($workspaceSlug, $boardSlug)');
-      final boardWithCards = await _boardRepo.getBoardWithCards(
-        workspaceSlug,
-        boardSlug,
-      );
-      debugPrint(
-        'DEBUG: BoardWithCards loaded: ${boardWithCards.cards.length} cards',
-      );
+      final boardWithCards = boardId != null
+          ? await _boardRepo.getBoardWithCardsById(boardId)
+          : await _boardRepo.getBoardWithCards(workspaceSlug, boardSlug);
 
+      if (boardWithCards.context.board.slug != boardSlug) {
+        final fallback = await _boardRepo.getBoardWithCards(
+          workspaceSlug,
+          boardSlug,
+        );
+        _boardStore.initFromBoardWithCards(fallback);
+        await _startStreaming();
+        return;
+      }
+
+      _debugLog('BoardWithCards loaded: ${boardWithCards.cards.length} cards');
       _boardStore.initFromBoardWithCards(boardWithCards);
 
       // Start streaming after successful load
       await _startStreaming();
     } catch (e) {
-      debugPrint('DEBUG: Error loading board: $e');
+      _debugLog('Error loading board: $e');
       _error = 'Erro ao carregar board';
     } finally {
       _isLoading = false;
@@ -99,14 +117,14 @@ class BoardViewPageController extends ChangeNotifier {
       // Subscribe to events
       _eventSubscription = _streamService.events.listen(_handleEvent);
 
-      debugPrint('[BoardViewPageController] Streaming started for board ${board!.id}');
+      _debugLog('Streaming started for board ${board!.id}');
     } catch (e) {
-      debugPrint('[BoardViewPageController] Failed to start streaming: $e');
+      _debugLog('Failed to start streaming: $e');
     }
   }
 
   void _handleEvent(BoardEvent event) {
-    debugPrint('[BoardViewPageController] Handling event: ${event.eventType}');
+    _debugLog('Handling event: ${event.eventType}');
 
     switch (event.eventType) {
       case BoardEventType.cardCreated:
@@ -152,7 +170,7 @@ class BoardViewPageController extends ChangeNotifier {
         _handleBoardDeleted(event);
         break;
       default:
-        debugPrint('[BoardViewPageController] Unknown event type: ${event.eventType}');
+        _debugLog('Unknown event type: ${event.eventType}');
     }
   }
 
@@ -166,7 +184,7 @@ class BoardViewPageController extends ChangeNotifier {
       final summary = CardSummary.fromJson(cardData);
       _boardStore.addCardFromEvent(summary);
     } catch (e) {
-      debugPrint('[BoardViewPageController] Error handling cardCreated: $e');
+      _debugLog('Error handling cardCreated: $e');
     }
   }
 
@@ -180,7 +198,7 @@ class BoardViewPageController extends ChangeNotifier {
       final card = Card.fromJson(cardData);
       _boardStore.updateCardAndSort(card);
     } catch (e) {
-      debugPrint('[BoardViewPageController] Error handling cardUpdated: $e');
+      _debugLog('Error handling cardUpdated: $e');
     }
   }
 
@@ -196,7 +214,7 @@ class BoardViewPageController extends ChangeNotifier {
         priority: CardPriority.values.byName(payload['priority'] as String),
       );
     } catch (e) {
-      debugPrint('[BoardViewPageController] Error handling cardMoved: $e');
+      _debugLog('Error handling cardMoved: $e');
     }
   }
 
@@ -219,7 +237,7 @@ class BoardViewPageController extends ChangeNotifier {
         _boardStore.addList(list);
       }
     } catch (e) {
-      debugPrint('[BoardViewPageController] Error handling listCreated: $e');
+      _debugLog('Error handling listCreated: $e');
     }
   }
 
@@ -233,7 +251,7 @@ class BoardViewPageController extends ChangeNotifier {
       final list = CardList.fromJson(listData);
       _boardStore.updateList(list);
     } catch (e) {
-      debugPrint('[BoardViewPageController] Error handling listUpdated: $e');
+      _debugLog('Error handling listUpdated: $e');
     }
   }
 
@@ -245,7 +263,7 @@ class BoardViewPageController extends ChangeNotifier {
       final orderedIds = (payload['orderedListIds'] as List).cast<int>();
       _boardStore.reorderListsFromEvent(orderedIds);
     } catch (e) {
-      debugPrint('[BoardViewPageController] Error handling listReordered: $e');
+      _debugLog('Error handling listReordered: $e');
     }
   }
 
@@ -268,7 +286,7 @@ class BoardViewPageController extends ChangeNotifier {
         _boardStore.addLabel(label);
       }
     } catch (e) {
-      debugPrint('[BoardViewPageController] Error handling labelCreated: $e');
+      _debugLog('Error handling labelCreated: $e');
     }
   }
 
@@ -282,7 +300,7 @@ class BoardViewPageController extends ChangeNotifier {
       final label = LabelDef.fromJson(labelData);
       _boardStore.updateLabel(label);
     } catch (e) {
-      debugPrint('[BoardViewPageController] Error handling labelUpdated: $e');
+      _debugLog('Error handling labelUpdated: $e');
     }
   }
 
@@ -296,7 +314,7 @@ class BoardViewPageController extends ChangeNotifier {
         _boardStore.removeLabel(labelId);
       }
     } catch (e) {
-      debugPrint('[BoardViewPageController] Error handling labelDeleted: $e');
+      _debugLog('Error handling labelDeleted: $e');
     }
   }
 
@@ -310,7 +328,7 @@ class BoardViewPageController extends ChangeNotifier {
       final labels = labelsData.map((l) => LabelDef.fromJson(l as Map<String, dynamic>)).toList();
       _boardStore.updateCardLabels(event.cardId!, labels);
     } catch (e) {
-      debugPrint('[BoardViewPageController] Error handling cardLabelsUpdated: $e');
+      _debugLog('Error handling cardLabelsUpdated: $e');
     }
   }
 
@@ -324,7 +342,7 @@ class BoardViewPageController extends ChangeNotifier {
       final updatedBoard = Board.fromJson(boardData);
       _boardStore.updateBoard(updatedBoard);
     } catch (e) {
-      debugPrint('[BoardViewPageController] Error handling boardUpdated: $e');
+      _debugLog('Error handling boardUpdated: $e');
     }
   }
 
@@ -338,10 +356,7 @@ class BoardViewPageController extends ChangeNotifier {
     if (board == null) return;
 
     try {
-      final boardWithCards = await _boardRepo.getBoardWithCards(
-        workspace!.slug,
-        board!.slug,
-      );
+      final boardWithCards = await _boardRepo.getBoardWithCardsById(board!.id!);
       _boardStore.initFromBoardWithCards(boardWithCards);
     } catch (e) {
       _error = 'Erro ao recarregar cards';
