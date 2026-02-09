@@ -3,13 +3,22 @@ FROM ghcr.io/cirruslabs/flutter:stable AS build
 
 WORKDIR /app
 
-# Copy the entire project to allow access to local dependencies (kanew_client)
-# Context must be project ROOT
-COPY . .
+# Copy only pubspecs first to improve Docker layer caching.
+# Context must be repo ROOT because we depend on the local package `kanew_client`.
+COPY kanew_client/pubspec.yaml kanew_client/pubspec.yaml
+COPY kanew_flutter/pubspec.yaml kanew_flutter/pubspec.yaml
+COPY kanew_flutter/pubspec.lock kanew_flutter/pubspec.lock
+
+WORKDIR /app/kanew_flutter
+RUN flutter pub get
+
+# Copy only the required source (avoid sending/building the whole monorepo).
+WORKDIR /app
+COPY kanew_client/ kanew_client/
+COPY kanew_flutter/ kanew_flutter/
 
 # Build the Flutter Web app
 WORKDIR /app/kanew_flutter
-RUN flutter pub get
 RUN flutter build web --release
 
 # Serve with lightweight Python server

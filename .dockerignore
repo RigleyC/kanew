@@ -1,0 +1,17 @@
+.git
+.github
+.vscode
+.cursor
+
+**/.dart_tool/
+**/build/
+**/coverage/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.metadata
+**/*.log
+**/.DS_Store
+**/node_modules/
+
+# Large scratch files
+flutter-bounty-hunters-super_editor-*.txt
