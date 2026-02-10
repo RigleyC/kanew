@@ -53,8 +53,4 @@ class BoardsPageController extends ChangeNotifier {
       return null;
     }
   }
-
-  void selectBoard(Board board) {
-    // Optional: if we need to track selection in this controller
-  }
 }

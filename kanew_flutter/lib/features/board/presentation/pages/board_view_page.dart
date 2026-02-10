@@ -30,7 +30,6 @@ class BoardViewPage extends StatefulWidget {
 
 class _BoardViewPageState extends State<BoardViewPage> {
   late final BoardViewPageController _controller;
-  String? _localError;
 
   @override
   void initState() {
@@ -69,31 +68,6 @@ class _BoardViewPageState extends State<BoardViewPage> {
               const SnackBar(content: Text('Board foi deletado')),
             );
           });
-        }
-
-        if (_localError != null) {
-          return Scaffold(
-            backgroundColor: colorScheme.surface,
-            appBar: AppBar(title: const Text('Erro')),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: colorScheme.error),
-                  const SizedBox(height: 16),
-                  Text(
-                    _localError!,
-                    style: TextStyle(color: colorScheme.error),
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: context.pop,
-                    child: const Text('Voltar'),
-                  ),
-                ],
-              ),
-            ),
-          );
         }
 
         final board = _controller.board;

@@ -534,8 +534,4 @@ class BoardViewPageController extends ChangeNotifier {
       },
     );
   }
-
-  void selectCard(CardSummary card) {
-    // Just a placeholder if needed for navigation or local state
-  }
 }

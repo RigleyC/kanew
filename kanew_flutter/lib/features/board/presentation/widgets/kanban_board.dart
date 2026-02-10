@@ -180,7 +180,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
               boardScrollController: _scrollController,
               groupConstraints: const BoxConstraints.tightFor(width: 300),
               config: AppFlowyBoardConfig(
-                groupBackgroundColor: Color(0XFFF2F2F2),
+                groupBackgroundColor: Theme.of(context).canvasColor,
                 stretchGroupHeight: false,
                 groupCornerRadius: 8,
                 groupBodyPadding: const EdgeInsets.all(8),
@@ -203,7 +203,6 @@ class _KanbanBoardState extends State<KanbanBoard> {
                   child: KanbanCard(
                     cardSummary: cardItem.cardSummary,
                     onTap: () async {
-                      widget.controller.selectCard(cardItem.cardSummary);
                       if (kDebugMode) {
                         developer.log(
                           'Card tapped: ${cardItem.cardSummary.card.title}',
