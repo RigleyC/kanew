@@ -9,8 +9,8 @@ RUN dart pub get
 # Compile the server executable
 RUN dart compile exe bin/main.dart -o bin/server
 
-# Final stage - use Alpine for smaller image size
-FROM alpine:latest
+# Final stage - use Alpine 3.19 for stable image
+FROM alpine:3.19
 
 # Install runtime dependencies for Dart AOT-compiled binaries
 # libc6-compat is required for Dart executables on Alpine

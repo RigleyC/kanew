@@ -12,6 +12,13 @@ services:
   kanew-backend:
     description: "Serverpod backend (API + Insights + Web/Streaming) built from Dockerfile"
     dockerfile: "Dockerfile"
+    healthcheck:
+      path: "/health"
+      interval: 30
+      timeout: 10
+    deploy:
+      drainingSeconds: 30
+      overlapSeconds: 10
     runtimeNotes:
       - "Reads Serverpod config from kanew_server/config/production.yaml"
       - "Resolves secrets from kanew_server/config/passwords.yaml (SERVERPOD_PASSWORD_*)"
@@ -41,6 +48,13 @@ services:
   kanew-web:
     description: "Flutter Web app served by a lightweight container"
     dockerfile: "kanew_flutter/Dockerfile"
+    healthcheck:
+      path: "/"
+      interval: 30
+      timeout: 10
+    deploy:
+      drainingSeconds: 15
+      overlapSeconds: 5
     requiredVariables:
       # Used at runtime to generate /assets/assets/config.json which AppConfig reads.
       - "API_BASE_URL"

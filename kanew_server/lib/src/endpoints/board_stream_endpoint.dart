@@ -47,9 +47,14 @@ class BoardStreamEndpoint extends Endpoint {
 
     // Detectar desconexão para cleanup
     session.addWillCloseListener((context) {
-      session.log(
-        '[BoardStream] User $userId disconnected from board $boardId',
-      );
+      // Evita logar em session já fechada
+      try {
+        session.log(
+          '[BoardStream] User $userId disconnected from board $boardId',
+        );
+      } catch (_) {
+        // Session já fechada, ignora
+      }
     });
 
     // Criar stream para o canal do board

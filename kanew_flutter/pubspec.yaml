@@ -44,7 +44,7 @@ dependencies:
   flutter_secure_storage: ^10.0.0
   get_it: ^9.2.0
 
-  serverpod_auth_core_flutter: any
+  serverpod_auth_core_flutter: 3.2.0
   shared_preferences: ^2.5.4
   go_router: ^17.0.1
   appflowy_board: ^0.1.2
@@ -58,6 +58,8 @@ dependencies:
     sdk: flutter
   google_fonts: ^6.3.3
   # appflowy_editor: ^6.2.0 # Substituído por super_editor
+  # IMPORTANTE: Pinar ref para um commit hash específico ao invés de 'main' para builds reprodutíveis
+  # Exemplo: ref: 8a5edab282632443abc123... ao invés de ref: main
   super_editor:
     git:
       url: https://github.com/Flutter-Bounty-Hunters/super_editor
@@ -104,6 +106,7 @@ flutter:
     - assets/icons/check.svg
 dependency_overrides:
   flutter_secure_storage: ^10.0.0
+  # IMPORTANTE: Pinar ref para um commit hash específico ao invés de 'main'
   super_editor:
     git:
       url: https://github.com/Flutter-Bounty-Hunters/super_editor
