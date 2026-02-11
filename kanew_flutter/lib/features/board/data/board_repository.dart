@@ -91,7 +91,7 @@ class BoardRepository {
   }
 
   /// Gets board with all cards by boardId (skips slug lookup)
-  Future<BoardWithCards> getBoardWithCardsById(int boardId) async {
+  Future<BoardWithCards> getBoardWithCardsById(UuidValue boardId) async {
     developer.log(
       'BoardRepository.getBoardWithCardsById($boardId)',
       name: 'board_repository',
@@ -146,7 +146,7 @@ class BoardRepository {
 
   /// Updates a board
   Future<Board> updateBoard(
-    int boardId,
+    UuidValue boardId,
     String title, {
     String? slug,
   }) async {
@@ -168,7 +168,7 @@ class BoardRepository {
   }
 
   /// Deletes a board (soft delete)
-  Future<void> deleteBoard(int boardId) async {
+  Future<void> deleteBoard(UuidValue boardId) async {
     developer.log(
       'BoardRepository.deleteBoard($boardId)',
       name: 'board_repository',

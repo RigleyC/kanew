@@ -2,12 +2,21 @@
 class: MemberPermission
 table: member_permission
 fields:
-  workspaceMemberId: int, relation(parent=workspace_member)
-  permissionId: int, relation(parent=permission)
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
+  workspaceMemberId: UuidValue, relation(parent=workspace_member)
+  permissionId: UuidValue, relation(parent=permission)
   
   # Future-Proof: Se preenchido, a permissão vale SÓ para este board.
   # Se nulo (Padrão MVP), vale para o Workspace todo.
-  scopeBoardId: int?, relation(parent=board)
+  scopeBoardId: UuidValue?, relation(parent=board)
+  
+  # Indicates if this permission is explicitly removed from the role defaults
+  isRemoved: bool, default=false
+  
+  # When this override was granted/removed
+  grantedAt: DateTime?
 indexes:
   mem_perm_unique_idx:
     fields: workspaceMemberId, permissionId, scopeBoardId

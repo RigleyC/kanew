@@ -55,7 +55,7 @@ class BoardViewPageController extends ChangeNotifier {
   /// Exposes stream status for UI (reconnecting toast)
   ValueListenable<StreamStatus> get streamStatus => _streamService.statusNotifier;
 
-  List<CardSummary> getCardsForList(int listId) {
+  List<CardSummary> getCardsForList(UuidValue listId) {
     return _boardStore.getCardsForList(listId);
   }
 
@@ -68,7 +68,7 @@ class BoardViewPageController extends ChangeNotifier {
   Future<void> load(
     String workspaceSlug,
     String boardSlug, {
-    int? boardId,
+    UuidValue? boardId,
   }) async {
     _debugLog(
       'BoardViewPageController.load($workspaceSlug, $boardSlug, boardId=$boardId)',
@@ -209,7 +209,7 @@ class BoardViewPageController extends ChangeNotifier {
       final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
       _boardStore.moveCardFromEvent(
         cardId: event.cardId!,
-        newListId: payload['newListId'] as int,
+        newListId: payload['newListId'] as UuidValue,
         newRank: payload['newRank'] as String,
         priority: CardPriority.values.byName(payload['priority'] as String),
       );
@@ -309,7 +309,7 @@ class BoardViewPageController extends ChangeNotifier {
 
     try {
       final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
-      final labelId = payload['labelId'] as int?;
+      final labelId = payload['labelId'] as UuidValue?;
       if (labelId != null) {
         _boardStore.removeLabel(labelId);
       }
@@ -364,7 +364,7 @@ class BoardViewPageController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<Board?> updateBoard(int boardId, String title) async {
+  Future<Board?> updateBoard(UuidValue boardId, String title) async {
     try {
       final updatedBoard = await _boardRepo.updateBoard(boardId, title);
       _boardStore.updateBoard(updatedBoard);
@@ -394,7 +394,7 @@ class BoardViewPageController extends ChangeNotifier {
     );
   }
 
-  Future<bool> deleteList(int listId) async {
+  Future<bool> deleteList(UuidValue listId) async {
     final result = await _listRepo.deleteList(listId);
     return result.fold(
       (f) {
@@ -429,7 +429,7 @@ class BoardViewPageController extends ChangeNotifier {
     return reorderLists(orderedIds);
   }
 
-  Future<bool> reorderLists(List<int> orderedIds) async {
+  Future<bool> reorderLists(List<UuidValue> orderedIds) async {
     if (board == null) return false;
 
     final result = await _listRepo.reorderLists(board!.id!, orderedIds);
@@ -447,7 +447,7 @@ class BoardViewPageController extends ChangeNotifier {
   }
 
   // Card operations - now work with CardSummary
-  Future<CardSummary?> createCard(int listId, String title) async {
+  Future<CardSummary?> createCard(UuidValue listId, String title) async {
     final result = await _cardRepo.createCardDetail(listId, title);
 
     CardSummary? summary;
@@ -481,8 +481,8 @@ class BoardViewPageController extends ChangeNotifier {
   }
 
   Future<Card?> moveCard(
-    int cardId,
-    int toListId, {
+    UuidValue cardId,
+    UuidValue toListId, {
     String? afterRank,
     String? beforeRank,
   }) async {
@@ -520,7 +520,7 @@ class BoardViewPageController extends ChangeNotifier {
     );
   }
 
-  Future<bool> deleteCard(int cardId) async {
+  Future<bool> deleteCard(UuidValue cardId) async {
     final result = await _cardRepo.deleteCard(cardId);
     return result.fold(
       (f) {

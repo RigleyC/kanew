@@ -20,43 +20,47 @@ abstract class CardLabel implements _i1.SerializableModel {
   });
 
   factory CardLabel({
-    int? id,
-    required int cardId,
-    required int labelDefId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
+    required _i1.UuidValue labelDefId,
   }) = _CardLabelImpl;
 
   factory CardLabel.fromJson(Map<String, dynamic> jsonSerialization) {
     return CardLabel(
-      id: jsonSerialization['id'] as int?,
-      cardId: jsonSerialization['cardId'] as int,
-      labelDefId: jsonSerialization['labelDefId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      cardId: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['cardId']),
+      labelDefId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['labelDefId'],
+      ),
     );
   }
 
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
-  int cardId;
+  _i1.UuidValue cardId;
 
-  int labelDefId;
+  _i1.UuidValue labelDefId;
 
   /// Returns a shallow copy of this [CardLabel]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   CardLabel copyWith({
-    int? id,
-    int? cardId,
-    int? labelDefId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? cardId,
+    _i1.UuidValue? labelDefId,
   });
   @override
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'CardLabel',
-      if (id != null) 'id': id,
-      'cardId': cardId,
-      'labelDefId': labelDefId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
+      'labelDefId': labelDefId.toJson(),
     };
   }
 
@@ -70,9 +74,9 @@ class _Undefined {}
 
 class _CardLabelImpl extends CardLabel {
   _CardLabelImpl({
-    int? id,
-    required int cardId,
-    required int labelDefId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
+    required _i1.UuidValue labelDefId,
   }) : super._(
          id: id,
          cardId: cardId,
@@ -85,11 +89,11 @@ class _CardLabelImpl extends CardLabel {
   @override
   CardLabel copyWith({
     Object? id = _Undefined,
-    int? cardId,
-    int? labelDefId,
+    _i1.UuidValue? cardId,
+    _i1.UuidValue? labelDefId,
   }) {
     return CardLabel(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       cardId: cardId ?? this.cardId,
       labelDefId: labelDefId ?? this.labelDefId,
     );

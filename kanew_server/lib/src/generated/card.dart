@@ -13,10 +13,10 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'card_priority.dart' as _i2;
 
-abstract class Card implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+abstract class Card
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   Card._({
     this.id,
-    required this.uuid,
     required this.listId,
     required this.boardId,
     required this.title,
@@ -33,10 +33,9 @@ abstract class Card implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   });
 
   factory Card({
-    int? id,
-    required _i1.UuidValue uuid,
-    required int listId,
-    required int boardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue listId,
+    required _i1.UuidValue boardId,
     required String title,
     String? descriptionDocument,
     required _i2.CardPriority priority,
@@ -52,10 +51,13 @@ abstract class Card implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   factory Card.fromJson(Map<String, dynamic> jsonSerialization) {
     return Card(
-      id: jsonSerialization['id'] as int?,
-      uuid: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['uuid']),
-      listId: jsonSerialization['listId'] as int,
-      boardId: jsonSerialization['boardId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      listId: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['listId']),
+      boardId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['boardId'],
+      ),
       title: jsonSerialization['title'] as String,
       descriptionDocument: jsonSerialization['descriptionDocument'] as String?,
       priority: _i2.CardPriority.fromJson(
@@ -89,13 +91,11 @@ abstract class Card implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   static const db = CardRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
-  _i1.UuidValue uuid;
+  _i1.UuidValue listId;
 
-  int listId;
-
-  int boardId;
+  _i1.UuidValue boardId;
 
   String title;
 
@@ -120,16 +120,15 @@ abstract class Card implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   _i1.UuidValue? deletedBy;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [Card]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   Card copyWith({
-    int? id,
-    _i1.UuidValue? uuid,
-    int? listId,
-    int? boardId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? listId,
+    _i1.UuidValue? boardId,
     String? title,
     String? descriptionDocument,
     _i2.CardPriority? priority,
@@ -146,10 +145,9 @@ abstract class Card implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'Card',
-      if (id != null) 'id': id,
-      'uuid': uuid.toJson(),
-      'listId': listId,
-      'boardId': boardId,
+      if (id != null) 'id': id?.toJson(),
+      'listId': listId.toJson(),
+      'boardId': boardId.toJson(),
       'title': title,
       if (descriptionDocument != null)
         'descriptionDocument': descriptionDocument,
@@ -169,10 +167,9 @@ abstract class Card implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'Card',
-      if (id != null) 'id': id,
-      'uuid': uuid.toJson(),
-      'listId': listId,
-      'boardId': boardId,
+      if (id != null) 'id': id?.toJson(),
+      'listId': listId.toJson(),
+      'boardId': boardId.toJson(),
       'title': title,
       if (descriptionDocument != null)
         'descriptionDocument': descriptionDocument,
@@ -222,10 +219,9 @@ class _Undefined {}
 
 class _CardImpl extends Card {
   _CardImpl({
-    int? id,
-    required _i1.UuidValue uuid,
-    required int listId,
-    required int boardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue listId,
+    required _i1.UuidValue boardId,
     required String title,
     String? descriptionDocument,
     required _i2.CardPriority priority,
@@ -239,7 +235,6 @@ class _CardImpl extends Card {
     _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
-         uuid: uuid,
          listId: listId,
          boardId: boardId,
          title: title,
@@ -261,9 +256,8 @@ class _CardImpl extends Card {
   @override
   Card copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? uuid,
-    int? listId,
-    int? boardId,
+    _i1.UuidValue? listId,
+    _i1.UuidValue? boardId,
     String? title,
     Object? descriptionDocument = _Undefined,
     _i2.CardPriority? priority,
@@ -277,8 +271,7 @@ class _CardImpl extends Card {
     Object? deletedBy = _Undefined,
   }) {
     return Card(
-      id: id is int? ? id : this.id,
-      uuid: uuid ?? this.uuid,
+      id: id is _i1.UuidValue? ? id : this.id,
       listId: listId ?? this.listId,
       boardId: boardId ?? this.boardId,
       title: title ?? this.title,
@@ -301,21 +294,17 @@ class _CardImpl extends Card {
 class CardUpdateTable extends _i1.UpdateTable<CardTable> {
   CardUpdateTable(super.table);
 
-  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> uuid(_i1.UuidValue value) =>
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> listId(_i1.UuidValue value) =>
       _i1.ColumnValue(
-        table.uuid,
+        table.listId,
         value,
       );
 
-  _i1.ColumnValue<int, int> listId(int value) => _i1.ColumnValue(
-    table.listId,
-    value,
-  );
-
-  _i1.ColumnValue<int, int> boardId(int value) => _i1.ColumnValue(
-    table.boardId,
-    value,
-  );
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> boardId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.boardId,
+        value,
+      );
 
   _i1.ColumnValue<String, String> title(String value) => _i1.ColumnValue(
     table.title,
@@ -384,18 +373,14 @@ class CardUpdateTable extends _i1.UpdateTable<CardTable> {
   );
 }
 
-class CardTable extends _i1.Table<int?> {
+class CardTable extends _i1.Table<_i1.UuidValue?> {
   CardTable({super.tableRelation}) : super(tableName: 'card') {
     updateTable = CardUpdateTable(this);
-    uuid = _i1.ColumnUuid(
-      'uuid',
-      this,
-    );
-    listId = _i1.ColumnInt(
+    listId = _i1.ColumnUuid(
       'listId',
       this,
     );
-    boardId = _i1.ColumnInt(
+    boardId = _i1.ColumnUuid(
       'boardId',
       this,
     );
@@ -448,11 +433,9 @@ class CardTable extends _i1.Table<int?> {
 
   late final CardUpdateTable updateTable;
 
-  late final _i1.ColumnUuid uuid;
+  late final _i1.ColumnUuid listId;
 
-  late final _i1.ColumnInt listId;
-
-  late final _i1.ColumnInt boardId;
+  late final _i1.ColumnUuid boardId;
 
   late final _i1.ColumnString title;
 
@@ -479,7 +462,6 @@ class CardTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
-    uuid,
     listId,
     boardId,
     title,
@@ -503,7 +485,7 @@ class CardInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => Card.t;
+  _i1.Table<_i1.UuidValue?> get table => Card.t;
 }
 
 class CardIncludeList extends _i1.IncludeList {
@@ -523,7 +505,7 @@ class CardIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => Card.t;
+  _i1.Table<_i1.UuidValue?> get table => Card.t;
 }
 
 class CardRepository {
@@ -611,7 +593,7 @@ class CardRepository {
   /// Finds a single [Card] by its [id] or null if no such row exists.
   Future<Card?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<Card>(
@@ -689,7 +671,7 @@ class CardRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<Card?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<CardUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

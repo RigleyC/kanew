@@ -9,10 +9,10 @@ class BoardStore extends ChangeNotifier {
 
   // Cards leves para o board
   List<CardSummary> _cardSummaries = [];
-  Map<int, List<CardSummary>> _cardsByListId = {};
+  Map<UuidValue, List<CardSummary>> _cardsByListId = {};
 
   // Cache de CardDetail (carregados sob demanda)
-  final Map<int, CardDetail> _cardDetailCache = {};
+  final Map<UuidValue, CardDetail> _cardDetailCache = {};
 
   // Getters
   BoardContext? get context => _context;
@@ -33,7 +33,7 @@ class BoardStore extends ChangeNotifier {
   }
 
   /// Returns cards filtered by list
-  List<CardSummary> getCardsForList(int listId) {
+  List<CardSummary> getCardsForList(UuidValue listId) {
     return _cardsByListId[listId] ?? const [];
   }
 
@@ -99,8 +99,8 @@ class BoardStore extends ChangeNotifier {
 
   /// Moves card from realtime event
   void moveCardFromEvent({
-    required int cardId,
-    required int newListId,
+    required UuidValue cardId,
+    required UuidValue newListId,
     required String newRank,
     required CardPriority priority,
   }) {
@@ -118,7 +118,7 @@ class BoardStore extends ChangeNotifier {
     }
   }
 
-  void removeCard(int cardId) {
+  void removeCard(UuidValue cardId) {
     _cardSummaries.removeWhere((c) => c.card.id == cardId);
     _cardDetailCache.remove(cardId);
     _rebuildCardsByListId();
@@ -172,7 +172,7 @@ class BoardStore extends ChangeNotifier {
     }
   }
 
-  void removeList(int listId) {
+  void removeList(UuidValue listId) {
     if (_context != null) {
       _context = _context!.copyWith(
         lists: lists.where((l) => l.id != listId).toList(),
@@ -221,14 +221,14 @@ class BoardStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  void removeLabel(int labelId) {
+  void removeLabel(UuidValue labelId) {
     if (_context == null) return;
 
     _context = _context!.copyWith(labels: labels.where((l) => l.id != labelId).toList());
     notifyListeners();
   }
 
-  void updateCardLabels(int cardId, List<LabelDef> cardLabels) {
+  void updateCardLabels(UuidValue cardId, List<LabelDef> cardLabels) {
     final index = _cardSummaries.indexWhere((c) => c.card.id == cardId);
     if (index != -1) {
       _cardSummaries[index] = _cardSummaries[index].copyWith(cardLabels: cardLabels);
@@ -239,7 +239,7 @@ class BoardStore extends ChangeNotifier {
   }
 
   void _rebuildCardsByListId() {
-    final map = <int, List<CardSummary>>{};
+    final map = <UuidValue, List<CardSummary>>{};
     for (final summary in _cardSummaries) {
       (map[summary.card.listId] ??= <CardSummary>[]).add(summary);
     }

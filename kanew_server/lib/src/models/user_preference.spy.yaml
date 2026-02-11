@@ -1,12 +1,15 @@
 class: UserPreference
 table: user_preference
 fields:
-  userInfoId: int
-  lastWorkspaceId: int?
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
+  authUserId: UuidValue # Changed from userInfoId to match Serverpod 3.x auth
+  lastWorkspaceId: UuidValue?
   theme: String?
   createdAt: DateTime
   updatedAt: DateTime
 indexes:
-  user_info_id_unique_idx:
-    fields: userInfoId
+  auth_user_id_unique_idx:
+    fields: authUserId
     unique: true

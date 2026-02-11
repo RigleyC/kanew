@@ -10,8 +10,8 @@ class ChecklistCard extends StatefulWidget {
   final List<ChecklistItem> items;
   final void Function(String title) onAddItem;
   final VoidCallback onDelete;
-  final void Function(int itemId, bool isChecked) onToggleItem;
-  final void Function(int itemId) onDeleteItem;
+  final void Function(UuidValue itemId, bool isChecked) onToggleItem;
+  final void Function(UuidValue itemId) onDeleteItem;
 
   const ChecklistCard({
     super.key,

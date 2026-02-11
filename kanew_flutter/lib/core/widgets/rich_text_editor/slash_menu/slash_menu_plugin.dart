@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:super_editor/super_editor.dart';
-// Try to import common ops if accessible
-// If not accessible, I'll rely on dynamic cast or SuperEditorContext
 
-// Represents an item in the slash menu
 class SlashMenuItem {
   final String id;
   final String title;
@@ -12,8 +9,14 @@ class SlashMenuItem {
   final IconData icon;
   final List<String> keywords;
   final void Function(Editor editor, DocumentNode node) onSelected;
+  
+  // ✅ Pre-computar lowercase para performance
+  late final String _titleLower = title.toLowerCase();
+  late final String _subtitleLower = subtitle.toLowerCase();
+  late final List<String> _keywordsLower = 
+    keywords.map((k) => k.toLowerCase()).toList(growable: false);
 
-  const SlashMenuItem({
+   SlashMenuItem({
     required this.id,
     required this.title,
     required this.subtitle,
@@ -23,7 +26,6 @@ class SlashMenuItem {
   });
 }
 
-// Manages the state and logic of the slash menu
 class SlashMenuPlugin extends ChangeNotifier {
   final Editor editor;
 
@@ -39,6 +41,8 @@ class SlashMenuPlugin extends ChangeNotifier {
   String _lastFilterQuery = '';
   List<SlashMenuItem> _filteredItemsCache = const [];
   bool _hasFilterCache = false;
+  
+  // ✅ Filtro otimizado
   List<SlashMenuItem> get filteredItems {
     final q = _query.toLowerCase();
     if (q == _lastFilterQuery && _hasFilterCache) {
@@ -46,18 +50,32 @@ class SlashMenuPlugin extends ChangeNotifier {
     }
 
     _lastFilterQuery = q;
-    _filteredItemsCache = items.where((item) {
-      return item.title.toLowerCase().contains(q) ||
-          item.keywords.any((k) => k.contains(q));
-    }).toList(growable: false);
+    
+    if (q.isEmpty) {
+      _filteredItemsCache = items;
+    } else {
+      _filteredItemsCache = items.where((item) {
+        // ✅ Usa campos pre-computados
+        return item._titleLower.contains(q) ||
+               item._subtitleLower.contains(q) ||
+               item._keywordsLower.any((k) => k.contains(q));
+      }).toList(growable: false);
+      
+      // ✅ Ordenar por relevância
+      _filteredItemsCache.sort((a, b) {
+        final aStarts = a._titleLower.startsWith(q);
+        final bStarts = b._titleLower.startsWith(q);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return 0;
+      });
+    }
+    
     _hasFilterCache = true;
-
     return _filteredItemsCache;
   }
 
-  // The node ID where the menu was triggered
   String? _triggerNodeId;
-  // The offset position of the "/" in the text
   int? _triggerOffset;
 
   SlashMenuPlugin({required this.editor});
@@ -68,7 +86,7 @@ class SlashMenuPlugin extends ChangeNotifier {
       title: 'Heading 1',
       subtitle: 'Big section heading',
       icon: Icons.title,
-      keywords: ['h1', 'header', 'big'],
+      keywords: ['h1', 'header', 'big', 'título'],
       onSelected: (editor, node) =>
           _convertToHeader(editor, node, header1Attribution),
     ),
@@ -95,7 +113,7 @@ class SlashMenuPlugin extends ChangeNotifier {
       title: 'Bullet List',
       subtitle: 'Create a simple bulleted list',
       icon: Icons.format_list_bulleted,
-      keywords: ['ul', 'list', 'bullet'],
+      keywords: ['ul', 'list', 'bullet', 'pontos'],
       onSelected: (editor, node) =>
           _convertToList(editor, node, ListItemType.unordered),
     ),
@@ -104,7 +122,7 @@ class SlashMenuPlugin extends ChangeNotifier {
       title: 'Numbered List',
       subtitle: 'Create a list with numbering',
       icon: Icons.format_list_numbered,
-      keywords: ['ol', 'list', 'number', 'ordered'],
+      keywords: ['ol', 'list', 'number', 'ordered', 'numerada'],
       onSelected: (editor, node) =>
           _convertToList(editor, node, ListItemType.ordered),
     ),
@@ -113,7 +131,7 @@ class SlashMenuPlugin extends ChangeNotifier {
       title: 'Quote',
       subtitle: 'Capture a quote',
       icon: Icons.format_quote,
-      keywords: ['quote', 'blockquote'],
+      keywords: ['quote', 'blockquote', 'citação'],
       onSelected: (editor, node) => _convertToBlockquote(editor, node),
     ),
     SlashMenuItem(
@@ -121,12 +139,11 @@ class SlashMenuPlugin extends ChangeNotifier {
       title: 'Text',
       subtitle: 'Just plain text',
       icon: Icons.text_fields,
-      keywords: ['p', 'text', 'paragraph'],
+      keywords: ['p', 'text', 'paragraph', 'texto'],
       onSelected: (editor, node) => _convertToParagraph(editor, node),
     ),
   ];
 
-  // Check if we should open/update/close the menu based on the current selection and content
   void checkForTrigger(DocumentSelection? selection) {
     if (selection == null || !selection.isCollapsed) {
       if (_isOpen) _close();
@@ -143,7 +160,6 @@ class SlashMenuPlugin extends ChangeNotifier {
     final cursorPosition =
         (selection.extent.nodePosition as TextNodePosition).offset;
 
-    // Procurar "/" mais próximo ANTES do cursor
     final textBeforeCursor = text.substring(0, cursorPosition);
     final lastSlashIndex = textBeforeCursor.lastIndexOf('/');
 
@@ -152,15 +168,14 @@ class SlashMenuPlugin extends ChangeNotifier {
       return;
     }
 
-    // Extrair query (texto entre "/" e cursor)
     final queryText = textBeforeCursor.substring(lastSlashIndex + 1);
 
-    // Se query contém espaço, fechar (comportamento Notion)
     if (queryText.contains(' ')) {
       if (_isOpen) _close();
       return;
     }
 
+    // ✅ Batching de mudanças para evitar múltiplos notifyListeners
     var didChange = false;
 
     if (_triggerNodeId != node.id) {
@@ -184,7 +199,7 @@ class SlashMenuPlugin extends ChangeNotifier {
     }
 
     if (didChange) {
-      notifyListeners();
+      notifyListeners(); // ✅ Só notifica se mudou
     }
   }
 
@@ -205,9 +220,7 @@ class SlashMenuPlugin extends ChangeNotifier {
     final items = filteredItems;
     if (items.isEmpty) return;
 
-    int newIndex = _selectedIndex + delta;
-    if (newIndex < 0) newIndex = 0;
-    if (newIndex >= items.length) newIndex = items.length - 1;
+    final newIndex = (_selectedIndex + delta).clamp(0, items.length - 1);
 
     if (newIndex != _selectedIndex) {
       _selectedIndex = newIndex;
@@ -221,7 +234,6 @@ class SlashMenuPlugin extends ChangeNotifier {
     }
 
     if (!_isOpen) {
-      // Check for trigger via selection change mostly, but maybe key event too?
       return ExecutionInstruction.continueExecution;
     }
 
@@ -257,12 +269,10 @@ class SlashMenuPlugin extends ChangeNotifier {
     final node = editor.document.getNodeById(_triggerNodeId!);
     if (node is! ParagraphNode) return;
 
-    // Calcular range para deletar o comando "/" + query
     final commandLength = 1 + _query.length;
     final textLength = node.text.length;
-
-    // Verificar se o range é válido
     final endOffset = _triggerOffset! + commandLength;
+
     if (endOffset > textLength) {
       _close();
       return;
@@ -279,18 +289,15 @@ class SlashMenuPlugin extends ChangeNotifier {
       ),
     );
 
-    // Posição do cursor após deleção (na posição do trigger)
     final newCursorPosition = DocumentPosition(
       nodeId: node.id,
       nodePosition: TextNodePosition(offset: _triggerOffset!),
     );
 
-    // Guardar referências antes de fechar
     final nodeId = node.id;
     final selectedItem = item;
     _close();
 
-    // Executar deleção E atualizar seleção na mesma transação
     editor.execute([
       DeleteContentRequest(documentRange: deleteRange),
       ChangeSelectionRequest(
@@ -300,7 +307,6 @@ class SlashMenuPlugin extends ChangeNotifier {
       ),
     ]);
 
-    // Aplicar estilo após próximo frame para deixar o documento estabilizar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final updatedNode = editor.document.getNodeById(nodeId);
       if (updatedNode != null) {
@@ -308,8 +314,6 @@ class SlashMenuPlugin extends ChangeNotifier {
       }
     });
   }
-
-  // --- Helper functions for node conversion ---
 
   void _convertToHeader(Editor editor, DocumentNode node, Attribution blockType) {
     editor.execute([
@@ -339,7 +343,6 @@ class SlashMenuPlugin extends ChangeNotifier {
   }
 
   void _convertToParagraph(Editor editor, DocumentNode node) {
-    // Para converter para parágrafo, removemos qualquer attribution de bloco
     if (node is ParagraphNode) {
       editor.execute([
         ChangeParagraphBlockTypeRequest(

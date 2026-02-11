@@ -25,7 +25,7 @@ class BoardStreamService {
       StreamController<BoardEvent>.broadcast();
   Timer? _reconnectTimer;
 
-  int? _currentBoardId;
+  UuidValue? _currentBoardId;
   bool _disposed = false;
   bool _isConnecting = false;
   bool _authInvalid = false;
@@ -43,7 +43,7 @@ class BoardStreamService {
   }
 
   /// Connects to board stream with auto-reconnect
-  Future<void> connect(int boardId) async {
+  Future<void> connect(UuidValue boardId) async {
     if (_disposed) return;
 
     _authInvalid = false;

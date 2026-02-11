@@ -13,25 +13,29 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class PasswordResetToken
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   PasswordResetToken._({
     this.id,
-    required this.userId,
+    required this.authUserId,
     required this.token,
     required this.expiresAt,
   });
 
   factory PasswordResetToken({
-    int? id,
-    required int userId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue authUserId,
     required String token,
     required DateTime expiresAt,
   }) = _PasswordResetTokenImpl;
 
   factory PasswordResetToken.fromJson(Map<String, dynamic> jsonSerialization) {
     return PasswordResetToken(
-      id: jsonSerialization['id'] as int?,
-      userId: jsonSerialization['userId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      authUserId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['authUserId'],
+      ),
       token: jsonSerialization['token'] as String,
       expiresAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['expiresAt'],
@@ -44,23 +48,23 @@ abstract class PasswordResetToken
   static const db = PasswordResetTokenRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
-  int userId;
+  _i1.UuidValue authUserId;
 
   String token;
 
   DateTime expiresAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [PasswordResetToken]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   PasswordResetToken copyWith({
-    int? id,
-    int? userId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? authUserId,
     String? token,
     DateTime? expiresAt,
   });
@@ -68,8 +72,8 @@ abstract class PasswordResetToken
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'PasswordResetToken',
-      if (id != null) 'id': id,
-      'userId': userId,
+      if (id != null) 'id': id?.toJson(),
+      'authUserId': authUserId.toJson(),
       'token': token,
       'expiresAt': expiresAt.toJson(),
     };
@@ -79,8 +83,8 @@ abstract class PasswordResetToken
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'PasswordResetToken',
-      if (id != null) 'id': id,
-      'userId': userId,
+      if (id != null) 'id': id?.toJson(),
+      'authUserId': authUserId.toJson(),
       'token': token,
       'expiresAt': expiresAt.toJson(),
     };
@@ -120,13 +124,13 @@ class _Undefined {}
 
 class _PasswordResetTokenImpl extends PasswordResetToken {
   _PasswordResetTokenImpl({
-    int? id,
-    required int userId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue authUserId,
     required String token,
     required DateTime expiresAt,
   }) : super._(
          id: id,
-         userId: userId,
+         authUserId: authUserId,
          token: token,
          expiresAt: expiresAt,
        );
@@ -137,13 +141,13 @@ class _PasswordResetTokenImpl extends PasswordResetToken {
   @override
   PasswordResetToken copyWith({
     Object? id = _Undefined,
-    int? userId,
+    _i1.UuidValue? authUserId,
     String? token,
     DateTime? expiresAt,
   }) {
     return PasswordResetToken(
-      id: id is int? ? id : this.id,
-      userId: userId ?? this.userId,
+      id: id is _i1.UuidValue? ? id : this.id,
+      authUserId: authUserId ?? this.authUserId,
       token: token ?? this.token,
       expiresAt: expiresAt ?? this.expiresAt,
     );
@@ -154,8 +158,10 @@ class PasswordResetTokenUpdateTable
     extends _i1.UpdateTable<PasswordResetTokenTable> {
   PasswordResetTokenUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> userId(int value) => _i1.ColumnValue(
-    table.userId,
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> authUserId(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
+    table.authUserId,
     value,
   );
 
@@ -171,12 +177,12 @@ class PasswordResetTokenUpdateTable
       );
 }
 
-class PasswordResetTokenTable extends _i1.Table<int?> {
+class PasswordResetTokenTable extends _i1.Table<_i1.UuidValue?> {
   PasswordResetTokenTable({super.tableRelation})
     : super(tableName: 'password_reset_token') {
     updateTable = PasswordResetTokenUpdateTable(this);
-    userId = _i1.ColumnInt(
-      'userId',
+    authUserId = _i1.ColumnUuid(
+      'authUserId',
       this,
     );
     token = _i1.ColumnString(
@@ -191,7 +197,7 @@ class PasswordResetTokenTable extends _i1.Table<int?> {
 
   late final PasswordResetTokenUpdateTable updateTable;
 
-  late final _i1.ColumnInt userId;
+  late final _i1.ColumnUuid authUserId;
 
   late final _i1.ColumnString token;
 
@@ -200,7 +206,7 @@ class PasswordResetTokenTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
-    userId,
+    authUserId,
     token,
     expiresAt,
   ];
@@ -213,7 +219,7 @@ class PasswordResetTokenInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => PasswordResetToken.t;
+  _i1.Table<_i1.UuidValue?> get table => PasswordResetToken.t;
 }
 
 class PasswordResetTokenIncludeList extends _i1.IncludeList {
@@ -233,7 +239,7 @@ class PasswordResetTokenIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => PasswordResetToken.t;
+  _i1.Table<_i1.UuidValue?> get table => PasswordResetToken.t;
 }
 
 class PasswordResetTokenRepository {
@@ -321,7 +327,7 @@ class PasswordResetTokenRepository {
   /// Finds a single [PasswordResetToken] by its [id] or null if no such row exists.
   Future<PasswordResetToken?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<PasswordResetToken>(
@@ -399,7 +405,7 @@ class PasswordResetTokenRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<PasswordResetToken?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<PasswordResetTokenUpdateTable>
     columnValues,
     _i1.Transaction? transaction,

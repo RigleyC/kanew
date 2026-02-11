@@ -157,9 +157,8 @@ class _MembersPageState extends State<MembersPage> {
                             return MemberListTile(
                               memberWithUser: memberWithUser,
                               canEdit: !isOwner,
-                              onRemove: () => _confirmRemoveMember(
-                                context,
-                                memberWithUser.member.id!,
+                              onRemove: () => _confirmRemoveMember(context,
+                                  memberWithUser.member.id!,
                                 memberWithUser.userName,
                               ),
                               onChangeRole: (newRole) => _changeMemberRole(
@@ -207,7 +206,15 @@ class _MembersPageState extends State<MembersPage> {
       context: context,
       builder: (context) => InviteMemberDialog(
         allPermissions: _controller.allPermissions
-            .map((p) => PermissionInfo(permission: p, granted: false))
+            .map(
+              (p) => PermissionInfo(
+                permission: p,
+                granted: false,
+                isDefault: false,
+                isAdded: false,
+                isRemoved: false,
+              ),
+            )
             .toList(),
         onCreateInvite: (permissionIds, email) {
           return _controller.createInvite(
@@ -222,7 +229,7 @@ class _MembersPageState extends State<MembersPage> {
 
   void _confirmRemoveMember(
     BuildContext parentContext,
-    int memberId,
+    UuidValue memberId,
     String userName,
   ) {
     showDialog(
@@ -260,7 +267,7 @@ class _MembersPageState extends State<MembersPage> {
     );
   }
 
-  Future<void> _changeMemberRole(int memberId, MemberRole newRole) async {
+  Future<void> _changeMemberRole(UuidValue memberId, MemberRole newRole) async {
     final success = await _controller.updateMemberRole(memberId, newRole);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -275,58 +282,18 @@ class _MembersPageState extends State<MembersPage> {
     }
   }
 
-  Future<void> _showPermissionsDialog(int memberId, String userName) async {
+  Future<void> _showPermissionsDialog(UuidValue memberId, String userName) async {
     final permissions = await _controller.getMemberPermissions(memberId);
     if (permissions == null || !mounted) return;
 
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 16,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Permissões de $userName',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
-                const Divider(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: PermissionMatrix(
-                      permissions: permissions,
-                      onChanged: (selectedIds) {},
-                    ),
-                  ),
-                ),
-                const Divider(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  spacing: 8,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Fechar'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
+      builder: (context) => _PermissionsDialog(
+        memberId: memberId,
+        userName: userName,
+        permissions: permissions,
+        onSave: (selectedIds) =>
+            _controller.updateMemberPermissions(memberId, selectedIds),
       ),
     );
   }
@@ -344,7 +311,7 @@ class _MembersPageState extends State<MembersPage> {
     );
   }
 
-  Future<void> _revokeInvite(int inviteId) async {
+  Future<void> _revokeInvite(UuidValue inviteId) async {
     final success = await _controller.revokeInvite(inviteId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -354,6 +321,131 @@ class _MembersPageState extends State<MembersPage> {
           ),
         ),
       );
+    }
+  }
+}
+
+class _PermissionsDialog extends StatefulWidget {
+  final UuidValue memberId;
+  final String userName;
+  final List<PermissionInfo> permissions;
+  final Future<bool> Function(List<UuidValue> selectedIds) onSave;
+
+  const _PermissionsDialog({
+    required this.memberId,
+    required this.userName,
+    required this.permissions,
+    required this.onSave,
+  });
+
+  @override
+  State<_PermissionsDialog> createState() => _PermissionsDialogState();
+}
+
+class _PermissionsDialogState extends State<_PermissionsDialog> {
+  late Set<UuidValue> _selectedIds;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIds = widget.permissions
+        .where((p) => p.granted)
+        .map((p) => p.permission.id!)
+        .toSet();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 16,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Permissões de ${widget.userName}',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const Divider(),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: PermissionMatrix(
+                    permissions: widget.permissions,
+                    onChanged: (selectedIds) {
+                      setState(() => _selectedIds = selectedIds.toSet());
+                    },
+                  ),
+                ),
+              ),
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                spacing: 8,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cancelar'),
+                  ),
+                  FilledButton(
+                    onPressed: _isSaving ? null : _handleSave,
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Salvar'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleSave() async {
+    setState(() => _isSaving = true);
+
+    try {
+      final success = await widget.onSave(_selectedIds.toList());
+
+      if (mounted) {
+        if (success) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Permissões atualizadas com sucesso')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Erro ao salvar permissões')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao salvar permissões: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 }

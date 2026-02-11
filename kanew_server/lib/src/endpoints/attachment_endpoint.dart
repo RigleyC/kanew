@@ -24,7 +24,7 @@ class AttachmentEndpoint extends Endpoint {
   /// Requires: card.update permission
   Future<Attachment?> uploadFile(
     Session session, {
-    required int cardId,
+    required UuidValue cardId,
     required String fileName,
     required ByteData fileData,
     required String mimeType,
@@ -103,7 +103,7 @@ class AttachmentEndpoint extends Endpoint {
   /// Requires: card.update permission
   Future<String?> getUploadDescription(
     Session session, {
-    required int cardId,
+    required UuidValue cardId,
     required String fileName,
     required int size,
     required String mimeType,
@@ -156,7 +156,7 @@ class AttachmentEndpoint extends Endpoint {
   /// Requires: card.update permission
   Future<Attachment?> verifyUpload(
     Session session, {
-    required int cardId,
+    required UuidValue cardId,
     required String fileName,
     required String storagePath,
     required String mimeType,
@@ -238,7 +238,7 @@ class AttachmentEndpoint extends Endpoint {
   /// Requires: card.read permission
   Future<List<Attachment>> listAttachments(
     Session session,
-    int cardId,
+    UuidValue cardId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -285,7 +285,7 @@ class AttachmentEndpoint extends Endpoint {
   /// Requires: card.update permission (and check ownership/admin logic)
   Future<void> deleteAttachment(
     Session session,
-    int attachmentId,
+    UuidValue attachmentId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 

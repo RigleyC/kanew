@@ -54,21 +54,21 @@ void main() {
 
 class _MockMemberRepository implements MemberRepository {
   @override
-  Future<Either<Failure, List<MemberWithUser>>> getMembers(int workspaceId) async {
+  Future<Either<Failure, List<MemberWithUser>>> getMembers(UuidValue workspaceId) async {
     return const Right([]);
   }
 
   @override
-  Future<Either<Failure, void>> removeMember(int memberId) async {
+  Future<Either<Failure, void>> removeMember(UuidValue memberId) async {
     return const Right(null);
   }
 
   @override
-  Future<Either<Failure, WorkspaceMember>> updateMemberRole(int memberId, MemberRole role) async {
+  Future<Either<Failure, WorkspaceMember>> updateMemberRole(UuidValue memberId, MemberRole role) async {
     return Right(WorkspaceMember(
       id: memberId,
       authUserId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
-      workspaceId: 1,
+      workspaceId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
       role: role,
       status: MemberStatus.active,
       joinedAt: DateTime.now(),
@@ -76,24 +76,27 @@ class _MockMemberRepository implements MemberRepository {
   }
 
   @override
-  Future<Either<Failure, List<PermissionInfo>>> getMemberPermissions(int memberId) async {
+  Future<Either<Failure, List<PermissionInfo>>> getMemberPermissions(UuidValue memberId) async {
     return const Right([]);
   }
 
   @override
-  Future<Either<Failure, void>> updateMemberPermissions(int memberId, List<int> permissionIds) async {
+  Future<Either<Failure, void>> updateMemberPermissions(
+    UuidValue memberId,
+    List<UuidValue> permissionIds,
+  ) async {
     return const Right(null);
   }
 
   @override
-  Future<Either<Failure, void>> transferOwnership(int workspaceId, int newOwnerId) async {
+  Future<Either<Failure, void>> transferOwnership(UuidValue workspaceId, UuidValue newOwnerId) async {
     return const Right(null);
   }
 
   @override
-  Future<Either<Failure, WorkspaceInvite>> createInvite(int workspaceId, List<int> permissionIds, {String? email}) async {
+  Future<Either<Failure, WorkspaceInvite>> createInvite(UuidValue workspaceId, List<UuidValue> permissionIds, {String? email}) async {
     return Right(WorkspaceInvite(
-      id: 1,
+      id: UuidValue.fromString('00000000-0000-0000-0000-000000000002'),
       workspaceId: workspaceId,
       code: 'test123',
       createdBy: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
@@ -104,12 +107,12 @@ class _MockMemberRepository implements MemberRepository {
   }
 
   @override
-  Future<Either<Failure, List<WorkspaceInvite>>> getInvites(int workspaceId) async {
+  Future<Either<Failure, List<WorkspaceInvite>>> getInvites(UuidValue workspaceId) async {
     return const Right([]);
   }
 
   @override
-  Future<Either<Failure, void>> revokeInvite(int inviteId) async {
+  Future<Either<Failure, void>> revokeInvite(UuidValue inviteId) async {
     return const Right(null);
   }
 
@@ -122,9 +125,9 @@ class _MockMemberRepository implements MemberRepository {
   Future<Either<Failure, AcceptInviteResult>> acceptInvite(String code) async {
     return Right(AcceptInviteResult(
       member: WorkspaceMember(
-        id: 1,
+        id: UuidValue.fromString('00000000-0000-0000-0000-000000000003'),
         authUserId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
-        workspaceId: 1,
+        workspaceId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
         role: MemberRole.member,
         status: MemberStatus.active,
         joinedAt: DateTime.now(),
@@ -152,16 +155,26 @@ class _MockWorkspaceRepository implements WorkspaceRepository {
 
   @override
   Future<Workspace> createWorkspace(String title, {String? slug}) async {
-    throw UnimplementedError();
+    return Workspace(
+      id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+      title: title,
+      slug: slug ?? 'test-workspace',
+      ownerId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+      createdAt: DateTime.now(),
+    );
   }
 
   @override
-  Future<Workspace> updateWorkspace(int workspaceId, String title, {String? slug}) async {
-    throw UnimplementedError();
+  Future<Workspace> updateWorkspace(UuidValue workspaceId, String title, {String? slug}) async {
+    return Workspace(
+      id: workspaceId,
+      title: title,
+      slug: slug ?? 'test-workspace',
+      ownerId: UuidValue.fromString('550e8400-e29b-41d4-a716-446655440000'),
+      createdAt: DateTime.now(),
+    );
   }
 
   @override
-  Future<void> deleteWorkspace(int workspaceId) async {
-    throw UnimplementedError();
-  }
+  Future<void> deleteWorkspace(UuidValue workspaceId) async {}
 }

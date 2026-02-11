@@ -13,10 +13,10 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'board_visibility.dart' as _i2;
 
-abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+abstract class Board
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   Board._({
     this.id,
-    required this.uuid,
     required this.workspaceId,
     required this.title,
     required this.slug,
@@ -30,9 +30,8 @@ abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   });
 
   factory Board({
-    int? id,
-    required _i1.UuidValue uuid,
-    required int workspaceId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue workspaceId,
     required String title,
     required String slug,
     required _i2.BoardVisibility visibility,
@@ -46,9 +45,12 @@ abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
 
   factory Board.fromJson(Map<String, dynamic> jsonSerialization) {
     return Board(
-      id: jsonSerialization['id'] as int?,
-      uuid: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['uuid']),
-      workspaceId: jsonSerialization['workspaceId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      workspaceId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['workspaceId'],
+      ),
       title: jsonSerialization['title'] as String,
       slug: jsonSerialization['slug'] as String,
       visibility: _i2.BoardVisibility.fromJson(
@@ -76,11 +78,9 @@ abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   static const db = BoardRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
-  _i1.UuidValue uuid;
-
-  int workspaceId;
+  _i1.UuidValue workspaceId;
 
   String title;
 
@@ -101,15 +101,14 @@ abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   _i1.UuidValue? deletedBy;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [Board]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   Board copyWith({
-    int? id,
-    _i1.UuidValue? uuid,
-    int? workspaceId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? workspaceId,
     String? title,
     String? slug,
     _i2.BoardVisibility? visibility,
@@ -124,9 +123,8 @@ abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'Board',
-      if (id != null) 'id': id,
-      'uuid': uuid.toJson(),
-      'workspaceId': workspaceId,
+      if (id != null) 'id': id?.toJson(),
+      'workspaceId': workspaceId.toJson(),
       'title': title,
       'slug': slug,
       'visibility': visibility.toJson(),
@@ -143,9 +141,8 @@ abstract class Board implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'Board',
-      if (id != null) 'id': id,
-      'uuid': uuid.toJson(),
-      'workspaceId': workspaceId,
+      if (id != null) 'id': id?.toJson(),
+      'workspaceId': workspaceId.toJson(),
       'title': title,
       'slug': slug,
       'visibility': visibility.toJson(),
@@ -192,9 +189,8 @@ class _Undefined {}
 
 class _BoardImpl extends Board {
   _BoardImpl({
-    int? id,
-    required _i1.UuidValue uuid,
-    required int workspaceId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue workspaceId,
     required String title,
     required String slug,
     required _i2.BoardVisibility visibility,
@@ -206,7 +202,6 @@ class _BoardImpl extends Board {
     _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
-         uuid: uuid,
          workspaceId: workspaceId,
          title: title,
          slug: slug,
@@ -225,8 +220,7 @@ class _BoardImpl extends Board {
   @override
   Board copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? uuid,
-    int? workspaceId,
+    _i1.UuidValue? workspaceId,
     String? title,
     String? slug,
     _i2.BoardVisibility? visibility,
@@ -238,8 +232,7 @@ class _BoardImpl extends Board {
     Object? deletedBy = _Undefined,
   }) {
     return Board(
-      id: id is int? ? id : this.id,
-      uuid: uuid ?? this.uuid,
+      id: id is _i1.UuidValue? ? id : this.id,
       workspaceId: workspaceId ?? this.workspaceId,
       title: title ?? this.title,
       slug: slug ?? this.slug,
@@ -259,13 +252,9 @@ class _BoardImpl extends Board {
 class BoardUpdateTable extends _i1.UpdateTable<BoardTable> {
   BoardUpdateTable(super.table);
 
-  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> uuid(_i1.UuidValue value) =>
-      _i1.ColumnValue(
-        table.uuid,
-        value,
-      );
-
-  _i1.ColumnValue<int, int> workspaceId(int value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> workspaceId(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
     table.workspaceId,
     value,
   );
@@ -325,14 +314,10 @@ class BoardUpdateTable extends _i1.UpdateTable<BoardTable> {
   );
 }
 
-class BoardTable extends _i1.Table<int?> {
+class BoardTable extends _i1.Table<_i1.UuidValue?> {
   BoardTable({super.tableRelation}) : super(tableName: 'board') {
     updateTable = BoardUpdateTable(this);
-    uuid = _i1.ColumnUuid(
-      'uuid',
-      this,
-    );
-    workspaceId = _i1.ColumnInt(
+    workspaceId = _i1.ColumnUuid(
       'workspaceId',
       this,
     );
@@ -377,9 +362,7 @@ class BoardTable extends _i1.Table<int?> {
 
   late final BoardUpdateTable updateTable;
 
-  late final _i1.ColumnUuid uuid;
-
-  late final _i1.ColumnInt workspaceId;
+  late final _i1.ColumnUuid workspaceId;
 
   late final _i1.ColumnString title;
 
@@ -402,7 +385,6 @@ class BoardTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
-    uuid,
     workspaceId,
     title,
     slug,
@@ -423,7 +405,7 @@ class BoardInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => Board.t;
+  _i1.Table<_i1.UuidValue?> get table => Board.t;
 }
 
 class BoardIncludeList extends _i1.IncludeList {
@@ -443,7 +425,7 @@ class BoardIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => Board.t;
+  _i1.Table<_i1.UuidValue?> get table => Board.t;
 }
 
 class BoardRepository {
@@ -531,7 +513,7 @@ class BoardRepository {
   /// Finds a single [Board] by its [id] or null if no such row exists.
   Future<Board?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<Board>(
@@ -609,7 +591,7 @@ class BoardRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<Board?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<BoardUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

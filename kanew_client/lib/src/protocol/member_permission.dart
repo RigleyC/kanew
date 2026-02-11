@@ -18,52 +18,78 @@ abstract class MemberPermission implements _i1.SerializableModel {
     required this.workspaceMemberId,
     required this.permissionId,
     this.scopeBoardId,
-  });
+    bool? isRemoved,
+    this.grantedAt,
+  }) : isRemoved = isRemoved ?? false;
 
   factory MemberPermission({
-    int? id,
-    required int workspaceMemberId,
-    required int permissionId,
-    int? scopeBoardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue workspaceMemberId,
+    required _i1.UuidValue permissionId,
+    _i1.UuidValue? scopeBoardId,
+    bool? isRemoved,
+    DateTime? grantedAt,
   }) = _MemberPermissionImpl;
 
   factory MemberPermission.fromJson(Map<String, dynamic> jsonSerialization) {
     return MemberPermission(
-      id: jsonSerialization['id'] as int?,
-      workspaceMemberId: jsonSerialization['workspaceMemberId'] as int,
-      permissionId: jsonSerialization['permissionId'] as int,
-      scopeBoardId: jsonSerialization['scopeBoardId'] as int?,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      workspaceMemberId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['workspaceMemberId'],
+      ),
+      permissionId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['permissionId'],
+      ),
+      scopeBoardId: jsonSerialization['scopeBoardId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(
+              jsonSerialization['scopeBoardId'],
+            ),
+      isRemoved: jsonSerialization['isRemoved'] as bool?,
+      grantedAt: jsonSerialization['grantedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['grantedAt']),
     );
   }
 
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
-  int workspaceMemberId;
+  _i1.UuidValue workspaceMemberId;
 
-  int permissionId;
+  _i1.UuidValue permissionId;
 
-  int? scopeBoardId;
+  _i1.UuidValue? scopeBoardId;
+
+  bool isRemoved;
+
+  DateTime? grantedAt;
 
   /// Returns a shallow copy of this [MemberPermission]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   MemberPermission copyWith({
-    int? id,
-    int? workspaceMemberId,
-    int? permissionId,
-    int? scopeBoardId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? workspaceMemberId,
+    _i1.UuidValue? permissionId,
+    _i1.UuidValue? scopeBoardId,
+    bool? isRemoved,
+    DateTime? grantedAt,
   });
   @override
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'MemberPermission',
-      if (id != null) 'id': id,
-      'workspaceMemberId': workspaceMemberId,
-      'permissionId': permissionId,
-      if (scopeBoardId != null) 'scopeBoardId': scopeBoardId,
+      if (id != null) 'id': id?.toJson(),
+      'workspaceMemberId': workspaceMemberId.toJson(),
+      'permissionId': permissionId.toJson(),
+      if (scopeBoardId != null) 'scopeBoardId': scopeBoardId?.toJson(),
+      'isRemoved': isRemoved,
+      if (grantedAt != null) 'grantedAt': grantedAt?.toJson(),
     };
   }
 
@@ -77,15 +103,19 @@ class _Undefined {}
 
 class _MemberPermissionImpl extends MemberPermission {
   _MemberPermissionImpl({
-    int? id,
-    required int workspaceMemberId,
-    required int permissionId,
-    int? scopeBoardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue workspaceMemberId,
+    required _i1.UuidValue permissionId,
+    _i1.UuidValue? scopeBoardId,
+    bool? isRemoved,
+    DateTime? grantedAt,
   }) : super._(
          id: id,
          workspaceMemberId: workspaceMemberId,
          permissionId: permissionId,
          scopeBoardId: scopeBoardId,
+         isRemoved: isRemoved,
+         grantedAt: grantedAt,
        );
 
   /// Returns a shallow copy of this [MemberPermission]
@@ -94,15 +124,21 @@ class _MemberPermissionImpl extends MemberPermission {
   @override
   MemberPermission copyWith({
     Object? id = _Undefined,
-    int? workspaceMemberId,
-    int? permissionId,
+    _i1.UuidValue? workspaceMemberId,
+    _i1.UuidValue? permissionId,
     Object? scopeBoardId = _Undefined,
+    bool? isRemoved,
+    Object? grantedAt = _Undefined,
   }) {
     return MemberPermission(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       workspaceMemberId: workspaceMemberId ?? this.workspaceMemberId,
       permissionId: permissionId ?? this.permissionId,
-      scopeBoardId: scopeBoardId is int? ? scopeBoardId : this.scopeBoardId,
+      scopeBoardId: scopeBoardId is _i1.UuidValue?
+          ? scopeBoardId
+          : this.scopeBoardId,
+      isRemoved: isRemoved ?? this.isRemoved,
+      grantedAt: grantedAt is DateTime? ? grantedAt : this.grantedAt,
     );
   }
 }

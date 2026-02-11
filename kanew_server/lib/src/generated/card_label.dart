@@ -13,7 +13,7 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class CardLabel
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   CardLabel._({
     this.id,
     required this.cardId,
@@ -21,16 +21,20 @@ abstract class CardLabel
   });
 
   factory CardLabel({
-    int? id,
-    required int cardId,
-    required int labelDefId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
+    required _i1.UuidValue labelDefId,
   }) = _CardLabelImpl;
 
   factory CardLabel.fromJson(Map<String, dynamic> jsonSerialization) {
     return CardLabel(
-      id: jsonSerialization['id'] as int?,
-      cardId: jsonSerialization['cardId'] as int,
-      labelDefId: jsonSerialization['labelDefId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      cardId: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['cardId']),
+      labelDefId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['labelDefId'],
+      ),
     );
   }
 
@@ -39,30 +43,30 @@ abstract class CardLabel
   static const db = CardLabelRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
-  int cardId;
+  _i1.UuidValue cardId;
 
-  int labelDefId;
+  _i1.UuidValue labelDefId;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [CardLabel]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   CardLabel copyWith({
-    int? id,
-    int? cardId,
-    int? labelDefId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? cardId,
+    _i1.UuidValue? labelDefId,
   });
   @override
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'CardLabel',
-      if (id != null) 'id': id,
-      'cardId': cardId,
-      'labelDefId': labelDefId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
+      'labelDefId': labelDefId.toJson(),
     };
   }
 
@@ -70,9 +74,9 @@ abstract class CardLabel
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'CardLabel',
-      if (id != null) 'id': id,
-      'cardId': cardId,
-      'labelDefId': labelDefId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
+      'labelDefId': labelDefId.toJson(),
     };
   }
 
@@ -110,9 +114,9 @@ class _Undefined {}
 
 class _CardLabelImpl extends CardLabel {
   _CardLabelImpl({
-    int? id,
-    required int cardId,
-    required int labelDefId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
+    required _i1.UuidValue labelDefId,
   }) : super._(
          id: id,
          cardId: cardId,
@@ -125,11 +129,11 @@ class _CardLabelImpl extends CardLabel {
   @override
   CardLabel copyWith({
     Object? id = _Undefined,
-    int? cardId,
-    int? labelDefId,
+    _i1.UuidValue? cardId,
+    _i1.UuidValue? labelDefId,
   }) {
     return CardLabel(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       cardId: cardId ?? this.cardId,
       labelDefId: labelDefId ?? this.labelDefId,
     );
@@ -139,25 +143,28 @@ class _CardLabelImpl extends CardLabel {
 class CardLabelUpdateTable extends _i1.UpdateTable<CardLabelTable> {
   CardLabelUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> cardId(int value) => _i1.ColumnValue(
-    table.cardId,
-    value,
-  );
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> cardId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.cardId,
+        value,
+      );
 
-  _i1.ColumnValue<int, int> labelDefId(int value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> labelDefId(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
     table.labelDefId,
     value,
   );
 }
 
-class CardLabelTable extends _i1.Table<int?> {
+class CardLabelTable extends _i1.Table<_i1.UuidValue?> {
   CardLabelTable({super.tableRelation}) : super(tableName: 'card_label') {
     updateTable = CardLabelUpdateTable(this);
-    cardId = _i1.ColumnInt(
+    cardId = _i1.ColumnUuid(
       'cardId',
       this,
     );
-    labelDefId = _i1.ColumnInt(
+    labelDefId = _i1.ColumnUuid(
       'labelDefId',
       this,
     );
@@ -165,9 +172,9 @@ class CardLabelTable extends _i1.Table<int?> {
 
   late final CardLabelUpdateTable updateTable;
 
-  late final _i1.ColumnInt cardId;
+  late final _i1.ColumnUuid cardId;
 
-  late final _i1.ColumnInt labelDefId;
+  late final _i1.ColumnUuid labelDefId;
 
   @override
   List<_i1.Column> get columns => [
@@ -184,7 +191,7 @@ class CardLabelInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => CardLabel.t;
+  _i1.Table<_i1.UuidValue?> get table => CardLabel.t;
 }
 
 class CardLabelIncludeList extends _i1.IncludeList {
@@ -204,7 +211,7 @@ class CardLabelIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => CardLabel.t;
+  _i1.Table<_i1.UuidValue?> get table => CardLabel.t;
 }
 
 class CardLabelRepository {
@@ -292,7 +299,7 @@ class CardLabelRepository {
   /// Finds a single [CardLabel] by its [id] or null if no such row exists.
   Future<CardLabel?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<CardLabel>(
@@ -370,7 +377,7 @@ class CardLabelRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<CardLabel?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<CardLabelUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

@@ -50,6 +50,8 @@ class MemberRoleBadge extends StatelessWidget {
         return (Colors.orange, 'Admin');
       case MemberRole.member:
         return (colorScheme.secondary, 'Membro');
+      case MemberRole.guest:
+        return (colorScheme.outline, 'Convidado');
     }
   }
 }

@@ -13,7 +13,7 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class Checklist
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   Checklist._({
     this.id,
     required this.cardId,
@@ -25,8 +25,8 @@ abstract class Checklist
   });
 
   factory Checklist({
-    int? id,
-    required int cardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
     required String title,
     required String rank,
     required DateTime createdAt,
@@ -36,8 +36,10 @@ abstract class Checklist
 
   factory Checklist.fromJson(Map<String, dynamic> jsonSerialization) {
     return Checklist(
-      id: jsonSerialization['id'] as int?,
-      cardId: jsonSerialization['cardId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      cardId: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['cardId']),
       title: jsonSerialization['title'] as String,
       rank: jsonSerialization['rank'] as String,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
@@ -57,9 +59,9 @@ abstract class Checklist
   static const db = ChecklistRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
-  int cardId;
+  _i1.UuidValue cardId;
 
   String title;
 
@@ -72,14 +74,14 @@ abstract class Checklist
   DateTime? deletedAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [Checklist]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   Checklist copyWith({
-    int? id,
-    int? cardId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? cardId,
     String? title,
     String? rank,
     DateTime? createdAt,
@@ -90,8 +92,8 @@ abstract class Checklist
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'Checklist',
-      if (id != null) 'id': id,
-      'cardId': cardId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
       'title': title,
       'rank': rank,
       'createdAt': createdAt.toJson(),
@@ -104,8 +106,8 @@ abstract class Checklist
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'Checklist',
-      if (id != null) 'id': id,
-      'cardId': cardId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
       'title': title,
       'rank': rank,
       'createdAt': createdAt.toJson(),
@@ -148,8 +150,8 @@ class _Undefined {}
 
 class _ChecklistImpl extends Checklist {
   _ChecklistImpl({
-    int? id,
-    required int cardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
     required String title,
     required String rank,
     required DateTime createdAt,
@@ -171,7 +173,7 @@ class _ChecklistImpl extends Checklist {
   @override
   Checklist copyWith({
     Object? id = _Undefined,
-    int? cardId,
+    _i1.UuidValue? cardId,
     String? title,
     String? rank,
     DateTime? createdAt,
@@ -179,7 +181,7 @@ class _ChecklistImpl extends Checklist {
     Object? deletedAt = _Undefined,
   }) {
     return Checklist(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       cardId: cardId ?? this.cardId,
       title: title ?? this.title,
       rank: rank ?? this.rank,
@@ -193,10 +195,11 @@ class _ChecklistImpl extends Checklist {
 class ChecklistUpdateTable extends _i1.UpdateTable<ChecklistTable> {
   ChecklistUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> cardId(int value) => _i1.ColumnValue(
-    table.cardId,
-    value,
-  );
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> cardId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.cardId,
+        value,
+      );
 
   _i1.ColumnValue<String, String> title(String value) => _i1.ColumnValue(
     table.title,
@@ -227,10 +230,10 @@ class ChecklistUpdateTable extends _i1.UpdateTable<ChecklistTable> {
       );
 }
 
-class ChecklistTable extends _i1.Table<int?> {
+class ChecklistTable extends _i1.Table<_i1.UuidValue?> {
   ChecklistTable({super.tableRelation}) : super(tableName: 'checklist') {
     updateTable = ChecklistUpdateTable(this);
-    cardId = _i1.ColumnInt(
+    cardId = _i1.ColumnUuid(
       'cardId',
       this,
     );
@@ -258,7 +261,7 @@ class ChecklistTable extends _i1.Table<int?> {
 
   late final ChecklistUpdateTable updateTable;
 
-  late final _i1.ColumnInt cardId;
+  late final _i1.ColumnUuid cardId;
 
   late final _i1.ColumnString title;
 
@@ -289,7 +292,7 @@ class ChecklistInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => Checklist.t;
+  _i1.Table<_i1.UuidValue?> get table => Checklist.t;
 }
 
 class ChecklistIncludeList extends _i1.IncludeList {
@@ -309,7 +312,7 @@ class ChecklistIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => Checklist.t;
+  _i1.Table<_i1.UuidValue?> get table => Checklist.t;
 }
 
 class ChecklistRepository {
@@ -397,7 +400,7 @@ class ChecklistRepository {
   /// Finds a single [Checklist] by its [id] or null if no such row exists.
   Future<Checklist?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<Checklist>(
@@ -475,7 +478,7 @@ class ChecklistRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<Checklist?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<ChecklistUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

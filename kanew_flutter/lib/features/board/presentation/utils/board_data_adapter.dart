@@ -31,9 +31,9 @@ class BoardDataAdapter {
         ? filterStore.filterCards(allCards)
         : allCards;
 
-    final cardsByListId = <int, List<CardSummary>>{};
+    final cardsByListId = <String, List<CardSummary>>{};
     for (final summary in filteredCards) {
-      (cardsByListId[summary.card.listId] ??= <CardSummary>[]).add(summary);
+      (cardsByListId[summary.card.listId.toString()] ??= <CardSummary>[]).add(summary);
     }
 
     final currentGroupIds = List<String>.from(boardController.groupIds);
@@ -96,12 +96,12 @@ class BoardDataAdapter {
   }
 
   void handleMoveCard(
-    String toGroupId,
+    UuidValue toGroupId,
     int toIndex,
     BoardViewPageController controller,
   ) {
-    final toListId = int.parse(toGroupId);
-    final toGroup = boardController.getGroupController(toGroupId);
+    final toListId = toGroupId;
+    final toGroup = boardController.getGroupController(toGroupId.toString());
     if (toGroup == null) return;
 
     final items = toGroup.items;

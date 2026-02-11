@@ -4,38 +4,38 @@ import 'package:kanew_client/kanew_client.dart';
 import '../../../../core/error/failures.dart';
 
 abstract class MemberRepository {
-  Future<Either<Failure, List<MemberWithUser>>> getMembers(int workspaceId);
+  Future<Either<Failure, List<MemberWithUser>>> getMembers(UuidValue workspaceId);
 
-  Future<Either<Failure, void>> removeMember(int memberId);
+  Future<Either<Failure, void>> removeMember(UuidValue memberId);
 
   Future<Either<Failure, WorkspaceMember>> updateMemberRole(
-    int memberId,
+    UuidValue memberId,
     MemberRole role,
   );
 
   Future<Either<Failure, List<PermissionInfo>>> getMemberPermissions(
-    int memberId,
+    UuidValue memberId,
   );
 
   Future<Either<Failure, void>> updateMemberPermissions(
-    int memberId,
-    List<int> permissionIds,
+    UuidValue memberId,
+    List<UuidValue> permissionIds,
   );
 
   Future<Either<Failure, void>> transferOwnership(
-    int workspaceId,
-    int newOwnerId,
+    UuidValue workspaceId,
+    UuidValue newOwnerId,
   );
 
   Future<Either<Failure, WorkspaceInvite>> createInvite(
-    int workspaceId,
-    List<int> permissionIds, {
+    UuidValue workspaceId,
+    List<UuidValue> permissionIds, {
     String? email,
   });
 
-  Future<Either<Failure, List<WorkspaceInvite>>> getInvites(int workspaceId);
+  Future<Either<Failure, List<WorkspaceInvite>>> getInvites(UuidValue workspaceId);
 
-  Future<Either<Failure, void>> revokeInvite(int inviteId);
+  Future<Either<Failure, void>> revokeInvite(UuidValue inviteId);
 
   Future<Either<Failure, InviteDetails?>> getInviteByCode(String code);
 

@@ -167,6 +167,8 @@ class TestEndpoints {
 
   late final _CommentEndpoint comment;
 
+  late final _HealthEndpoint health;
+
   late final _InviteEndpoint invite;
 
   late final _LabelEndpoint label;
@@ -222,6 +224,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     comment = _CommentEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    health = _HealthEndpoint(
       endpoints,
       serializationManager,
     );
@@ -581,7 +587,7 @@ class _ActivityEndpoint {
 
   _i3.Future<List<_i5.CardActivity>> getLog(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
+    _i2.UuidValue cardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -623,7 +629,7 @@ class _AttachmentEndpoint {
 
   _i3.Future<_i6.Attachment?> uploadFile(
     _i1.TestSessionBuilder sessionBuilder, {
-    required int cardId,
+    required _i2.UuidValue cardId,
     required String fileName,
     required _i7.ByteData fileData,
     required String mimeType,
@@ -662,7 +668,7 @@ class _AttachmentEndpoint {
 
   _i3.Future<String?> getUploadDescription(
     _i1.TestSessionBuilder sessionBuilder, {
-    required int cardId,
+    required _i2.UuidValue cardId,
     required String fileName,
     required int size,
     required String mimeType,
@@ -701,7 +707,7 @@ class _AttachmentEndpoint {
 
   _i3.Future<_i6.Attachment?> verifyUpload(
     _i1.TestSessionBuilder sessionBuilder, {
-    required int cardId,
+    required _i2.UuidValue cardId,
     required String fileName,
     required String storagePath,
     required String mimeType,
@@ -742,7 +748,7 @@ class _AttachmentEndpoint {
 
   _i3.Future<List<_i6.Attachment>> listAttachments(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
+    _i2.UuidValue cardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -773,7 +779,7 @@ class _AttachmentEndpoint {
 
   _i3.Future<void> deleteAttachment(
     _i1.TestSessionBuilder sessionBuilder,
-    int attachmentId,
+    _i2.UuidValue attachmentId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -815,7 +821,7 @@ class _BoardEndpoint {
 
   _i3.Future<List<_i8.Board>> getBoards(
     _i1.TestSessionBuilder sessionBuilder,
-    int workspaceId,
+    _i2.UuidValue workspaceId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -877,7 +883,7 @@ class _BoardEndpoint {
 
   _i3.Future<_i8.Board?> getBoard(
     _i1.TestSessionBuilder sessionBuilder,
-    int workspaceId,
+    _i2.UuidValue workspaceId,
     String slug,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -947,7 +953,7 @@ class _BoardEndpoint {
 
   _i3.Future<_i8.Board> createBoard(
     _i1.TestSessionBuilder sessionBuilder,
-    int workspaceId,
+    _i2.UuidValue workspaceId,
     String title,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1017,7 +1023,7 @@ class _BoardEndpoint {
 
   _i3.Future<_i8.Board> updateBoard(
     _i1.TestSessionBuilder sessionBuilder,
-    int boardId,
+    _i2.UuidValue boardId,
     String title,
     String? slug,
   ) async {
@@ -1054,7 +1060,7 @@ class _BoardEndpoint {
 
   _i3.Future<void> deleteBoard(
     _i1.TestSessionBuilder sessionBuilder,
-    int boardId,
+    _i2.UuidValue boardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1096,7 +1102,7 @@ class _BoardStreamEndpoint {
 
   _i3.Stream<_i9.BoardEvent> subscribeToBoardUpdates(
     _i1.TestSessionBuilder sessionBuilder,
-    int boardId,
+    _i2.UuidValue boardId,
   ) {
     var _localTestStreamManager = _i1.TestStreamManager<_i9.BoardEvent>();
     _i1.callStreamFunctionAndHandleExceptions(
@@ -1139,7 +1145,7 @@ class _CardEndpoint {
 
   _i3.Future<List<_i10.Card>> getCards(
     _i1.TestSessionBuilder sessionBuilder,
-    int listId,
+    _i2.UuidValue listId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1170,7 +1176,7 @@ class _CardEndpoint {
 
   _i3.Future<List<_i11.CardDetail>> getCardsByBoardDetail(
     _i1.TestSessionBuilder sessionBuilder,
-    int boardId,
+    _i2.UuidValue boardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1201,7 +1207,7 @@ class _CardEndpoint {
 
   _i3.Future<_i10.Card?> getCard(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
+    _i2.UuidValue cardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1232,7 +1238,7 @@ class _CardEndpoint {
 
   _i3.Future<_i10.Card> createCard(
     _i1.TestSessionBuilder sessionBuilder,
-    int listId,
+    _i2.UuidValue listId,
     String title, {
     String? description,
     required _i12.CardPriority priority,
@@ -1273,7 +1279,7 @@ class _CardEndpoint {
 
   _i3.Future<_i11.CardDetail> createCardDetail(
     _i1.TestSessionBuilder sessionBuilder,
-    int listId,
+    _i2.UuidValue listId,
     String title, {
     String? description,
     required _i12.CardPriority priority,
@@ -1314,7 +1320,7 @@ class _CardEndpoint {
 
   _i3.Future<_i10.Card> updateCard(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId, {
+    _i2.UuidValue cardId, {
     String? title,
     String? description,
     _i12.CardPriority? priority,
@@ -1357,8 +1363,8 @@ class _CardEndpoint {
 
   _i3.Future<_i10.Card> moveCard(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
-    int targetListId, {
+    _i2.UuidValue cardId,
+    _i2.UuidValue targetListId, {
     String? afterRank,
     String? beforeRank,
     _i12.CardPriority? newPriority,
@@ -1398,7 +1404,7 @@ class _CardEndpoint {
 
   _i3.Future<void> deleteCard(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
+    _i2.UuidValue cardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1429,7 +1435,7 @@ class _CardEndpoint {
 
   _i3.Future<_i10.Card> toggleComplete(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
+    _i2.UuidValue cardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1460,7 +1466,7 @@ class _CardEndpoint {
 
   _i3.Future<_i11.CardDetail?> getCardDetail(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
+    _i2.UuidValue cardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1522,7 +1528,7 @@ class _CardEndpoint {
 
   _i3.Future<_i13.BoardWithCards> getBoardWithCards(
     _i1.TestSessionBuilder sessionBuilder,
-    int boardId,
+    _i2.UuidValue boardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1564,7 +1570,7 @@ class _CardListEndpoint {
 
   _i3.Future<List<_i14.CardList>> getLists(
     _i1.TestSessionBuilder sessionBuilder,
-    int boardId,
+    _i2.UuidValue boardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1595,7 +1601,7 @@ class _CardListEndpoint {
 
   _i3.Future<_i14.CardList> createList(
     _i1.TestSessionBuilder sessionBuilder,
-    int boardId,
+    _i2.UuidValue boardId,
     String title,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1630,7 +1636,7 @@ class _CardListEndpoint {
 
   _i3.Future<_i14.CardList> updateList(
     _i1.TestSessionBuilder sessionBuilder,
-    int listId,
+    _i2.UuidValue listId,
     String title,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1665,8 +1671,8 @@ class _CardListEndpoint {
 
   _i3.Future<List<_i14.CardList>> reorderLists(
     _i1.TestSessionBuilder sessionBuilder,
-    int boardId,
-    List<int> orderedListIds,
+    _i2.UuidValue boardId,
+    List<_i2.UuidValue> orderedListIds,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1700,7 +1706,7 @@ class _CardListEndpoint {
 
   _i3.Future<void> deleteList(
     _i1.TestSessionBuilder sessionBuilder,
-    int listId,
+    _i2.UuidValue listId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1731,7 +1737,7 @@ class _CardListEndpoint {
 
   _i3.Future<_i14.CardList> archiveList(
     _i1.TestSessionBuilder sessionBuilder,
-    int listId,
+    _i2.UuidValue listId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1773,7 +1779,7 @@ class _ChecklistEndpoint {
 
   _i3.Future<List<_i15.Checklist>> getChecklists(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
+    _i2.UuidValue cardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1804,7 +1810,7 @@ class _ChecklistEndpoint {
 
   _i3.Future<List<_i16.ChecklistItem>> getItems(
     _i1.TestSessionBuilder sessionBuilder,
-    int checklistId,
+    _i2.UuidValue checklistId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1835,7 +1841,7 @@ class _ChecklistEndpoint {
 
   _i3.Future<_i15.Checklist> createChecklist(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
+    _i2.UuidValue cardId,
     String title,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1870,7 +1876,7 @@ class _ChecklistEndpoint {
 
   _i3.Future<_i15.Checklist> updateChecklist(
     _i1.TestSessionBuilder sessionBuilder,
-    int checklistId,
+    _i2.UuidValue checklistId,
     String title,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1905,7 +1911,7 @@ class _ChecklistEndpoint {
 
   _i3.Future<void> deleteChecklist(
     _i1.TestSessionBuilder sessionBuilder,
-    int checklistId,
+    _i2.UuidValue checklistId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1936,7 +1942,7 @@ class _ChecklistEndpoint {
 
   _i3.Future<_i16.ChecklistItem> addItem(
     _i1.TestSessionBuilder sessionBuilder,
-    int checklistId,
+    _i2.UuidValue checklistId,
     String title,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1971,7 +1977,7 @@ class _ChecklistEndpoint {
 
   _i3.Future<_i16.ChecklistItem> updateItem(
     _i1.TestSessionBuilder sessionBuilder,
-    int itemId, {
+    _i2.UuidValue itemId, {
     String? title,
     bool? isChecked,
   }) async {
@@ -2008,7 +2014,7 @@ class _ChecklistEndpoint {
 
   _i3.Future<void> deleteItem(
     _i1.TestSessionBuilder sessionBuilder,
-    int itemId,
+    _i2.UuidValue itemId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2050,7 +2056,7 @@ class _CommentEndpoint {
 
   _i3.Future<List<_i17.Comment>> getComments(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
+    _i2.UuidValue cardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2081,7 +2087,7 @@ class _CommentEndpoint {
 
   _i3.Future<_i17.Comment> createComment(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
+    _i2.UuidValue cardId,
     String content,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2116,7 +2122,7 @@ class _CommentEndpoint {
 
   _i3.Future<void> deleteComment(
     _i1.TestSessionBuilder sessionBuilder,
-    int commentId,
+    _i2.UuidValue commentId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2146,6 +2152,47 @@ class _CommentEndpoint {
   }
 }
 
+class _HealthEndpoint {
+  _HealthEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<Map<String, dynamic>> check(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'health',
+            method: 'check',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'health',
+          methodName: 'check',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _InviteEndpoint {
   _InviteEndpoint(
     this._endpointDispatch,
@@ -2158,8 +2205,8 @@ class _InviteEndpoint {
 
   _i3.Future<_i18.WorkspaceInvite> createInvite(
     _i1.TestSessionBuilder sessionBuilder,
-    int workspaceId,
-    List<int> permissionIds, {
+    _i2.UuidValue workspaceId,
+    List<_i2.UuidValue> permissionIds, {
     String? email,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2195,7 +2242,7 @@ class _InviteEndpoint {
 
   _i3.Future<List<_i18.WorkspaceInvite>> getInvites(
     _i1.TestSessionBuilder sessionBuilder,
-    int workspaceId,
+    _i2.UuidValue workspaceId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2226,7 +2273,7 @@ class _InviteEndpoint {
 
   _i3.Future<void> revokeInvite(
     _i1.TestSessionBuilder sessionBuilder,
-    int inviteId,
+    _i2.UuidValue inviteId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2330,7 +2377,7 @@ class _LabelEndpoint {
 
   _i3.Future<List<_i21.LabelDef>> getLabels(
     _i1.TestSessionBuilder sessionBuilder,
-    int boardId,
+    _i2.UuidValue boardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2361,7 +2408,7 @@ class _LabelEndpoint {
 
   _i3.Future<_i21.LabelDef> createLabel(
     _i1.TestSessionBuilder sessionBuilder,
-    int boardId,
+    _i2.UuidValue boardId,
     String name,
     String colorHex,
   ) async {
@@ -2398,7 +2445,7 @@ class _LabelEndpoint {
 
   _i3.Future<_i21.LabelDef> updateLabel(
     _i1.TestSessionBuilder sessionBuilder,
-    int labelId,
+    _i2.UuidValue labelId,
     String name,
     String colorHex,
   ) async {
@@ -2435,7 +2482,7 @@ class _LabelEndpoint {
 
   _i3.Future<void> deleteLabel(
     _i1.TestSessionBuilder sessionBuilder,
-    int labelId,
+    _i2.UuidValue labelId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2466,8 +2513,8 @@ class _LabelEndpoint {
 
   _i3.Future<void> attachLabel(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
-    int labelId,
+    _i2.UuidValue cardId,
+    _i2.UuidValue labelId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2501,8 +2548,8 @@ class _LabelEndpoint {
 
   _i3.Future<void> detachLabel(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
-    int labelId,
+    _i2.UuidValue cardId,
+    _i2.UuidValue labelId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2536,7 +2583,7 @@ class _LabelEndpoint {
 
   _i3.Future<List<_i21.LabelDef>> getCardLabels(
     _i1.TestSessionBuilder sessionBuilder,
-    int cardId,
+    _i2.UuidValue cardId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2578,7 +2625,7 @@ class _MemberEndpoint {
 
   _i3.Future<List<_i22.MemberWithUser>> getMembers(
     _i1.TestSessionBuilder sessionBuilder,
-    int workspaceId,
+    _i2.UuidValue workspaceId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2609,7 +2656,7 @@ class _MemberEndpoint {
 
   _i3.Future<void> removeMember(
     _i1.TestSessionBuilder sessionBuilder,
-    int memberId,
+    _i2.UuidValue memberId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2640,7 +2687,7 @@ class _MemberEndpoint {
 
   _i3.Future<_i23.WorkspaceMember> updateMemberRole(
     _i1.TestSessionBuilder sessionBuilder,
-    int memberId,
+    _i2.UuidValue memberId,
     _i24.MemberRole newRole,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2675,7 +2722,7 @@ class _MemberEndpoint {
 
   _i3.Future<List<_i25.PermissionInfo>> getMemberPermissions(
     _i1.TestSessionBuilder sessionBuilder,
-    int memberId,
+    _i2.UuidValue memberId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2706,8 +2753,8 @@ class _MemberEndpoint {
 
   _i3.Future<void> updateMemberPermissions(
     _i1.TestSessionBuilder sessionBuilder,
-    int memberId,
-    List<int> permissionIds,
+    _i2.UuidValue memberId,
+    List<_i2.UuidValue> grantedPermissionIds,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2722,7 +2769,7 @@ class _MemberEndpoint {
           methodName: 'updateMemberPermissions',
           parameters: _i1.testObjectToJson({
             'memberId': memberId,
-            'permissionIds': permissionIds,
+            'grantedPermissionIds': grantedPermissionIds,
           }),
           serializationManager: _serializationManager,
         );
@@ -2741,8 +2788,8 @@ class _MemberEndpoint {
 
   _i3.Future<void> transferOwnership(
     _i1.TestSessionBuilder sessionBuilder,
-    int workspaceId,
-    int newOwnerId,
+    _i2.UuidValue workspaceId,
+    _i2.UuidValue newOwnerId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2913,7 +2960,7 @@ class _WorkspaceEndpoint {
 
   _i3.Future<_i27.Workspace> updateWorkspace(
     _i1.TestSessionBuilder sessionBuilder,
-    int workspaceId,
+    _i2.UuidValue workspaceId,
     String title,
     String? slug,
   ) async {
@@ -2950,7 +2997,7 @@ class _WorkspaceEndpoint {
 
   _i3.Future<void> deleteWorkspace(
     _i1.TestSessionBuilder sessionBuilder,
-    int workspaceId,
+    _i2.UuidValue workspaceId,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =

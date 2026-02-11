@@ -2,6 +2,9 @@
 class: Permission
 table: permission
 fields:
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
   slug: String # ex: 'board.create', 'card.delete'
   description: String?
 indexes:

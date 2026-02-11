@@ -1,9 +1,11 @@
 class: Card
 table: card
 fields:
-  uuid: UuidValue
-  listId: int, relation(parent=card_list)
-  boardId: int, relation(parent=board) # Redundante mas útil para queries diretas
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
+  listId: UuidValue, relation(parent=card_list)
+  boardId: UuidValue, relation(parent=board) # Redundante mas útil para queries diretas
   
   # Conteúdo Principal
   title: String
@@ -24,7 +26,4 @@ fields:
   # Soft Delete
   deletedAt: DateTime?
   deletedBy: UuidValue?
-indexes:
-  card_uuid_idx:
-    fields: uuid
-    unique: true
+indexes: {}

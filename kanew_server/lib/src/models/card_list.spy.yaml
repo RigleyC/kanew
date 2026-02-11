@@ -1,8 +1,10 @@
 class: CardList
 table: card_list
 fields:
-  uuid: UuidValue
-  boardId: int, relation(parent=board)
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
+  boardId: UuidValue, relation(parent=board)
   title: String
   
   # Ordenação
@@ -14,7 +16,4 @@ fields:
   # Soft Delete
   deletedAt: DateTime?
   deletedBy: UuidValue?
-indexes:
-  card_list_uuid_idx:
-    fields: uuid
-    unique: true
+indexes: {}

@@ -12,7 +12,7 @@ class CardRepository {
   CardRepository({Client? client}) : _client = client ?? getIt<Client>();
 
   /// Gets all cards for a list
-  Future<Either<Failure, List<Card>>> getCards(int listId) async {
+  Future<Either<Failure, List<Card>>> getCards(UuidValue listId) async {
     developer.log(
       'CardRepository.getCards($listId)',
       name: 'card_repository',
@@ -43,7 +43,7 @@ class CardRepository {
 
   /// Gets all cards for a board with complete details
   Future<Either<Failure, List<CardDetail>>> getCardsByBoardDetail(
-    int boardId,
+    UuidValue boardId,
   ) async {
     developer.log(
       'CardRepository.getCardsByBoardDetail($boardId)',
@@ -76,7 +76,7 @@ class CardRepository {
   /// Creates a new card and returns complete CardDetail
   /// Requires: board.update permission
   Future<Either<Failure, CardDetail>> createCardDetail(
-    int listId,
+    UuidValue listId,
     String title,
   ) async {
     developer.log(
@@ -112,7 +112,7 @@ class CardRepository {
   }
 
   /// Gets a single card by ID
-  Future<Either<Failure, Card?>> getCard(int cardId) async {
+  Future<Either<Failure, Card?>> getCard(UuidValue cardId) async {
     developer.log(
       'CardRepository.getCard($cardId)',
       name: 'card_repository',
@@ -139,7 +139,7 @@ class CardRepository {
 
   /// Creates a new card in a list
   Future<Either<Failure, Card>> createCard(
-    int listId,
+    UuidValue listId,
     String title, {
     String? description,
     CardPriority priority = CardPriority.none,
@@ -177,7 +177,7 @@ class CardRepository {
 
   /// Updates a card's details
   Future<Either<Failure, Card>> updateCard(
-    int cardId, {
+    UuidValue cardId, {
     String? title,
     String? description,
     CardPriority? priority,
@@ -221,8 +221,8 @@ class CardRepository {
 
   /// Moves a card to a different list and/or reorders
   Future<Either<Failure, Card>> moveCard(
-    int cardId,
-    int targetListId, {
+    UuidValue cardId,
+    UuidValue targetListId, {
     String? afterRank,
     String? beforeRank,
     CardPriority? newPriority,
@@ -258,7 +258,7 @@ class CardRepository {
   }
 
   /// Soft deletes a card
-  Future<Either<Failure, Unit>> deleteCard(int cardId) async {
+  Future<Either<Failure, Unit>> deleteCard(UuidValue cardId) async {
     developer.log(
       'CardRepository.deleteCard($cardId)',
       name: 'card_repository',
@@ -284,7 +284,7 @@ class CardRepository {
   }
 
   /// Toggles card completion status
-  Future<Either<Failure, Card>> toggleComplete(int cardId) async {
+  Future<Either<Failure, Card>> toggleComplete(UuidValue cardId) async {
     developer.log(
       'CardRepository.toggleComplete($cardId)',
       name: 'card_repository',
@@ -314,7 +314,7 @@ class CardRepository {
   }
 
   /// Gets complete card details (aggregate)
-  Future<Either<Failure, CardDetail?>> getCardDetail(int cardId) async {
+  Future<Either<Failure, CardDetail?>> getCardDetail(UuidValue cardId) async {
     developer.log(
       'CardRepository.getCardDetail($cardId)',
       name: 'card_repository',

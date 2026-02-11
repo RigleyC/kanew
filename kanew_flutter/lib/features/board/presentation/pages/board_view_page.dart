@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart' hide Card;
 import 'package:go_router/go_router.dart';
+import 'package:kanew_client/kanew_client.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/background/dot_background.dart';
@@ -15,7 +16,7 @@ import '../widgets/kanban_board.dart';
 class BoardViewPage extends StatefulWidget {
   final String workspaceSlug;
   final String boardSlug;
-  final int? boardId;
+  final UuidValue? boardId;
 
   const BoardViewPage({
     super.key,

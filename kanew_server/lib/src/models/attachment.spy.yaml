@@ -1,8 +1,11 @@
 class: Attachment
 table: attachment
 fields:
-  cardId: int, relation(parent=card)
-  workspaceId: int, relation(parent=workspace) # Necessário para controle de acesso
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
+  cardId: UuidValue, relation(parent=card)
+  workspaceId: UuidValue, relation(parent=workspace) # Necessário para controle de acesso
   fileName: String
   mimeType: String # Tipo MIME (conforme plan.md)
   size: int # Tamanho em bytes (conforme plan.md)

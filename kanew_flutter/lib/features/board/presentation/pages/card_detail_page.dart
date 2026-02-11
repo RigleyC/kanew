@@ -61,7 +61,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
     await _controller.load(widget.cardUuid);
   }
 
-  String _getListName(int listId) {
+  String _getListName(UuidValue listId) {
     return _controller.list?.title ?? 'Lista';
   }
 

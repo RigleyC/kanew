@@ -13,7 +13,7 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class LabelDef
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   LabelDef._({
     this.id,
     required this.boardId,
@@ -23,8 +23,8 @@ abstract class LabelDef
   });
 
   factory LabelDef({
-    int? id,
-    required int boardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue boardId,
     required String name,
     required String colorHex,
     DateTime? deletedAt,
@@ -32,8 +32,12 @@ abstract class LabelDef
 
   factory LabelDef.fromJson(Map<String, dynamic> jsonSerialization) {
     return LabelDef(
-      id: jsonSerialization['id'] as int?,
-      boardId: jsonSerialization['boardId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      boardId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['boardId'],
+      ),
       name: jsonSerialization['name'] as String,
       colorHex: jsonSerialization['colorHex'] as String,
       deletedAt: jsonSerialization['deletedAt'] == null
@@ -47,9 +51,9 @@ abstract class LabelDef
   static const db = LabelDefRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
-  int boardId;
+  _i1.UuidValue boardId;
 
   String name;
 
@@ -58,14 +62,14 @@ abstract class LabelDef
   DateTime? deletedAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [LabelDef]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   LabelDef copyWith({
-    int? id,
-    int? boardId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? boardId,
     String? name,
     String? colorHex,
     DateTime? deletedAt,
@@ -74,8 +78,8 @@ abstract class LabelDef
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'LabelDef',
-      if (id != null) 'id': id,
-      'boardId': boardId,
+      if (id != null) 'id': id?.toJson(),
+      'boardId': boardId.toJson(),
       'name': name,
       'colorHex': colorHex,
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
@@ -86,8 +90,8 @@ abstract class LabelDef
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'LabelDef',
-      if (id != null) 'id': id,
-      'boardId': boardId,
+      if (id != null) 'id': id?.toJson(),
+      'boardId': boardId.toJson(),
       'name': name,
       'colorHex': colorHex,
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
@@ -128,8 +132,8 @@ class _Undefined {}
 
 class _LabelDefImpl extends LabelDef {
   _LabelDefImpl({
-    int? id,
-    required int boardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue boardId,
     required String name,
     required String colorHex,
     DateTime? deletedAt,
@@ -147,13 +151,13 @@ class _LabelDefImpl extends LabelDef {
   @override
   LabelDef copyWith({
     Object? id = _Undefined,
-    int? boardId,
+    _i1.UuidValue? boardId,
     String? name,
     String? colorHex,
     Object? deletedAt = _Undefined,
   }) {
     return LabelDef(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       boardId: boardId ?? this.boardId,
       name: name ?? this.name,
       colorHex: colorHex ?? this.colorHex,
@@ -165,10 +169,11 @@ class _LabelDefImpl extends LabelDef {
 class LabelDefUpdateTable extends _i1.UpdateTable<LabelDefTable> {
   LabelDefUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> boardId(int value) => _i1.ColumnValue(
-    table.boardId,
-    value,
-  );
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> boardId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.boardId,
+        value,
+      );
 
   _i1.ColumnValue<String, String> name(String value) => _i1.ColumnValue(
     table.name,
@@ -187,10 +192,10 @@ class LabelDefUpdateTable extends _i1.UpdateTable<LabelDefTable> {
       );
 }
 
-class LabelDefTable extends _i1.Table<int?> {
+class LabelDefTable extends _i1.Table<_i1.UuidValue?> {
   LabelDefTable({super.tableRelation}) : super(tableName: 'label_def') {
     updateTable = LabelDefUpdateTable(this);
-    boardId = _i1.ColumnInt(
+    boardId = _i1.ColumnUuid(
       'boardId',
       this,
     );
@@ -210,7 +215,7 @@ class LabelDefTable extends _i1.Table<int?> {
 
   late final LabelDefUpdateTable updateTable;
 
-  late final _i1.ColumnInt boardId;
+  late final _i1.ColumnUuid boardId;
 
   late final _i1.ColumnString name;
 
@@ -235,7 +240,7 @@ class LabelDefInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => LabelDef.t;
+  _i1.Table<_i1.UuidValue?> get table => LabelDef.t;
 }
 
 class LabelDefIncludeList extends _i1.IncludeList {
@@ -255,7 +260,7 @@ class LabelDefIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => LabelDef.t;
+  _i1.Table<_i1.UuidValue?> get table => LabelDef.t;
 }
 
 class LabelDefRepository {
@@ -343,7 +348,7 @@ class LabelDefRepository {
   /// Finds a single [LabelDef] by its [id] or null if no such row exists.
   Future<LabelDef?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<LabelDef>(
@@ -421,7 +426,7 @@ class LabelDefRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<LabelDef?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<LabelDefUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

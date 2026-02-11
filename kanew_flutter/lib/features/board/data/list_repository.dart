@@ -16,7 +16,7 @@ class ListRepository {
   ListRepository({Client? client}) : _client = client ?? getIt<Client>();
 
   /// Gets all lists for a board
-  Future<Either<Failure, List<CardList>>> getLists(int boardId) async {
+  Future<Either<Failure, List<CardList>>> getLists(UuidValue boardId) async {
     developer.log(
       'ListRepository.getLists($boardId)',
       name: 'list_repository',
@@ -47,7 +47,7 @@ class ListRepository {
 
   /// Creates a new list in a board
   Future<Either<Failure, CardList>> createList(
-    int boardId,
+    UuidValue boardId,
     String title,
   ) async {
     developer.log(
@@ -75,7 +75,7 @@ class ListRepository {
   }
 
   /// Updates a list's title
-  Future<Either<Failure, CardList>> updateList(int listId, String title) async {
+  Future<Either<Failure, CardList>> updateList(UuidValue listId, String title) async {
     developer.log(
       'ListRepository.updateList($listId, $title)',
       name: 'list_repository',
@@ -106,8 +106,8 @@ class ListRepository {
 
   /// Reorders lists within a board
   Future<Either<Failure, List<CardList>>> reorderLists(
-    int boardId,
-    List<int> orderedListIds,
+    UuidValue boardId,
+    List<UuidValue> orderedListIds,
   ) async {
     developer.log(
       'ListRepository.reorderLists($boardId, $orderedListIds)',
@@ -141,7 +141,7 @@ class ListRepository {
   }
 
   /// Soft deletes a list
-  Future<Either<Failure, Unit>> deleteList(int listId) async {
+  Future<Either<Failure, Unit>> deleteList(UuidValue listId) async {
     developer.log(
       'ListRepository.deleteList($listId)',
       name: 'list_repository',
@@ -167,7 +167,7 @@ class ListRepository {
   }
 
   /// Archives a list
-  Future<Either<Failure, CardList>> archiveList(int listId) async {
+  Future<Either<Failure, CardList>> archiveList(UuidValue listId) async {
     developer.log(
       'ListRepository.archiveList($listId)',
       name: 'list_repository',

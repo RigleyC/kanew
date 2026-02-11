@@ -13,10 +13,9 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class Workspace
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   Workspace._({
     this.id,
-    required this.uuid,
     required this.title,
     required this.slug,
     required this.ownerId,
@@ -26,8 +25,7 @@ abstract class Workspace
   });
 
   factory Workspace({
-    int? id,
-    required _i1.UuidValue uuid,
+    _i1.UuidValue? id,
     required String title,
     required String slug,
     required _i1.UuidValue ownerId,
@@ -38,8 +36,9 @@ abstract class Workspace
 
   factory Workspace.fromJson(Map<String, dynamic> jsonSerialization) {
     return Workspace(
-      id: jsonSerialization['id'] as int?,
-      uuid: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['uuid']),
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       title: jsonSerialization['title'] as String,
       slug: jsonSerialization['slug'] as String,
       ownerId: _i1.UuidValueJsonExtension.fromJson(
@@ -62,9 +61,7 @@ abstract class Workspace
   static const db = WorkspaceRepository._();
 
   @override
-  int? id;
-
-  _i1.UuidValue uuid;
+  _i1.UuidValue? id;
 
   String title;
 
@@ -79,14 +76,13 @@ abstract class Workspace
   _i1.UuidValue? deletedBy;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [Workspace]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   Workspace copyWith({
-    int? id,
-    _i1.UuidValue? uuid,
+    _i1.UuidValue? id,
     String? title,
     String? slug,
     _i1.UuidValue? ownerId,
@@ -98,8 +94,7 @@ abstract class Workspace
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'Workspace',
-      if (id != null) 'id': id,
-      'uuid': uuid.toJson(),
+      if (id != null) 'id': id?.toJson(),
       'title': title,
       'slug': slug,
       'ownerId': ownerId.toJson(),
@@ -113,8 +108,7 @@ abstract class Workspace
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'Workspace',
-      if (id != null) 'id': id,
-      'uuid': uuid.toJson(),
+      if (id != null) 'id': id?.toJson(),
       'title': title,
       'slug': slug,
       'ownerId': ownerId.toJson(),
@@ -158,8 +152,7 @@ class _Undefined {}
 
 class _WorkspaceImpl extends Workspace {
   _WorkspaceImpl({
-    int? id,
-    required _i1.UuidValue uuid,
+    _i1.UuidValue? id,
     required String title,
     required String slug,
     required _i1.UuidValue ownerId,
@@ -168,7 +161,6 @@ class _WorkspaceImpl extends Workspace {
     _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
-         uuid: uuid,
          title: title,
          slug: slug,
          ownerId: ownerId,
@@ -183,7 +175,6 @@ class _WorkspaceImpl extends Workspace {
   @override
   Workspace copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? uuid,
     String? title,
     String? slug,
     _i1.UuidValue? ownerId,
@@ -192,8 +183,7 @@ class _WorkspaceImpl extends Workspace {
     Object? deletedBy = _Undefined,
   }) {
     return Workspace(
-      id: id is int? ? id : this.id,
-      uuid: uuid ?? this.uuid,
+      id: id is _i1.UuidValue? ? id : this.id,
       title: title ?? this.title,
       slug: slug ?? this.slug,
       ownerId: ownerId ?? this.ownerId,
@@ -206,12 +196,6 @@ class _WorkspaceImpl extends Workspace {
 
 class WorkspaceUpdateTable extends _i1.UpdateTable<WorkspaceTable> {
   WorkspaceUpdateTable(super.table);
-
-  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> uuid(_i1.UuidValue value) =>
-      _i1.ColumnValue(
-        table.uuid,
-        value,
-      );
 
   _i1.ColumnValue<String, String> title(String value) => _i1.ColumnValue(
     table.title,
@@ -249,13 +233,9 @@ class WorkspaceUpdateTable extends _i1.UpdateTable<WorkspaceTable> {
   );
 }
 
-class WorkspaceTable extends _i1.Table<int?> {
+class WorkspaceTable extends _i1.Table<_i1.UuidValue?> {
   WorkspaceTable({super.tableRelation}) : super(tableName: 'workspace') {
     updateTable = WorkspaceUpdateTable(this);
-    uuid = _i1.ColumnUuid(
-      'uuid',
-      this,
-    );
     title = _i1.ColumnString(
       'title',
       this,
@@ -284,8 +264,6 @@ class WorkspaceTable extends _i1.Table<int?> {
 
   late final WorkspaceUpdateTable updateTable;
 
-  late final _i1.ColumnUuid uuid;
-
   late final _i1.ColumnString title;
 
   late final _i1.ColumnString slug;
@@ -301,7 +279,6 @@ class WorkspaceTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
-    uuid,
     title,
     slug,
     ownerId,
@@ -318,7 +295,7 @@ class WorkspaceInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => Workspace.t;
+  _i1.Table<_i1.UuidValue?> get table => Workspace.t;
 }
 
 class WorkspaceIncludeList extends _i1.IncludeList {
@@ -338,7 +315,7 @@ class WorkspaceIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => Workspace.t;
+  _i1.Table<_i1.UuidValue?> get table => Workspace.t;
 }
 
 class WorkspaceRepository {
@@ -426,7 +403,7 @@ class WorkspaceRepository {
   /// Finds a single [Workspace] by its [id] or null if no such row exists.
   Future<Workspace?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<Workspace>(
@@ -504,7 +481,7 @@ class WorkspaceRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<Workspace?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<WorkspaceUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

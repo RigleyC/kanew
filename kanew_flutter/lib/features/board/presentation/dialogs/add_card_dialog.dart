@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:kanew_client/kanew_client.dart';
 
 /// Shows a dialog to add a new card
 Future<void> showAddCardDialog(
   BuildContext context,
-  int listId,
-  Future<void> Function(int listId, String title) onAddCard,
+  UuidValue listId,
+  Future<void> Function(UuidValue listId, String title) onAddCard,
 ) async {
   final textController = TextEditingController();
 

@@ -15,7 +15,7 @@ class CardListEndpoint extends Endpoint {
   /// Requires: board.read permission
   Future<List<CardList>> getLists(
     Session session,
-    int boardId,
+    UuidValue boardId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -51,7 +51,7 @@ class CardListEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<CardList> createList(
     Session session,
-    int boardId,
+    UuidValue boardId,
     String title,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
@@ -86,9 +86,7 @@ class CardListEndpoint extends Endpoint {
     final lastRank = existingLists.isNotEmpty ? existingLists.first.rank : null;
     final newRank = LexoRankService.generateRankAfter(lastRank);
 
-    final cardList = CardList(
-      uuid: const Uuid().v4obj(),
-      boardId: boardId,
+    final cardList = CardList(      boardId: boardId,
       title: title,
       rank: newRank,
       archived: false,
@@ -117,7 +115,7 @@ class CardListEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<CardList> updateList(
     Session session,
-    int listId,
+    UuidValue listId,
     String title,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
@@ -166,8 +164,8 @@ class CardListEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<List<CardList>> reorderLists(
     Session session,
-    int boardId,
-    List<int> orderedListIds,
+    UuidValue boardId,
+    List<UuidValue> orderedListIds,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -226,7 +224,7 @@ class CardListEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<void> deleteList(
     Session session,
-    int listId,
+    UuidValue listId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -297,7 +295,7 @@ class CardListEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<CardList> archiveList(
     Session session,
-    int listId,
+    UuidValue listId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 

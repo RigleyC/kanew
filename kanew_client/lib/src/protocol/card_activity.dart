@@ -24,8 +24,8 @@ abstract class CardActivity implements _i1.SerializableModel {
   });
 
   factory CardActivity({
-    int? id,
-    required int cardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
     required _i1.UuidValue actorId,
     required _i2.ActivityType type,
     String? details,
@@ -34,8 +34,10 @@ abstract class CardActivity implements _i1.SerializableModel {
 
   factory CardActivity.fromJson(Map<String, dynamic> jsonSerialization) {
     return CardActivity(
-      id: jsonSerialization['id'] as int?,
-      cardId: jsonSerialization['cardId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      cardId: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['cardId']),
       actorId: _i1.UuidValueJsonExtension.fromJson(
         jsonSerialization['actorId'],
       ),
@@ -50,9 +52,9 @@ abstract class CardActivity implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
-  int cardId;
+  _i1.UuidValue cardId;
 
   _i1.UuidValue actorId;
 
@@ -66,8 +68,8 @@ abstract class CardActivity implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   CardActivity copyWith({
-    int? id,
-    int? cardId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? cardId,
     _i1.UuidValue? actorId,
     _i2.ActivityType? type,
     String? details,
@@ -77,8 +79,8 @@ abstract class CardActivity implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'CardActivity',
-      if (id != null) 'id': id,
-      'cardId': cardId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
       'actorId': actorId.toJson(),
       'type': type.toJson(),
       if (details != null) 'details': details,
@@ -96,8 +98,8 @@ class _Undefined {}
 
 class _CardActivityImpl extends CardActivity {
   _CardActivityImpl({
-    int? id,
-    required int cardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
     required _i1.UuidValue actorId,
     required _i2.ActivityType type,
     String? details,
@@ -117,14 +119,14 @@ class _CardActivityImpl extends CardActivity {
   @override
   CardActivity copyWith({
     Object? id = _Undefined,
-    int? cardId,
+    _i1.UuidValue? cardId,
     _i1.UuidValue? actorId,
     _i2.ActivityType? type,
     Object? details = _Undefined,
     DateTime? createdAt,
   }) {
     return CardActivity(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       cardId: cardId ?? this.cardId,
       actorId: actorId ?? this.actorId,
       type: type ?? this.type,

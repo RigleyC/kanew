@@ -21,19 +21,20 @@ import '../endpoints/card_endpoint.dart' as _i8;
 import '../endpoints/card_list_endpoint.dart' as _i9;
 import '../endpoints/checklist_endpoint.dart' as _i10;
 import '../endpoints/comment_endpoint.dart' as _i11;
-import '../endpoints/invite_endpoint.dart' as _i12;
-import '../endpoints/label_endpoint.dart' as _i13;
-import '../endpoints/member_endpoint.dart' as _i14;
-import '../endpoints/workspace_endpoint.dart' as _i15;
-import '../greetings/greeting_endpoint.dart' as _i16;
-import 'dart:typed_data' as _i17;
-import 'package:kanew_server/src/generated/card_priority.dart' as _i18;
-import 'package:kanew_server/src/generated/member_role.dart' as _i19;
+import '../endpoints/health_endpoint.dart' as _i12;
+import '../endpoints/invite_endpoint.dart' as _i13;
+import '../endpoints/label_endpoint.dart' as _i14;
+import '../endpoints/member_endpoint.dart' as _i15;
+import '../endpoints/workspace_endpoint.dart' as _i16;
+import '../greetings/greeting_endpoint.dart' as _i17;
+import 'dart:typed_data' as _i18;
+import 'package:kanew_server/src/generated/card_priority.dart' as _i19;
+import 'package:kanew_server/src/generated/member_role.dart' as _i20;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i20;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i21;
-import 'package:serverpod_auth_server/serverpod_auth_server.dart' as _i22;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i22;
+import 'package:serverpod_auth_server/serverpod_auth_server.dart' as _i23;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -99,31 +100,37 @@ class Endpoints extends _i1.EndpointDispatch {
           'comment',
           null,
         ),
-      'invite': _i12.InviteEndpoint()
+      'health': _i12.HealthEndpoint()
+        ..initialize(
+          server,
+          'health',
+          null,
+        ),
+      'invite': _i13.InviteEndpoint()
         ..initialize(
           server,
           'invite',
           null,
         ),
-      'label': _i13.LabelEndpoint()
+      'label': _i14.LabelEndpoint()
         ..initialize(
           server,
           'label',
           null,
         ),
-      'member': _i14.MemberEndpoint()
+      'member': _i15.MemberEndpoint()
         ..initialize(
           server,
           'member',
           null,
         ),
-      'workspace': _i15.WorkspaceEndpoint()
+      'workspace': _i16.WorkspaceEndpoint()
         ..initialize(
           server,
           'workspace',
           null,
         ),
-      'greeting': _i16.GreetingEndpoint()
+      'greeting': _i17.GreetingEndpoint()
         ..initialize(
           server,
           'greeting',
@@ -352,7 +359,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -376,7 +383,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'fileName': _i1.ParameterDescription(
@@ -386,7 +393,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'fileData': _i1.ParameterDescription(
               name: 'fileData',
-              type: _i1.getType<_i17.ByteData>(),
+              type: _i1.getType<_i18.ByteData>(),
               nullable: false,
             ),
             'mimeType': _i1.ParameterDescription(
@@ -413,7 +420,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'fileName': _i1.ParameterDescription(
@@ -450,7 +457,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'fileName': _i1.ParameterDescription(
@@ -493,7 +500,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -512,7 +519,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'attachmentId': _i1.ParameterDescription(
               name: 'attachmentId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -537,7 +544,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'workspaceId': _i1.ParameterDescription(
               name: 'workspaceId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -574,7 +581,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'workspaceId': _i1.ParameterDescription(
               name: 'workspaceId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'slug': _i1.ParameterDescription(
@@ -623,7 +630,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'workspaceId': _i1.ParameterDescription(
               name: 'workspaceId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'title': _i1.ParameterDescription(
@@ -672,7 +679,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'boardId': _i1.ParameterDescription(
               name: 'boardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'title': _i1.ParameterDescription(
@@ -702,7 +709,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'boardId': _i1.ParameterDescription(
               name: 'boardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -726,7 +733,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'boardId': _i1.ParameterDescription(
               name: 'boardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -754,7 +761,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'listId': _i1.ParameterDescription(
               name: 'listId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -772,7 +779,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'boardId': _i1.ParameterDescription(
               name: 'boardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -791,7 +798,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -809,7 +816,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'listId': _i1.ParameterDescription(
               name: 'listId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'title': _i1.ParameterDescription(
@@ -824,7 +831,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'priority': _i1.ParameterDescription(
               name: 'priority',
-              type: _i1.getType<_i18.CardPriority>(),
+              type: _i1.getType<_i19.CardPriority>(),
               nullable: false,
             ),
             'dueDate': _i1.ParameterDescription(
@@ -851,7 +858,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'listId': _i1.ParameterDescription(
               name: 'listId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'title': _i1.ParameterDescription(
@@ -866,7 +873,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'priority': _i1.ParameterDescription(
               name: 'priority',
-              type: _i1.getType<_i18.CardPriority>(),
+              type: _i1.getType<_i19.CardPriority>(),
               nullable: false,
             ),
             'dueDate': _i1.ParameterDescription(
@@ -894,7 +901,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'title': _i1.ParameterDescription(
@@ -909,7 +916,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'priority': _i1.ParameterDescription(
               name: 'priority',
-              type: _i1.getType<_i18.CardPriority?>(),
+              type: _i1.getType<_i19.CardPriority?>(),
               nullable: true,
             ),
             'dueDate': _i1.ParameterDescription(
@@ -942,12 +949,12 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'targetListId': _i1.ParameterDescription(
               name: 'targetListId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'afterRank': _i1.ParameterDescription(
@@ -962,7 +969,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'newPriority': _i1.ParameterDescription(
               name: 'newPriority',
-              type: _i1.getType<_i18.CardPriority?>(),
+              type: _i1.getType<_i19.CardPriority?>(),
               nullable: true,
             ),
           },
@@ -984,7 +991,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1002,7 +1009,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1020,7 +1027,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1057,7 +1064,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'boardId': _i1.ParameterDescription(
               name: 'boardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1082,7 +1089,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'boardId': _i1.ParameterDescription(
               name: 'boardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1101,7 +1108,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'boardId': _i1.ParameterDescription(
               name: 'boardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'title': _i1.ParameterDescription(
@@ -1126,7 +1133,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'listId': _i1.ParameterDescription(
               name: 'listId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'title': _i1.ParameterDescription(
@@ -1151,12 +1158,12 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'boardId': _i1.ParameterDescription(
               name: 'boardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'orderedListIds': _i1.ParameterDescription(
               name: 'orderedListIds',
-              type: _i1.getType<List<int>>(),
+              type: _i1.getType<List<_i1.UuidValue>>(),
               nullable: false,
             ),
           },
@@ -1176,7 +1183,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'listId': _i1.ParameterDescription(
               name: 'listId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1195,7 +1202,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'listId': _i1.ParameterDescription(
               name: 'listId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1220,7 +1227,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1239,7 +1246,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'checklistId': _i1.ParameterDescription(
               name: 'checklistId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1258,7 +1265,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'title': _i1.ParameterDescription(
@@ -1283,7 +1290,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'checklistId': _i1.ParameterDescription(
               name: 'checklistId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'title': _i1.ParameterDescription(
@@ -1308,7 +1315,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'checklistId': _i1.ParameterDescription(
               name: 'checklistId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1327,7 +1334,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'checklistId': _i1.ParameterDescription(
               name: 'checklistId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'title': _i1.ParameterDescription(
@@ -1352,7 +1359,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'itemId': _i1.ParameterDescription(
               name: 'itemId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'title': _i1.ParameterDescription(
@@ -1383,7 +1390,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'itemId': _i1.ParameterDescription(
               name: 'itemId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1408,7 +1415,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1427,7 +1434,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'content': _i1.ParameterDescription(
@@ -1452,7 +1459,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'commentId': _i1.ParameterDescription(
               name: 'commentId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1468,6 +1475,22 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['health'] = _i1.EndpointConnector(
+      name: 'health',
+      endpoint: endpoints['health']!,
+      methodConnectors: {
+        'check': _i1.MethodConnector(
+          name: 'check',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['health'] as _i12.HealthEndpoint).check(session),
+        ),
+      },
+    );
     connectors['invite'] = _i1.EndpointConnector(
       name: 'invite',
       endpoint: endpoints['invite']!,
@@ -1477,12 +1500,12 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'workspaceId': _i1.ParameterDescription(
               name: 'workspaceId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'permissionIds': _i1.ParameterDescription(
               name: 'permissionIds',
-              type: _i1.getType<List<int>>(),
+              type: _i1.getType<List<_i1.UuidValue>>(),
               nullable: false,
             ),
             'email': _i1.ParameterDescription(
@@ -1496,7 +1519,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['invite'] as _i12.InviteEndpoint).createInvite(
+                  (endpoints['invite'] as _i13.InviteEndpoint).createInvite(
                     session,
                     params['workspaceId'],
                     params['permissionIds'],
@@ -1508,7 +1531,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'workspaceId': _i1.ParameterDescription(
               name: 'workspaceId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1517,7 +1540,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['invite'] as _i12.InviteEndpoint).getInvites(
+                  (endpoints['invite'] as _i13.InviteEndpoint).getInvites(
                     session,
                     params['workspaceId'],
                   ),
@@ -1527,7 +1550,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'inviteId': _i1.ParameterDescription(
               name: 'inviteId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1536,7 +1559,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['invite'] as _i12.InviteEndpoint).revokeInvite(
+                  (endpoints['invite'] as _i13.InviteEndpoint).revokeInvite(
                     session,
                     params['inviteId'],
                   ),
@@ -1555,7 +1578,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['invite'] as _i12.InviteEndpoint).getInviteByCode(
+                  (endpoints['invite'] as _i13.InviteEndpoint).getInviteByCode(
                     session,
                     params['code'],
                   ),
@@ -1574,7 +1597,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['invite'] as _i12.InviteEndpoint).acceptInvite(
+                  (endpoints['invite'] as _i13.InviteEndpoint).acceptInvite(
                     session,
                     params['code'],
                   ),
@@ -1590,7 +1613,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'boardId': _i1.ParameterDescription(
               name: 'boardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1598,7 +1621,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['label'] as _i13.LabelEndpoint).getLabels(
+              ) async => (endpoints['label'] as _i14.LabelEndpoint).getLabels(
                 session,
                 params['boardId'],
               ),
@@ -1608,7 +1631,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'boardId': _i1.ParameterDescription(
               name: 'boardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'name': _i1.ParameterDescription(
@@ -1626,7 +1649,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['label'] as _i13.LabelEndpoint).createLabel(
+              ) async => (endpoints['label'] as _i14.LabelEndpoint).createLabel(
                 session,
                 params['boardId'],
                 params['name'],
@@ -1638,7 +1661,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'labelId': _i1.ParameterDescription(
               name: 'labelId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'name': _i1.ParameterDescription(
@@ -1656,7 +1679,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['label'] as _i13.LabelEndpoint).updateLabel(
+              ) async => (endpoints['label'] as _i14.LabelEndpoint).updateLabel(
                 session,
                 params['labelId'],
                 params['name'],
@@ -1668,7 +1691,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'labelId': _i1.ParameterDescription(
               name: 'labelId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1676,7 +1699,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['label'] as _i13.LabelEndpoint).deleteLabel(
+              ) async => (endpoints['label'] as _i14.LabelEndpoint).deleteLabel(
                 session,
                 params['labelId'],
               ),
@@ -1686,12 +1709,12 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'labelId': _i1.ParameterDescription(
               name: 'labelId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1699,7 +1722,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['label'] as _i13.LabelEndpoint).attachLabel(
+              ) async => (endpoints['label'] as _i14.LabelEndpoint).attachLabel(
                 session,
                 params['cardId'],
                 params['labelId'],
@@ -1710,12 +1733,12 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'labelId': _i1.ParameterDescription(
               name: 'labelId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1723,7 +1746,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['label'] as _i13.LabelEndpoint).detachLabel(
+              ) async => (endpoints['label'] as _i14.LabelEndpoint).detachLabel(
                 session,
                 params['cardId'],
                 params['labelId'],
@@ -1734,7 +1757,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cardId': _i1.ParameterDescription(
               name: 'cardId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1743,7 +1766,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['label'] as _i13.LabelEndpoint).getCardLabels(
+                  (endpoints['label'] as _i14.LabelEndpoint).getCardLabels(
                     session,
                     params['cardId'],
                   ),
@@ -1759,7 +1782,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'workspaceId': _i1.ParameterDescription(
               name: 'workspaceId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1768,7 +1791,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['member'] as _i14.MemberEndpoint).getMembers(
+                  (endpoints['member'] as _i15.MemberEndpoint).getMembers(
                     session,
                     params['workspaceId'],
                   ),
@@ -1778,7 +1801,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'memberId': _i1.ParameterDescription(
               name: 'memberId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1787,7 +1810,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['member'] as _i14.MemberEndpoint).removeMember(
+                  (endpoints['member'] as _i15.MemberEndpoint).removeMember(
                     session,
                     params['memberId'],
                   ),
@@ -1797,12 +1820,12 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'memberId': _i1.ParameterDescription(
               name: 'memberId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'newRole': _i1.ParameterDescription(
               name: 'newRole',
-              type: _i1.getType<_i19.MemberRole>(),
+              type: _i1.getType<_i20.MemberRole>(),
               nullable: false,
             ),
           },
@@ -1811,7 +1834,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['member'] as _i14.MemberEndpoint).updateMemberRole(
+                  (endpoints['member'] as _i15.MemberEndpoint).updateMemberRole(
                     session,
                     params['memberId'],
                     params['newRole'],
@@ -1822,7 +1845,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'memberId': _i1.ParameterDescription(
               name: 'memberId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1830,7 +1853,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['member'] as _i14.MemberEndpoint)
+              ) async => (endpoints['member'] as _i15.MemberEndpoint)
                   .getMemberPermissions(
                     session,
                     params['memberId'],
@@ -1841,12 +1864,12 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'memberId': _i1.ParameterDescription(
               name: 'memberId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
-            'permissionIds': _i1.ParameterDescription(
-              name: 'permissionIds',
-              type: _i1.getType<List<int>>(),
+            'grantedPermissionIds': _i1.ParameterDescription(
+              name: 'grantedPermissionIds',
+              type: _i1.getType<List<_i1.UuidValue>>(),
               nullable: false,
             ),
           },
@@ -1854,11 +1877,11 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['member'] as _i14.MemberEndpoint)
+              ) async => (endpoints['member'] as _i15.MemberEndpoint)
                   .updateMemberPermissions(
                     session,
                     params['memberId'],
-                    params['permissionIds'],
+                    params['grantedPermissionIds'],
                   ),
         ),
         'transferOwnership': _i1.MethodConnector(
@@ -1866,12 +1889,12 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'workspaceId': _i1.ParameterDescription(
               name: 'workspaceId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'newOwnerId': _i1.ParameterDescription(
               name: 'newOwnerId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -1879,7 +1902,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['member'] as _i14.MemberEndpoint)
+              ) async => (endpoints['member'] as _i15.MemberEndpoint)
                   .transferOwnership(
                     session,
                     params['workspaceId'],
@@ -1893,7 +1916,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['member'] as _i14.MemberEndpoint)
+              ) async => (endpoints['member'] as _i15.MemberEndpoint)
                   .getAllPermissions(session),
         ),
       },
@@ -1909,7 +1932,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['workspace'] as _i15.WorkspaceEndpoint)
+              ) async => (endpoints['workspace'] as _i16.WorkspaceEndpoint)
                   .getWorkspaces(session),
         ),
         'getWorkspace': _i1.MethodConnector(
@@ -1925,7 +1948,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['workspace'] as _i15.WorkspaceEndpoint)
+              ) async => (endpoints['workspace'] as _i16.WorkspaceEndpoint)
                   .getWorkspace(
                     session,
                     params['slug'],
@@ -1949,7 +1972,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['workspace'] as _i15.WorkspaceEndpoint)
+              ) async => (endpoints['workspace'] as _i16.WorkspaceEndpoint)
                   .createWorkspace(
                     session,
                     params['title'],
@@ -1961,7 +1984,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'workspaceId': _i1.ParameterDescription(
               name: 'workspaceId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
             'title': _i1.ParameterDescription(
@@ -1979,7 +2002,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['workspace'] as _i15.WorkspaceEndpoint)
+              ) async => (endpoints['workspace'] as _i16.WorkspaceEndpoint)
                   .updateWorkspace(
                     session,
                     params['workspaceId'],
@@ -1992,7 +2015,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'workspaceId': _i1.ParameterDescription(
               name: 'workspaceId',
-              type: _i1.getType<int>(),
+              type: _i1.getType<_i1.UuidValue>(),
               nullable: false,
             ),
           },
@@ -2000,7 +2023,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['workspace'] as _i15.WorkspaceEndpoint)
+              ) async => (endpoints['workspace'] as _i16.WorkspaceEndpoint)
                   .deleteWorkspace(
                     session,
                     params['workspaceId'],
@@ -2025,17 +2048,17 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['greeting'] as _i16.GreetingEndpoint).hello(
+              ) async => (endpoints['greeting'] as _i17.GreetingEndpoint).hello(
                 session,
                 params['name'],
               ),
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i20.Endpoints()
+    modules['serverpod_auth_idp'] = _i21.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i21.Endpoints()
+    modules['serverpod_auth_core'] = _i22.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth'] = _i22.Endpoints()..initializeEndpoints(server);
+    modules['serverpod_auth'] = _i23.Endpoints()..initializeEndpoints(server);
   }
 }

@@ -15,22 +15,26 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class PasswordResetToken implements _i1.SerializableModel {
   PasswordResetToken._({
     this.id,
-    required this.userId,
+    required this.authUserId,
     required this.token,
     required this.expiresAt,
   });
 
   factory PasswordResetToken({
-    int? id,
-    required int userId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue authUserId,
     required String token,
     required DateTime expiresAt,
   }) = _PasswordResetTokenImpl;
 
   factory PasswordResetToken.fromJson(Map<String, dynamic> jsonSerialization) {
     return PasswordResetToken(
-      id: jsonSerialization['id'] as int?,
-      userId: jsonSerialization['userId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      authUserId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['authUserId'],
+      ),
       token: jsonSerialization['token'] as String,
       expiresAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['expiresAt'],
@@ -41,9 +45,9 @@ abstract class PasswordResetToken implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
-  int userId;
+  _i1.UuidValue authUserId;
 
   String token;
 
@@ -53,8 +57,8 @@ abstract class PasswordResetToken implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   PasswordResetToken copyWith({
-    int? id,
-    int? userId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? authUserId,
     String? token,
     DateTime? expiresAt,
   });
@@ -62,8 +66,8 @@ abstract class PasswordResetToken implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'PasswordResetToken',
-      if (id != null) 'id': id,
-      'userId': userId,
+      if (id != null) 'id': id?.toJson(),
+      'authUserId': authUserId.toJson(),
       'token': token,
       'expiresAt': expiresAt.toJson(),
     };
@@ -79,13 +83,13 @@ class _Undefined {}
 
 class _PasswordResetTokenImpl extends PasswordResetToken {
   _PasswordResetTokenImpl({
-    int? id,
-    required int userId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue authUserId,
     required String token,
     required DateTime expiresAt,
   }) : super._(
          id: id,
-         userId: userId,
+         authUserId: authUserId,
          token: token,
          expiresAt: expiresAt,
        );
@@ -96,13 +100,13 @@ class _PasswordResetTokenImpl extends PasswordResetToken {
   @override
   PasswordResetToken copyWith({
     Object? id = _Undefined,
-    int? userId,
+    _i1.UuidValue? authUserId,
     String? token,
     DateTime? expiresAt,
   }) {
     return PasswordResetToken(
-      id: id is int? ? id : this.id,
-      userId: userId ?? this.userId,
+      id: id is _i1.UuidValue? ? id : this.id,
+      authUserId: authUserId ?? this.authUserId,
       token: token ?? this.token,
       expiresAt: expiresAt ?? this.expiresAt,
     );

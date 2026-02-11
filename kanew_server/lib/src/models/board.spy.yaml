@@ -1,9 +1,11 @@
 class: Board
 table: board
 fields:
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
   # Identificadores
-  uuid: UuidValue
-  workspaceId: int, relation(parent=workspace)
+  workspaceId: UuidValue, relation(parent=workspace)
   title: String
   slug: String # URL relativa (/workspace/board)
   
@@ -19,9 +21,6 @@ fields:
   deletedAt: DateTime?
   deletedBy: UuidValue?
 indexes:
-  board_uuid_idx:
-    fields: uuid
-    unique: true
   board_slug_idx:
     fields: workspaceId, slug
     unique: true

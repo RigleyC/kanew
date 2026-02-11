@@ -22,7 +22,7 @@ class CardDetailPageController extends ChangeNotifier {
   Card? _card;
   CardList? _list;
   List<Checklist> _checklists = [];
-  final Map<int, List<ChecklistItem>> _checklistItems = {};
+  final Map<UuidValue, List<ChecklistItem>> _checklistItems = {};
   List<Comment> _comments = [];
   List<CardActivity> _activities = [];
   List<LabelDef> _labels = []; // Labels attached to this card
@@ -65,7 +65,7 @@ class CardDetailPageController extends ChangeNotifier {
   Card? get selectedCard => _card;
   CardList? get list => _list;
   List<Checklist> get checklists => _checklists;
-  Map<int, List<ChecklistItem>> get checklistItems => _checklistItems;
+  Map<UuidValue, List<ChecklistItem>> get checklistItems => _checklistItems;
   List<Comment> get comments => _comments;
   List<CardActivity> get activities => _activities;
   List<LabelDef> get labels => _labels;
@@ -79,7 +79,7 @@ class CardDetailPageController extends ChangeNotifier {
   bool get isUploading => _isUploading;
   String? get error => _error;
 
-  List<ChecklistItem> getItemsForChecklist(int checklistId) {
+  List<ChecklistItem> getItemsForChecklist(UuidValue checklistId) {
     return _checklistItems[checklistId] ?? [];
   }
 
@@ -123,7 +123,7 @@ class CardDetailPageController extends ChangeNotifier {
     _safeNotify();
   }
 
-  Future<void> _loadActivities(int cardId) async {
+  Future<void> _loadActivities(UuidValue cardId) async {
     final result = await _activityRepo.getLog(cardId);
     result.fold(
       (f) => _error = f.message, // Non-fatal
@@ -146,7 +146,7 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
 
-  Future<void> deleteComment(int commentId) async {
+  Future<void> deleteComment(UuidValue commentId) async {
     final result = await _commentRepo.deleteComment(commentId);
     result.fold(
       (f) => _error = f.message,
@@ -171,7 +171,7 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
 
-  Future<void> deleteChecklist(int checklistId) async {
+  Future<void> deleteChecklist(UuidValue checklistId) async {
     final result = await _checklistRepo.deleteChecklist(checklistId);
     result.fold(
       (f) => _error = f.message,
@@ -183,7 +183,7 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
 
-  Future<void> addItem(int checklistId, String title) async {
+  Future<void> addItem(UuidValue checklistId, String title) async {
     final result = await _checklistRepo.addItem(checklistId, title);
     result.fold(
       (f) => _error = f.message,
@@ -196,7 +196,7 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
 
-  Future<void> toggleItem(int checklistId, int itemId, bool isChecked) async {
+  Future<void> toggleItem(UuidValue checklistId, UuidValue itemId, bool isChecked) async {
     // Optimistic update
     final items = _checklistItems[checklistId];
     if (items == null) return;
@@ -227,7 +227,7 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
 
-  Future<void> deleteItem(int checklistId, int itemId) async {
+  Future<void> deleteItem(UuidValue checklistId, UuidValue itemId) async {
     // Optimistic update
     final items = _checklistItems[checklistId];
     if (items == null) return;
@@ -248,7 +248,7 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
 
-  Future<void> attachLabel(int labelId) async {
+  Future<void> attachLabel(UuidValue labelId) async {
     if (_card == null) return;
 
     // Check if already attached locally
@@ -270,7 +270,7 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
 
-  Future<void> detachLabel(int labelId) async {
+  Future<void> detachLabel(UuidValue labelId) async {
     if (_card == null) return;
 
     // Optimistic update
@@ -352,7 +352,7 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
 
-  Future<void> deleteAttachment(int attachmentId) async {
+  Future<void> deleteAttachment(UuidValue attachmentId) async {
     if (_card == null) return;
 
     // Optimistic update
@@ -407,7 +407,7 @@ class CardDetailPageController extends ChangeNotifier {
     return _card;
   }
 
-  Future<void> moveCardToList(int newListId) async {
+  Future<void> moveCardToList(UuidValue newListId) async {
     if (_card == null) return;
 
     // Optimistic update
@@ -425,7 +425,7 @@ class CardDetailPageController extends ChangeNotifier {
       (f) {
         // Revert
         _list = oldList;
-        _card = _card!.copyWith(listId: oldList?.id ?? 0);
+        _card = _card!.copyWith(listId: oldList?.id);
         _boardStore.updateCard(_card!); // Revert store!
         _error = f.message;
         _safeNotify();

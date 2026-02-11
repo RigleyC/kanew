@@ -101,9 +101,7 @@ class WorkspaceEndpoint extends Endpoint {
       );
     }
 
-    final workspace = Workspace(
-      uuid: const Uuid().v4obj(),
-      title: title,
+    final workspace = Workspace(      title: title,
       slug: finalSlug,
       ownerId: numericUserId,
       createdAt: DateTime.now(),
@@ -136,7 +134,7 @@ class WorkspaceEndpoint extends Endpoint {
   /// Updates workspace settings
   Future<Workspace> updateWorkspace(
     Session session,
-    int workspaceId,
+    UuidValue workspaceId,
     String title,
     String? slug,
   ) async {
@@ -191,7 +189,7 @@ class WorkspaceEndpoint extends Endpoint {
   }
 
   /// Soft deletes a workspace
-  Future<void> deleteWorkspace(Session session, int workspaceId) async {
+  Future<void> deleteWorkspace(Session session, UuidValue workspaceId) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
     final workspace = await Workspace.db.findById(session, workspaceId);

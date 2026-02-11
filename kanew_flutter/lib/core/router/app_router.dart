@@ -337,7 +337,7 @@ final appRouter = GoRouter(
                         final boardSlug =
                             state.pathParameters['boardSlug'] ?? '';
                         final extra = state.extra;
-                        final boardId = extra is Map ? extra['boardId'] as int? : null;
+                        final boardId = extra is Map ? extra['boardId'] as UuidValue? : null;
                         return NoTransitionPage(
                           key: state.pageKey,
                           child: BoardViewPage(

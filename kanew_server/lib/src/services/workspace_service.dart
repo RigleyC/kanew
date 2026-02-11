@@ -49,7 +49,6 @@ class WorkspaceService {
     );
 
     final workspace = Workspace(
-      uuid: const Uuid().v4obj(),
       title: title,
       slug: slug,
       ownerId: authUserId,

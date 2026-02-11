@@ -10,7 +10,7 @@ class ActivityEndpoint extends Endpoint {
   /// Gets activity log for a card
   Future<List<CardActivity>> getLog(
     Session session,
-    int cardId,
+    UuidValue cardId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 

@@ -7,7 +7,7 @@ import '../../../../core/di/injection.dart';
 
 class PendingInvitesList extends StatelessWidget {
   final List<WorkspaceInvite> invites;
-  final void Function(int inviteId) onRevoke;
+  final void Function(UuidValue inviteId) onRevoke;
 
   const PendingInvitesList({
     super.key,

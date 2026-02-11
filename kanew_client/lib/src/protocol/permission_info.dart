@@ -18,11 +18,17 @@ abstract class PermissionInfo implements _i1.SerializableModel {
   PermissionInfo._({
     required this.permission,
     required this.granted,
+    required this.isDefault,
+    required this.isAdded,
+    required this.isRemoved,
   });
 
   factory PermissionInfo({
     required _i2.Permission permission,
     required bool granted,
+    required bool isDefault,
+    required bool isAdded,
+    required bool isRemoved,
   }) = _PermissionInfoImpl;
 
   factory PermissionInfo.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -31,6 +37,9 @@ abstract class PermissionInfo implements _i1.SerializableModel {
         jsonSerialization['permission'],
       ),
       granted: jsonSerialization['granted'] as bool,
+      isDefault: jsonSerialization['isDefault'] as bool,
+      isAdded: jsonSerialization['isAdded'] as bool,
+      isRemoved: jsonSerialization['isRemoved'] as bool,
     );
   }
 
@@ -38,12 +47,21 @@ abstract class PermissionInfo implements _i1.SerializableModel {
 
   bool granted;
 
+  bool isDefault;
+
+  bool isAdded;
+
+  bool isRemoved;
+
   /// Returns a shallow copy of this [PermissionInfo]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   PermissionInfo copyWith({
     _i2.Permission? permission,
     bool? granted,
+    bool? isDefault,
+    bool? isAdded,
+    bool? isRemoved,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -51,6 +69,9 @@ abstract class PermissionInfo implements _i1.SerializableModel {
       '__className__': 'PermissionInfo',
       'permission': permission.toJson(),
       'granted': granted,
+      'isDefault': isDefault,
+      'isAdded': isAdded,
+      'isRemoved': isRemoved,
     };
   }
 
@@ -64,9 +85,15 @@ class _PermissionInfoImpl extends PermissionInfo {
   _PermissionInfoImpl({
     required _i2.Permission permission,
     required bool granted,
+    required bool isDefault,
+    required bool isAdded,
+    required bool isRemoved,
   }) : super._(
          permission: permission,
          granted: granted,
+         isDefault: isDefault,
+         isAdded: isAdded,
+         isRemoved: isRemoved,
        );
 
   /// Returns a shallow copy of this [PermissionInfo]
@@ -76,10 +103,16 @@ class _PermissionInfoImpl extends PermissionInfo {
   PermissionInfo copyWith({
     _i2.Permission? permission,
     bool? granted,
+    bool? isDefault,
+    bool? isAdded,
+    bool? isRemoved,
   }) {
     return PermissionInfo(
       permission: permission ?? this.permission.copyWith(),
       granted: granted ?? this.granted,
+      isDefault: isDefault ?? this.isDefault,
+      isAdded: isAdded ?? this.isAdded,
+      isRemoved: isRemoved ?? this.isRemoved,
     );
   }
 }

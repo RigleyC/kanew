@@ -15,7 +15,6 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class CardList implements _i1.SerializableModel {
   CardList._({
     this.id,
-    required this.uuid,
     required this.boardId,
     required this.title,
     required this.rank,
@@ -26,9 +25,8 @@ abstract class CardList implements _i1.SerializableModel {
   });
 
   factory CardList({
-    int? id,
-    required _i1.UuidValue uuid,
-    required int boardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue boardId,
     required String title,
     required String rank,
     required bool archived,
@@ -39,9 +37,12 @@ abstract class CardList implements _i1.SerializableModel {
 
   factory CardList.fromJson(Map<String, dynamic> jsonSerialization) {
     return CardList(
-      id: jsonSerialization['id'] as int?,
-      uuid: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['uuid']),
-      boardId: jsonSerialization['boardId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      boardId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['boardId'],
+      ),
       title: jsonSerialization['title'] as String,
       rank: jsonSerialization['rank'] as String,
       archived: jsonSerialization['archived'] as bool,
@@ -60,11 +61,9 @@ abstract class CardList implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
-  _i1.UuidValue uuid;
-
-  int boardId;
+  _i1.UuidValue boardId;
 
   String title;
 
@@ -82,9 +81,8 @@ abstract class CardList implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   CardList copyWith({
-    int? id,
-    _i1.UuidValue? uuid,
-    int? boardId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? boardId,
     String? title,
     String? rank,
     bool? archived,
@@ -96,9 +94,8 @@ abstract class CardList implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'CardList',
-      if (id != null) 'id': id,
-      'uuid': uuid.toJson(),
-      'boardId': boardId,
+      if (id != null) 'id': id?.toJson(),
+      'boardId': boardId.toJson(),
       'title': title,
       'rank': rank,
       'archived': archived,
@@ -118,9 +115,8 @@ class _Undefined {}
 
 class _CardListImpl extends CardList {
   _CardListImpl({
-    int? id,
-    required _i1.UuidValue uuid,
-    required int boardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue boardId,
     required String title,
     required String rank,
     required bool archived,
@@ -129,7 +125,6 @@ class _CardListImpl extends CardList {
     _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
-         uuid: uuid,
          boardId: boardId,
          title: title,
          rank: rank,
@@ -145,8 +140,7 @@ class _CardListImpl extends CardList {
   @override
   CardList copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? uuid,
-    int? boardId,
+    _i1.UuidValue? boardId,
     String? title,
     String? rank,
     bool? archived,
@@ -155,8 +149,7 @@ class _CardListImpl extends CardList {
     Object? deletedBy = _Undefined,
   }) {
     return CardList(
-      id: id is int? ? id : this.id,
-      uuid: uuid ?? this.uuid,
+      id: id is _i1.UuidValue? ? id : this.id,
       boardId: boardId ?? this.boardId,
       title: title ?? this.title,
       rank: rank ?? this.rank,

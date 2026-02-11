@@ -6,7 +6,7 @@ import 'member_role_badge.dart';
 /// Dialog for transferring workspace ownership with confirmation
 class TransferOwnershipDialog extends StatefulWidget {
   final List<MemberWithUser> members;
-  final Future<bool> Function(int newOwnerId) onTransfer;
+  final Future<bool> Function(UuidValue newOwnerId) onTransfer;
 
   const TransferOwnershipDialog({
     super.key,

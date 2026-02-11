@@ -14,7 +14,7 @@ import 'package:serverpod/serverpod.dart' as _i1;
 import 'activity_type.dart' as _i2;
 
 abstract class CardActivity
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   CardActivity._({
     this.id,
     required this.cardId,
@@ -25,8 +25,8 @@ abstract class CardActivity
   });
 
   factory CardActivity({
-    int? id,
-    required int cardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
     required _i1.UuidValue actorId,
     required _i2.ActivityType type,
     String? details,
@@ -35,8 +35,10 @@ abstract class CardActivity
 
   factory CardActivity.fromJson(Map<String, dynamic> jsonSerialization) {
     return CardActivity(
-      id: jsonSerialization['id'] as int?,
-      cardId: jsonSerialization['cardId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      cardId: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['cardId']),
       actorId: _i1.UuidValueJsonExtension.fromJson(
         jsonSerialization['actorId'],
       ),
@@ -53,9 +55,9 @@ abstract class CardActivity
   static const db = CardActivityRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
-  int cardId;
+  _i1.UuidValue cardId;
 
   _i1.UuidValue actorId;
 
@@ -66,14 +68,14 @@ abstract class CardActivity
   DateTime createdAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [CardActivity]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   CardActivity copyWith({
-    int? id,
-    int? cardId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? cardId,
     _i1.UuidValue? actorId,
     _i2.ActivityType? type,
     String? details,
@@ -83,8 +85,8 @@ abstract class CardActivity
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'CardActivity',
-      if (id != null) 'id': id,
-      'cardId': cardId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
       'actorId': actorId.toJson(),
       'type': type.toJson(),
       if (details != null) 'details': details,
@@ -96,8 +98,8 @@ abstract class CardActivity
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'CardActivity',
-      if (id != null) 'id': id,
-      'cardId': cardId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
       'actorId': actorId.toJson(),
       'type': type.toJson(),
       if (details != null) 'details': details,
@@ -139,8 +141,8 @@ class _Undefined {}
 
 class _CardActivityImpl extends CardActivity {
   _CardActivityImpl({
-    int? id,
-    required int cardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
     required _i1.UuidValue actorId,
     required _i2.ActivityType type,
     String? details,
@@ -160,14 +162,14 @@ class _CardActivityImpl extends CardActivity {
   @override
   CardActivity copyWith({
     Object? id = _Undefined,
-    int? cardId,
+    _i1.UuidValue? cardId,
     _i1.UuidValue? actorId,
     _i2.ActivityType? type,
     Object? details = _Undefined,
     DateTime? createdAt,
   }) {
     return CardActivity(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       cardId: cardId ?? this.cardId,
       actorId: actorId ?? this.actorId,
       type: type ?? this.type,
@@ -180,10 +182,11 @@ class _CardActivityImpl extends CardActivity {
 class CardActivityUpdateTable extends _i1.UpdateTable<CardActivityTable> {
   CardActivityUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> cardId(int value) => _i1.ColumnValue(
-    table.cardId,
-    value,
-  );
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> cardId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.cardId,
+        value,
+      );
 
   _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> actorId(_i1.UuidValue value) =>
       _i1.ColumnValue(
@@ -210,10 +213,10 @@ class CardActivityUpdateTable extends _i1.UpdateTable<CardActivityTable> {
       );
 }
 
-class CardActivityTable extends _i1.Table<int?> {
+class CardActivityTable extends _i1.Table<_i1.UuidValue?> {
   CardActivityTable({super.tableRelation}) : super(tableName: 'card_activity') {
     updateTable = CardActivityUpdateTable(this);
-    cardId = _i1.ColumnInt(
+    cardId = _i1.ColumnUuid(
       'cardId',
       this,
     );
@@ -238,7 +241,7 @@ class CardActivityTable extends _i1.Table<int?> {
 
   late final CardActivityUpdateTable updateTable;
 
-  late final _i1.ColumnInt cardId;
+  late final _i1.ColumnUuid cardId;
 
   late final _i1.ColumnUuid actorId;
 
@@ -266,7 +269,7 @@ class CardActivityInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => CardActivity.t;
+  _i1.Table<_i1.UuidValue?> get table => CardActivity.t;
 }
 
 class CardActivityIncludeList extends _i1.IncludeList {
@@ -286,7 +289,7 @@ class CardActivityIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => CardActivity.t;
+  _i1.Table<_i1.UuidValue?> get table => CardActivity.t;
 }
 
 class CardActivityRepository {
@@ -374,7 +377,7 @@ class CardActivityRepository {
   /// Finds a single [CardActivity] by its [id] or null if no such row exists.
   Future<CardActivity?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<CardActivity>(
@@ -452,7 +455,7 @@ class CardActivityRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<CardActivity?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<CardActivityUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

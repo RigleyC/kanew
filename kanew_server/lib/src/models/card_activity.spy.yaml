@@ -2,7 +2,10 @@
 class: CardActivity
 table: card_activity
 fields:
-  cardId: int, relation(parent=card)
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
+  cardId: UuidValue, relation(parent=card)
   actorId: UuidValue # Conforme plan.md (userId -> actorId)
   type: ActivityType
   

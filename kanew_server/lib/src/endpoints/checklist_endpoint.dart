@@ -15,7 +15,7 @@ class ChecklistEndpoint extends Endpoint {
   /// Requires: board.read permission
   Future<List<Checklist>> getChecklists(
     Session session,
-    int cardId,
+    UuidValue cardId,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -69,7 +69,7 @@ class ChecklistEndpoint extends Endpoint {
   /// Requires: board.read permission
   Future<List<ChecklistItem>> getItems(
     Session session,
-    int checklistId,
+    UuidValue checklistId,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -113,7 +113,7 @@ class ChecklistEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<Checklist> createChecklist(
     Session session,
-    int cardId,
+    UuidValue cardId,
     String title,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
@@ -173,7 +173,7 @@ class ChecklistEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<Checklist> updateChecklist(
     Session session,
-    int checklistId,
+    UuidValue checklistId,
     String title,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
@@ -227,7 +227,7 @@ class ChecklistEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<void> deleteChecklist(
     Session session,
-    int checklistId,
+    UuidValue checklistId,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -277,7 +277,7 @@ class ChecklistEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<ChecklistItem> addItem(
     Session session,
-    int checklistId,
+    UuidValue checklistId,
     String title,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
@@ -344,7 +344,7 @@ class ChecklistEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<ChecklistItem> updateItem(
     Session session,
-    int itemId, {
+    UuidValue itemId, {
     String? title,
     bool? isChecked,
   }) async {
@@ -412,7 +412,7 @@ class ChecklistEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<void> deleteItem(
     Session session,
-    int itemId,
+    UuidValue itemId,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 

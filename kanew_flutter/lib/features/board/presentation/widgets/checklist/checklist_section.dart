@@ -4,11 +4,11 @@ import 'checklist_card.dart';
 
 class ChecklistSection extends StatelessWidget {
   final List<Checklist> checklists;
-  final Map<int, List<ChecklistItem>> checklistItems;
-  final void Function(int checklistId, String title) onAddItem;
-  final void Function(int checklistId) onDeleteChecklist;
-  final void Function(int checklistId, int itemId, bool isChecked) onToggleItem;
-  final void Function(int checklistId, int itemId) onDeleteItem;
+  final Map<UuidValue, List<ChecklistItem>> checklistItems;
+  final void Function(UuidValue checklistId, String title) onAddItem;
+  final void Function(UuidValue checklistId) onDeleteChecklist;
+  final void Function(UuidValue checklistId, UuidValue itemId, bool isChecked) onToggleItem;
+  final void Function(UuidValue checklistId, UuidValue itemId) onDeleteItem;
 
   const ChecklistSection({
     super.key,

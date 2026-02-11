@@ -13,7 +13,7 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class ChecklistItem
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   ChecklistItem._({
     this.id,
     required this.checklistId,
@@ -24,8 +24,8 @@ abstract class ChecklistItem
   });
 
   factory ChecklistItem({
-    int? id,
-    required int checklistId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue checklistId,
     required String title,
     required bool isChecked,
     required String rank,
@@ -34,8 +34,12 @@ abstract class ChecklistItem
 
   factory ChecklistItem.fromJson(Map<String, dynamic> jsonSerialization) {
     return ChecklistItem(
-      id: jsonSerialization['id'] as int?,
-      checklistId: jsonSerialization['checklistId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      checklistId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['checklistId'],
+      ),
       title: jsonSerialization['title'] as String,
       isChecked: jsonSerialization['isChecked'] as bool,
       rank: jsonSerialization['rank'] as String,
@@ -50,9 +54,9 @@ abstract class ChecklistItem
   static const db = ChecklistItemRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
-  int checklistId;
+  _i1.UuidValue checklistId;
 
   String title;
 
@@ -63,14 +67,14 @@ abstract class ChecklistItem
   DateTime? deletedAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [ChecklistItem]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   ChecklistItem copyWith({
-    int? id,
-    int? checklistId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? checklistId,
     String? title,
     bool? isChecked,
     String? rank,
@@ -80,8 +84,8 @@ abstract class ChecklistItem
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'ChecklistItem',
-      if (id != null) 'id': id,
-      'checklistId': checklistId,
+      if (id != null) 'id': id?.toJson(),
+      'checklistId': checklistId.toJson(),
       'title': title,
       'isChecked': isChecked,
       'rank': rank,
@@ -93,8 +97,8 @@ abstract class ChecklistItem
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'ChecklistItem',
-      if (id != null) 'id': id,
-      'checklistId': checklistId,
+      if (id != null) 'id': id?.toJson(),
+      'checklistId': checklistId.toJson(),
       'title': title,
       'isChecked': isChecked,
       'rank': rank,
@@ -136,8 +140,8 @@ class _Undefined {}
 
 class _ChecklistItemImpl extends ChecklistItem {
   _ChecklistItemImpl({
-    int? id,
-    required int checklistId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue checklistId,
     required String title,
     required bool isChecked,
     required String rank,
@@ -157,14 +161,14 @@ class _ChecklistItemImpl extends ChecklistItem {
   @override
   ChecklistItem copyWith({
     Object? id = _Undefined,
-    int? checklistId,
+    _i1.UuidValue? checklistId,
     String? title,
     bool? isChecked,
     String? rank,
     Object? deletedAt = _Undefined,
   }) {
     return ChecklistItem(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       checklistId: checklistId ?? this.checklistId,
       title: title ?? this.title,
       isChecked: isChecked ?? this.isChecked,
@@ -177,7 +181,9 @@ class _ChecklistItemImpl extends ChecklistItem {
 class ChecklistItemUpdateTable extends _i1.UpdateTable<ChecklistItemTable> {
   ChecklistItemUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> checklistId(int value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> checklistId(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
     table.checklistId,
     value,
   );
@@ -204,11 +210,11 @@ class ChecklistItemUpdateTable extends _i1.UpdateTable<ChecklistItemTable> {
       );
 }
 
-class ChecklistItemTable extends _i1.Table<int?> {
+class ChecklistItemTable extends _i1.Table<_i1.UuidValue?> {
   ChecklistItemTable({super.tableRelation})
     : super(tableName: 'checklist_item') {
     updateTable = ChecklistItemUpdateTable(this);
-    checklistId = _i1.ColumnInt(
+    checklistId = _i1.ColumnUuid(
       'checklistId',
       this,
     );
@@ -232,7 +238,7 @@ class ChecklistItemTable extends _i1.Table<int?> {
 
   late final ChecklistItemUpdateTable updateTable;
 
-  late final _i1.ColumnInt checklistId;
+  late final _i1.ColumnUuid checklistId;
 
   late final _i1.ColumnString title;
 
@@ -260,7 +266,7 @@ class ChecklistItemInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => ChecklistItem.t;
+  _i1.Table<_i1.UuidValue?> get table => ChecklistItem.t;
 }
 
 class ChecklistItemIncludeList extends _i1.IncludeList {
@@ -280,7 +286,7 @@ class ChecklistItemIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => ChecklistItem.t;
+  _i1.Table<_i1.UuidValue?> get table => ChecklistItem.t;
 }
 
 class ChecklistItemRepository {
@@ -368,7 +374,7 @@ class ChecklistItemRepository {
   /// Finds a single [ChecklistItem] by its [id] or null if no such row exists.
   Future<ChecklistItem?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<ChecklistItem>(
@@ -446,7 +452,7 @@ class ChecklistItemRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<ChecklistItem?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<ChecklistItemUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

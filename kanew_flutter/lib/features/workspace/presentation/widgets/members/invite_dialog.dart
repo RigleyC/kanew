@@ -3,13 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:kanew_client/kanew_client.dart' hide Card;
 import '../../../../../config/app_config.dart';
 import '../../../../../core/di/injection.dart';
-import 'permission_matrix.dart';
+import '../../../../../core/widgets/member/permission_matrix.dart';
 
 /// Dialog for creating workspace invites
 class InviteDialog extends StatefulWidget {
   final List<PermissionInfo> allPermissions;
   final Future<WorkspaceInvite?> Function(
-    List<int> permissionIds,
+    List<UuidValue> permissionIds,
     String? email,
   )
   onCreateInvite;
@@ -26,7 +26,7 @@ class InviteDialog extends StatefulWidget {
 
 class _InviteDialogState extends State<InviteDialog> {
   final _emailController = TextEditingController();
-  List<int> _selectedPermissionIds = [];
+  List<UuidValue> _selectedPermissionIds = [];
   bool _isLoading = false;
   String? _inviteLink;
 

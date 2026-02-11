@@ -1,7 +1,10 @@
 class: Checklist
 table: checklist
 fields:
-  cardId: int, relation(parent=card)
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
+  cardId: UuidValue, relation(parent=card)
   title: String
   rank: String # LexoRank para ordenação (conforme plan.md)
   createdAt: DateTime

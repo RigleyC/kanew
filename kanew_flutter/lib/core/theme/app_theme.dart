@@ -159,7 +159,9 @@ class AppTheme {
         color: Color(0xFFE5E5E5), // light-200
         thickness: 1,
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        year2023: false,
+      ),
     );
   }
 
@@ -273,7 +275,7 @@ class AppTheme {
       // Dropdowns (Dropdown.tsx - Dark Mode)
       // Classes: border-dark-400 bg-dark-300
       popupMenuTheme: PopupMenuThemeData(
-        menuPadding: EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+        menuPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
         color: const Color(0xFF404040), // bg-dark-300
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
@@ -337,7 +339,9 @@ class AppTheme {
         color: Color.fromARGB(255, 92, 92, 92),
         thickness: 1,
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        year2023: false,
+      ),
     );
   }
 }

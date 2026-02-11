@@ -16,7 +16,7 @@ class CardEndpoint extends Endpoint {
   /// Requires: board.read permission
   Future<List<Card>> getCards(
     Session session,
-    int listId,
+    UuidValue listId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -68,7 +68,7 @@ class CardEndpoint extends Endpoint {
   /// in a single request, reducing the number of HTTP calls from many to 1.
   Future<List<CardDetail>> getCardsByBoardDetail(
     Session session,
-    int boardId,
+    UuidValue boardId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -234,7 +234,7 @@ class CardEndpoint extends Endpoint {
   /// Requires: board.read permission
   Future<Card?> getCard(
     Session session,
-    int cardId,
+    UuidValue cardId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -266,7 +266,7 @@ class CardEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<Card> createCard(
     Session session,
-    int listId,
+    UuidValue listId,
     String title, {
     String? description,
     CardPriority priority = CardPriority.none,
@@ -312,9 +312,7 @@ class CardEndpoint extends Endpoint {
     final lastRank = existingCards.isNotEmpty ? existingCards.first.rank : null;
     final newRank = LexoRankService.generateRankAfter(lastRank);
 
-    final card = Card(
-      uuid: const Uuid().v4obj(),
-      listId: listId,
+    final card = Card(      listId: listId,
       boardId: cardList.boardId,
       title: title,
       descriptionDocument: description,
@@ -369,7 +367,7 @@ class CardEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<CardDetail> createCardDetail(
     Session session,
-    int listId,
+    UuidValue listId,
     String title, {
     String? description,
     CardPriority priority = CardPriority.none,
@@ -412,9 +410,7 @@ class CardEndpoint extends Endpoint {
     final lastCardRank = lastRank.isNotEmpty ? lastRank.first.rank : null;
     final newRank = LexoRankService.generateRankAfter(lastCardRank);
 
-    final card = Card(
-      uuid: const Uuid().v4obj(),
-      listId: listId,
+    final card = Card(      listId: listId,
       boardId: cardList.boardId,
       title: title,
       descriptionDocument: description,
@@ -460,7 +456,7 @@ class CardEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<Card> updateCard(
     Session session,
-    int cardId, {
+    UuidValue cardId, {
     String? title,
     String? description,
     CardPriority? priority,
@@ -529,8 +525,8 @@ class CardEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<Card> moveCard(
     Session session,
-    int cardId,
-    int targetListId, {
+    UuidValue cardId,
+    UuidValue targetListId, {
     String? afterRank,
     String? beforeRank,
     CardPriority? newPriority,
@@ -618,7 +614,7 @@ class CardEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<void> deleteCard(
     Session session,
-    int cardId,
+    UuidValue cardId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -677,7 +673,7 @@ class CardEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<Card> toggleComplete(
     Session session,
-    int cardId,
+    UuidValue cardId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -734,7 +730,7 @@ class CardEndpoint extends Endpoint {
   /// in a single request, reducing the number of HTTP calls from 7+ to 1.
   Future<CardDetail?> getCardDetail(
     Session session,
-    int cardId,
+    UuidValue cardId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -861,7 +857,7 @@ class CardEndpoint extends Endpoint {
         orderBy: (i) => i.rank,
       );
 
-      final itemsByChecklistId = <int, List<ChecklistItem>>{};
+      final itemsByChecklistId = <UuidValue, List<ChecklistItem>>{};
       for (final item in allItems) {
         final checklistId = item.checklistId;
         (itemsByChecklistId[checklistId] ??= <ChecklistItem>[]).add(item);
@@ -908,7 +904,7 @@ class CardEndpoint extends Endpoint {
   ) async {
     final card = await Card.db.findFirstRow(
       session,
-      where: (c) => c.uuid.equals(UuidValue.fromString(uuid)),
+      where: (c) => c.id.equals(UuidValue.fromString(uuid)),
     );
 
     if (card == null || card.deletedAt != null) {
@@ -919,7 +915,7 @@ class CardEndpoint extends Endpoint {
   }
 
   /// Helper method to get labels attached to a card
-  Future<List<LabelDef>> _getCardLabels(Session session, int cardId) async {
+  Future<List<LabelDef>> _getCardLabels(Session session, UuidValue cardId) async {
     // Get card_label join records
     final cardLabelLinks = await CardLabel.db.find(
       session,
@@ -943,7 +939,7 @@ class CardEndpoint extends Endpoint {
   /// Helper method to create CardSummary with counts
   Future<List<CardSummary>> _getCardSummaries(
     Session session,
-    int boardId,
+    UuidValue boardId,
   ) async {
     final cards = await Card.db.find(
       session,
@@ -996,10 +992,10 @@ class CardEndpoint extends Endpoint {
     }).toList();
   }
 
-  Future<Map<int, int>> _countByCardId(
+  Future<Map<UuidValue, int>> _countByCardId(
     Session session, {
     required String tableName,
-    required Set<int> cardIds,
+    required Set<UuidValue> cardIds,
     required bool includeDeletedAtFilter,
   }) async {
     if (cardIds.isEmpty) return {};
@@ -1022,19 +1018,19 @@ class CardEndpoint extends Endpoint {
       'GROUP BY "cardId"',
     );
 
-    final map = <int, int>{};
+    final map = <UuidValue, int>{};
     for (final row in rows) {
       if (row.length < 2) continue;
-      final cardId = toInt(row[0]);
+      final cardId = row[0] as UuidValue;
       final count = toInt(row[1]);
       map[cardId] = count;
     }
     return map;
   }
 
-  Future<Map<int, _ChecklistCounts>> _getChecklistItemCountsByCardId(
+  Future<Map<UuidValue, _ChecklistCounts>> _getChecklistItemCountsByCardId(
     Session session, {
-    required Set<int> cardIds,
+    required Set<UuidValue> cardIds,
   }) async {
     if (cardIds.isEmpty) return {};
 
@@ -1057,10 +1053,10 @@ class CardEndpoint extends Endpoint {
       'GROUP BY c."cardId"',
     );
 
-    final map = <int, _ChecklistCounts>{};
+    final map = <UuidValue, _ChecklistCounts>{};
     for (final row in rows) {
       if (row.length < 3) continue;
-      final cardId = toInt(row[0]);
+      final cardId = row[0] as UuidValue;
       final total = toInt(row[1]);
       final completed = toInt(row[2]);
       map[cardId] = _ChecklistCounts(total: total, completed: completed);
@@ -1068,9 +1064,9 @@ class CardEndpoint extends Endpoint {
     return map;
   }
 
-  Future<Map<int, List<LabelDef>>> _getLabelsByCardId(
+  Future<Map<UuidValue, List<LabelDef>>> _getLabelsByCardId(
     Session session, {
-    required Set<int> cardIds,
+    required Set<UuidValue> cardIds,
   }) async {
     if (cardIds.isEmpty) return {};
 
@@ -1087,8 +1083,8 @@ class CardEndpoint extends Endpoint {
       where: (l) => l.id.inSet(labelIds) & l.deletedAt.equals(null),
     );
 
-    final labelById = <int, LabelDef>{for (final l in labels) l.id!: l};
-    final map = <int, List<LabelDef>>{};
+    final labelById = <UuidValue, LabelDef>{for (final l in labels) l.id!: l};
+    final map = <UuidValue, List<LabelDef>>{};
     for (final link in cardLabelLinks) {
       final label = labelById[link.labelDefId];
       if (label == null) continue;
@@ -1108,7 +1104,7 @@ class CardEndpoint extends Endpoint {
   /// Use this instead of getCardsByBoardDetail for better performance
   Future<BoardWithCards> getBoardWithCards(
     Session session,
-    int boardId,
+    UuidValue boardId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 

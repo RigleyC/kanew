@@ -28,9 +28,9 @@ abstract class Attachment implements _i1.SerializableModel {
   });
 
   factory Attachment({
-    int? id,
-    required int cardId,
-    required int workspaceId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
+    required _i1.UuidValue workspaceId,
     required String fileName,
     required String mimeType,
     required int size,
@@ -43,9 +43,13 @@ abstract class Attachment implements _i1.SerializableModel {
 
   factory Attachment.fromJson(Map<String, dynamic> jsonSerialization) {
     return Attachment(
-      id: jsonSerialization['id'] as int?,
-      cardId: jsonSerialization['cardId'] as int,
-      workspaceId: jsonSerialization['workspaceId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      cardId: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['cardId']),
+      workspaceId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['workspaceId'],
+      ),
       fileName: jsonSerialization['fileName'] as String,
       mimeType: jsonSerialization['mimeType'] as String,
       size: jsonSerialization['size'] as int,
@@ -66,11 +70,11 @@ abstract class Attachment implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
-  int cardId;
+  _i1.UuidValue cardId;
 
-  int workspaceId;
+  _i1.UuidValue workspaceId;
 
   String fileName;
 
@@ -92,9 +96,9 @@ abstract class Attachment implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   Attachment copyWith({
-    int? id,
-    int? cardId,
-    int? workspaceId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? cardId,
+    _i1.UuidValue? workspaceId,
     String? fileName,
     String? mimeType,
     int? size,
@@ -108,9 +112,9 @@ abstract class Attachment implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'Attachment',
-      if (id != null) 'id': id,
-      'cardId': cardId,
-      'workspaceId': workspaceId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
+      'workspaceId': workspaceId.toJson(),
       'fileName': fileName,
       'mimeType': mimeType,
       'size': size,
@@ -132,9 +136,9 @@ class _Undefined {}
 
 class _AttachmentImpl extends Attachment {
   _AttachmentImpl({
-    int? id,
-    required int cardId,
-    required int workspaceId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
+    required _i1.UuidValue workspaceId,
     required String fileName,
     required String mimeType,
     required int size,
@@ -163,8 +167,8 @@ class _AttachmentImpl extends Attachment {
   @override
   Attachment copyWith({
     Object? id = _Undefined,
-    int? cardId,
-    int? workspaceId,
+    _i1.UuidValue? cardId,
+    _i1.UuidValue? workspaceId,
     String? fileName,
     String? mimeType,
     int? size,
@@ -175,7 +179,7 @@ class _AttachmentImpl extends Attachment {
     Object? deletedAt = _Undefined,
   }) {
     return Attachment(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       cardId: cardId ?? this.cardId,
       workspaceId: workspaceId ?? this.workspaceId,
       fileName: fileName ?? this.fileName,

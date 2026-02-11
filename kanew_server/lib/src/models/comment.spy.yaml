@@ -1,7 +1,10 @@
 class: Comment
 table: comment
 fields:
-  cardId: int, relation(parent=card)
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
+  cardId: UuidValue, relation(parent=card)
   authorId: UuidValue # Conforme plan.md (userId -> authorId)
   content: String # Conforme plan.md (text -> content)
   createdAt: DateTime

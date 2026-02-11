@@ -12,7 +12,7 @@ class LabelEndpoint extends Endpoint {
   /// Gets all labels defined for a board
   Future<List<LabelDef>> getLabels(
     Session session,
-    int boardId,
+    UuidValue boardId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -42,7 +42,7 @@ class LabelEndpoint extends Endpoint {
   /// Creates a new label definition
   Future<LabelDef> createLabel(
     Session session,
-    int boardId,
+    UuidValue boardId,
     String name,
     String colorHex,
   ) async {
@@ -86,7 +86,7 @@ class LabelEndpoint extends Endpoint {
   /// Updates a label definition
   Future<LabelDef> updateLabel(
     Session session,
-    int labelId,
+    UuidValue labelId,
     String name,
     String colorHex,
   ) async {
@@ -132,7 +132,7 @@ class LabelEndpoint extends Endpoint {
   /// Deletes a label definition (soft delete)
   Future<void> deleteLabel(
     Session session,
-    int labelId,
+    UuidValue labelId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -172,8 +172,8 @@ class LabelEndpoint extends Endpoint {
   /// Attaches a label to a card
   Future<void> attachLabel(
     Session session,
-    int cardId,
-    int labelId,
+    UuidValue cardId,
+    UuidValue labelId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -236,8 +236,8 @@ class LabelEndpoint extends Endpoint {
   /// Detaches a label from a card
   Future<void> detachLabel(
     Session session,
-    int cardId,
-    int labelId,
+    UuidValue cardId,
+    UuidValue labelId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -290,7 +290,7 @@ class LabelEndpoint extends Endpoint {
   /// Get labels attached to a card
   Future<List<LabelDef>> getCardLabels(
     Session session,
-    int cardId,
+    UuidValue cardId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -355,7 +355,7 @@ class LabelEndpoint extends Endpoint {
   }
 
   /// Helper to get card labels synchronously (used for broadcasts)
-  Future<List<LabelDef>> _getCardLabelsSync(Session session, int cardId) async {
+  Future<List<LabelDef>> _getCardLabelsSync(Session session, UuidValue cardId) async {
     final relations = await CardLabel.db.find(
       session,
       where: (cl) => cl.cardId.equals(cardId),

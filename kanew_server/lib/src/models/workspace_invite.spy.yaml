@@ -3,14 +3,17 @@
 class: WorkspaceInvite
 table: workspace_invite
 fields:
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
   email: String? # Opcional - convite não é vinculado ao e-mail (plan.md linha 184)
   code: String
-  workspaceId: int, relation(parent=workspace)
+  workspaceId: UuidValue, relation(parent=workspace)
   createdBy: UuidValue # Quem criou o convite
   
   # Lista de IDs de permissão que serão aplicadas ao aceitar
-  # O Serverpod serializa List<int> como JSON no Postgres
-  initialPermissions: List<int>
+  # Changed to UuidValue to match Permission table PK
+  initialPermissions: List<UuidValue>
   
   acceptedAt: DateTime? # Quando foi aceito (só pode ser aceito uma vez)
   revokedAt: DateTime? # Quando foi revogado (em vez de deletedAt)

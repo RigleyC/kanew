@@ -8,7 +8,7 @@ import '../../widgets/member/permission_matrix.dart';
 class InviteMemberDialog extends StatefulWidget {
   final List<PermissionInfo> allPermissions;
   final Future<WorkspaceInvite?> Function(
-    List<int> permissionIds,
+    List<UuidValue> permissionIds,
     String? email,
   ) onCreateInvite;
 
@@ -24,7 +24,7 @@ class InviteMemberDialog extends StatefulWidget {
 
 class _InviteMemberDialogState extends State<InviteMemberDialog> {
   final _emailController = TextEditingController();
-  List<int> _selectedPermissionIds = [];
+  List<UuidValue> _selectedPermissionIds = [];
   bool _isLoading = false;
   String? _inviteLink;
 

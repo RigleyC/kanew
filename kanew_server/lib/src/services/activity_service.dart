@@ -5,7 +5,7 @@ class ActivityService {
   /// Logs an activity for a card
   static Future<void> log(
     Session session, {
-    required int cardId,
+    required UuidValue cardId,
     required UuidValue actorId,
     required ActivityType type,
     String? details,

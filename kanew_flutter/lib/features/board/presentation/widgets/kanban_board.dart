@@ -19,7 +19,7 @@ class KanbanBoard extends StatefulWidget {
   final String workspaceSlug;
   final String boardSlug;
   final Board board;
-  final Future<void> Function(int listId, String title) onAddCard;
+  final Future<void> Function(UuidValue listId, String title) onAddCard;
 
   const KanbanBoard({
     super.key,
@@ -144,7 +144,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
       );
     }
 
-    _adapter.handleMoveCard(groupId, toIndex, widget.controller);
+    _adapter.handleMoveCard(UuidValue.fromString(groupId), toIndex, widget.controller);
   }
 
   void _onMoveGroupItemToGroup(
@@ -160,7 +160,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
       );
     }
 
-    _adapter.handleMoveCard(toGroupId, toIndex, widget.controller);
+    _adapter.handleMoveCard(UuidValue.fromString(toGroupId), toIndex, widget.controller);
   }
 
   @override
@@ -213,7 +213,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
                         RoutePaths.cardDetail(
                           widget.workspaceSlug,
                           widget.boardSlug,
-                          cardItem.cardSummary.card.uuid.toString(),
+                          cardItem.cardSummary.card.id.toString(),
                         ),
                       );
                     },

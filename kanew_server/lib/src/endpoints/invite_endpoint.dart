@@ -9,8 +9,8 @@ class InviteEndpoint extends Endpoint {
   /// Requires 'workspace.invite' permission
   Future<WorkspaceInvite> createInvite(
     Session session,
-    int workspaceId,
-    List<int> permissionIds, {
+    UuidValue workspaceId,
+    List<UuidValue> permissionIds, {
     String? email,
   }) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
@@ -59,7 +59,7 @@ class InviteEndpoint extends Endpoint {
   /// Gets all pending invites for a workspace
   Future<List<WorkspaceInvite>> getInvites(
     Session session,
-    int workspaceId,
+    UuidValue workspaceId,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -89,7 +89,7 @@ class InviteEndpoint extends Endpoint {
   }
 
   /// Revokes an invite
-  Future<void> revokeInvite(Session session, int inviteId) async {
+  Future<void> revokeInvite(Session session, UuidValue inviteId) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 
     final invite = await WorkspaceInvite.db.findById(session, inviteId);
@@ -200,27 +200,24 @@ class InviteEndpoint extends Endpoint {
 
       member = existingMember;
     } else {
-      // Create new member
+      // Create new member with guest role
       final newMember = WorkspaceMember(
         authUserId: userId,
         workspaceId: invite.workspaceId,
-        role: MemberRole.member,
+        role: MemberRole.guest,
         status: MemberStatus.active,
         joinedAt: DateTime.now(),
       );
 
       member = await WorkspaceMember.db.insertRow(session, newMember);
 
-      // Grant permissions from invite
-      for (final permissionId in invite.initialPermissions) {
-        await MemberPermission.db.insertRow(
-          session,
-          MemberPermission(
-            workspaceMemberId: member.id!,
-            permissionId: permissionId,
-          ),
-        );
-      }
+      // Apply permission overrides based on invite's initial permissions
+      await PermissionService.applyPermissionOverrides(
+        session,
+        workspaceMemberId: member.id!,
+        role: MemberRole.guest,
+        grantedPermissionIds: invite.initialPermissions,
+      );
 
       // Mark invite as accepted
       final updated = invite.copyWith(acceptedAt: DateTime.now());

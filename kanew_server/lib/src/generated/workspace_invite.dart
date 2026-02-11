@@ -14,7 +14,7 @@ import 'package:serverpod/serverpod.dart' as _i1;
 import 'package:kanew_server/src/generated/protocol.dart' as _i2;
 
 abstract class WorkspaceInvite
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   WorkspaceInvite._({
     this.id,
     this.email,
@@ -28,12 +28,12 @@ abstract class WorkspaceInvite
   });
 
   factory WorkspaceInvite({
-    int? id,
+    _i1.UuidValue? id,
     String? email,
     required String code,
-    required int workspaceId,
+    required _i1.UuidValue workspaceId,
     required _i1.UuidValue createdBy,
-    required List<int> initialPermissions,
+    required List<_i1.UuidValue> initialPermissions,
     DateTime? acceptedAt,
     DateTime? revokedAt,
     required DateTime createdAt,
@@ -41,14 +41,18 @@ abstract class WorkspaceInvite
 
   factory WorkspaceInvite.fromJson(Map<String, dynamic> jsonSerialization) {
     return WorkspaceInvite(
-      id: jsonSerialization['id'] as int?,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       email: jsonSerialization['email'] as String?,
       code: jsonSerialization['code'] as String,
-      workspaceId: jsonSerialization['workspaceId'] as int,
+      workspaceId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['workspaceId'],
+      ),
       createdBy: _i1.UuidValueJsonExtension.fromJson(
         jsonSerialization['createdBy'],
       ),
-      initialPermissions: _i2.Protocol().deserialize<List<int>>(
+      initialPermissions: _i2.Protocol().deserialize<List<_i1.UuidValue>>(
         jsonSerialization['initialPermissions'],
       ),
       acceptedAt: jsonSerialization['acceptedAt'] == null
@@ -68,17 +72,17 @@ abstract class WorkspaceInvite
   static const db = WorkspaceInviteRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
   String? email;
 
   String code;
 
-  int workspaceId;
+  _i1.UuidValue workspaceId;
 
   _i1.UuidValue createdBy;
 
-  List<int> initialPermissions;
+  List<_i1.UuidValue> initialPermissions;
 
   DateTime? acceptedAt;
 
@@ -87,18 +91,18 @@ abstract class WorkspaceInvite
   DateTime createdAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [WorkspaceInvite]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   WorkspaceInvite copyWith({
-    int? id,
+    _i1.UuidValue? id,
     String? email,
     String? code,
-    int? workspaceId,
+    _i1.UuidValue? workspaceId,
     _i1.UuidValue? createdBy,
-    List<int>? initialPermissions,
+    List<_i1.UuidValue>? initialPermissions,
     DateTime? acceptedAt,
     DateTime? revokedAt,
     DateTime? createdAt,
@@ -107,12 +111,14 @@ abstract class WorkspaceInvite
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'WorkspaceInvite',
-      if (id != null) 'id': id,
+      if (id != null) 'id': id?.toJson(),
       if (email != null) 'email': email,
       'code': code,
-      'workspaceId': workspaceId,
+      'workspaceId': workspaceId.toJson(),
       'createdBy': createdBy.toJson(),
-      'initialPermissions': initialPermissions.toJson(),
+      'initialPermissions': initialPermissions.toJson(
+        valueToJson: (v) => v.toJson(),
+      ),
       if (acceptedAt != null) 'acceptedAt': acceptedAt?.toJson(),
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
       'createdAt': createdAt.toJson(),
@@ -123,12 +129,14 @@ abstract class WorkspaceInvite
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'WorkspaceInvite',
-      if (id != null) 'id': id,
+      if (id != null) 'id': id?.toJson(),
       if (email != null) 'email': email,
       'code': code,
-      'workspaceId': workspaceId,
+      'workspaceId': workspaceId.toJson(),
       'createdBy': createdBy.toJson(),
-      'initialPermissions': initialPermissions.toJson(),
+      'initialPermissions': initialPermissions.toJson(
+        valueToJson: (v) => v.toJson(),
+      ),
       if (acceptedAt != null) 'acceptedAt': acceptedAt?.toJson(),
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
       'createdAt': createdAt.toJson(),
@@ -169,12 +177,12 @@ class _Undefined {}
 
 class _WorkspaceInviteImpl extends WorkspaceInvite {
   _WorkspaceInviteImpl({
-    int? id,
+    _i1.UuidValue? id,
     String? email,
     required String code,
-    required int workspaceId,
+    required _i1.UuidValue workspaceId,
     required _i1.UuidValue createdBy,
-    required List<int> initialPermissions,
+    required List<_i1.UuidValue> initialPermissions,
     DateTime? acceptedAt,
     DateTime? revokedAt,
     required DateTime createdAt,
@@ -198,15 +206,15 @@ class _WorkspaceInviteImpl extends WorkspaceInvite {
     Object? id = _Undefined,
     Object? email = _Undefined,
     String? code,
-    int? workspaceId,
+    _i1.UuidValue? workspaceId,
     _i1.UuidValue? createdBy,
-    List<int>? initialPermissions,
+    List<_i1.UuidValue>? initialPermissions,
     Object? acceptedAt = _Undefined,
     Object? revokedAt = _Undefined,
     DateTime? createdAt,
   }) {
     return WorkspaceInvite(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       email: email is String? ? email : this.email,
       code: code ?? this.code,
       workspaceId: workspaceId ?? this.workspaceId,
@@ -234,7 +242,9 @@ class WorkspaceInviteUpdateTable extends _i1.UpdateTable<WorkspaceInviteTable> {
     value,
   );
 
-  _i1.ColumnValue<int, int> workspaceId(int value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> workspaceId(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
     table.workspaceId,
     value,
   );
@@ -246,11 +256,12 @@ class WorkspaceInviteUpdateTable extends _i1.UpdateTable<WorkspaceInviteTable> {
     value,
   );
 
-  _i1.ColumnValue<List<int>, List<int>> initialPermissions(List<int> value) =>
-      _i1.ColumnValue(
-        table.initialPermissions,
-        value,
-      );
+  _i1.ColumnValue<List<_i1.UuidValue>, List<_i1.UuidValue>> initialPermissions(
+    List<_i1.UuidValue> value,
+  ) => _i1.ColumnValue(
+    table.initialPermissions,
+    value,
+  );
 
   _i1.ColumnValue<DateTime, DateTime> acceptedAt(DateTime? value) =>
       _i1.ColumnValue(
@@ -271,7 +282,7 @@ class WorkspaceInviteUpdateTable extends _i1.UpdateTable<WorkspaceInviteTable> {
       );
 }
 
-class WorkspaceInviteTable extends _i1.Table<int?> {
+class WorkspaceInviteTable extends _i1.Table<_i1.UuidValue?> {
   WorkspaceInviteTable({super.tableRelation})
     : super(tableName: 'workspace_invite') {
     updateTable = WorkspaceInviteUpdateTable(this);
@@ -283,7 +294,7 @@ class WorkspaceInviteTable extends _i1.Table<int?> {
       'code',
       this,
     );
-    workspaceId = _i1.ColumnInt(
+    workspaceId = _i1.ColumnUuid(
       'workspaceId',
       this,
     );
@@ -291,7 +302,7 @@ class WorkspaceInviteTable extends _i1.Table<int?> {
       'createdBy',
       this,
     );
-    initialPermissions = _i1.ColumnSerializable<List<int>>(
+    initialPermissions = _i1.ColumnSerializable<List<_i1.UuidValue>>(
       'initialPermissions',
       this,
     );
@@ -315,11 +326,11 @@ class WorkspaceInviteTable extends _i1.Table<int?> {
 
   late final _i1.ColumnString code;
 
-  late final _i1.ColumnInt workspaceId;
+  late final _i1.ColumnUuid workspaceId;
 
   late final _i1.ColumnUuid createdBy;
 
-  late final _i1.ColumnSerializable<List<int>> initialPermissions;
+  late final _i1.ColumnSerializable<List<_i1.UuidValue>> initialPermissions;
 
   late final _i1.ColumnDateTime acceptedAt;
 
@@ -348,7 +359,7 @@ class WorkspaceInviteInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => WorkspaceInvite.t;
+  _i1.Table<_i1.UuidValue?> get table => WorkspaceInvite.t;
 }
 
 class WorkspaceInviteIncludeList extends _i1.IncludeList {
@@ -368,7 +379,7 @@ class WorkspaceInviteIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => WorkspaceInvite.t;
+  _i1.Table<_i1.UuidValue?> get table => WorkspaceInvite.t;
 }
 
 class WorkspaceInviteRepository {
@@ -456,7 +467,7 @@ class WorkspaceInviteRepository {
   /// Finds a single [WorkspaceInvite] by its [id] or null if no such row exists.
   Future<WorkspaceInvite?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<WorkspaceInvite>(
@@ -534,7 +545,7 @@ class WorkspaceInviteRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<WorkspaceInvite?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<WorkspaceInviteUpdateTable>
     columnValues,
     _i1.Transaction? transaction,

@@ -12,7 +12,7 @@ class LabelRepository {
   LabelRepository({Client? client}) : _client = client ?? getIt<Client>();
 
   /// Get all labels for a board
-  Future<Either<Failure, List<LabelDef>>> getLabels(int boardId) async {
+  Future<Either<Failure, List<LabelDef>>> getLabels(UuidValue boardId) async {
     try {
       final labels = await _client.label.getLabels(boardId);
       return Right(labels);
@@ -24,7 +24,7 @@ class LabelRepository {
 
   /// Create a new label definition
   Future<Either<Failure, LabelDef>> createLabel(
-    int boardId,
+    UuidValue boardId,
     String name,
     String colorHex,
   ) async {
@@ -38,7 +38,7 @@ class LabelRepository {
   }
 
   /// Attach a label to a card
-  Future<Either<Failure, Unit>> attachLabel(int cardId, int labelId) async {
+  Future<Either<Failure, Unit>> attachLabel(UuidValue cardId, UuidValue labelId) async {
     try {
       await _client.label.attachLabel(cardId, labelId);
       return const Right(unit);
@@ -49,7 +49,7 @@ class LabelRepository {
   }
 
   /// Detach a label from a card
-  Future<Either<Failure, Unit>> detachLabel(int cardId, int labelId) async {
+  Future<Either<Failure, Unit>> detachLabel(UuidValue cardId, UuidValue labelId) async {
     try {
       await _client.label.detachLabel(cardId, labelId);
       return const Right(unit);
@@ -60,7 +60,7 @@ class LabelRepository {
   }
 
   /// Get labels attached to a card
-  Future<Either<Failure, List<LabelDef>>> getCardLabels(int cardId) async {
+  Future<Either<Failure, List<LabelDef>>> getCardLabels(UuidValue cardId) async {
     try {
       final labels = await _client.label.getCardLabels(cardId);
       return Right(labels);

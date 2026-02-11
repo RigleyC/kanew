@@ -11,7 +11,7 @@ class CommentEndpoint extends Endpoint {
   /// Gets all comments for a card
   Future<List<Comment>> getComments(
     Session session,
-    int cardId,
+    UuidValue cardId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -47,7 +47,7 @@ class CommentEndpoint extends Endpoint {
   /// Creates a comment
   Future<Comment> createComment(
     Session session,
-    int cardId,
+    UuidValue cardId,
     String content,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
@@ -97,7 +97,7 @@ class CommentEndpoint extends Endpoint {
   /// Deletes a comment (soft delete)
   Future<void> deleteComment(
     Session session,
-    int commentId,
+    UuidValue commentId,
   ) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 

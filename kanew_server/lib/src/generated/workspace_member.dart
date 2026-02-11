@@ -15,7 +15,7 @@ import 'member_role.dart' as _i2;
 import 'member_status.dart' as _i3;
 
 abstract class WorkspaceMember
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   WorkspaceMember._({
     this.id,
     required this.authUserId,
@@ -28,9 +28,9 @@ abstract class WorkspaceMember
   });
 
   factory WorkspaceMember({
-    int? id,
+    _i1.UuidValue? id,
     required _i1.UuidValue authUserId,
-    required int workspaceId,
+    required _i1.UuidValue workspaceId,
     required _i2.MemberRole role,
     required _i3.MemberStatus status,
     required DateTime joinedAt,
@@ -40,11 +40,15 @@ abstract class WorkspaceMember
 
   factory WorkspaceMember.fromJson(Map<String, dynamic> jsonSerialization) {
     return WorkspaceMember(
-      id: jsonSerialization['id'] as int?,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       authUserId: _i1.UuidValueJsonExtension.fromJson(
         jsonSerialization['authUserId'],
       ),
-      workspaceId: jsonSerialization['workspaceId'] as int,
+      workspaceId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['workspaceId'],
+      ),
       role: _i2.MemberRole.fromJson((jsonSerialization['role'] as String)),
       status: _i3.MemberStatus.fromJson(
         (jsonSerialization['status'] as String),
@@ -66,11 +70,11 @@ abstract class WorkspaceMember
   static const db = WorkspaceMemberRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
   _i1.UuidValue authUserId;
 
-  int workspaceId;
+  _i1.UuidValue workspaceId;
 
   _i2.MemberRole role;
 
@@ -83,15 +87,15 @@ abstract class WorkspaceMember
   _i1.UuidValue? deletedBy;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [WorkspaceMember]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   WorkspaceMember copyWith({
-    int? id,
+    _i1.UuidValue? id,
     _i1.UuidValue? authUserId,
-    int? workspaceId,
+    _i1.UuidValue? workspaceId,
     _i2.MemberRole? role,
     _i3.MemberStatus? status,
     DateTime? joinedAt,
@@ -102,9 +106,9 @@ abstract class WorkspaceMember
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'WorkspaceMember',
-      if (id != null) 'id': id,
+      if (id != null) 'id': id?.toJson(),
       'authUserId': authUserId.toJson(),
-      'workspaceId': workspaceId,
+      'workspaceId': workspaceId.toJson(),
       'role': role.toJson(),
       'status': status.toJson(),
       'joinedAt': joinedAt.toJson(),
@@ -117,9 +121,9 @@ abstract class WorkspaceMember
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'WorkspaceMember',
-      if (id != null) 'id': id,
+      if (id != null) 'id': id?.toJson(),
       'authUserId': authUserId.toJson(),
-      'workspaceId': workspaceId,
+      'workspaceId': workspaceId.toJson(),
       'role': role.toJson(),
       'status': status.toJson(),
       'joinedAt': joinedAt.toJson(),
@@ -162,9 +166,9 @@ class _Undefined {}
 
 class _WorkspaceMemberImpl extends WorkspaceMember {
   _WorkspaceMemberImpl({
-    int? id,
+    _i1.UuidValue? id,
     required _i1.UuidValue authUserId,
-    required int workspaceId,
+    required _i1.UuidValue workspaceId,
     required _i2.MemberRole role,
     required _i3.MemberStatus status,
     required DateTime joinedAt,
@@ -188,7 +192,7 @@ class _WorkspaceMemberImpl extends WorkspaceMember {
   WorkspaceMember copyWith({
     Object? id = _Undefined,
     _i1.UuidValue? authUserId,
-    int? workspaceId,
+    _i1.UuidValue? workspaceId,
     _i2.MemberRole? role,
     _i3.MemberStatus? status,
     DateTime? joinedAt,
@@ -196,7 +200,7 @@ class _WorkspaceMemberImpl extends WorkspaceMember {
     Object? deletedBy = _Undefined,
   }) {
     return WorkspaceMember(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       authUserId: authUserId ?? this.authUserId,
       workspaceId: workspaceId ?? this.workspaceId,
       role: role ?? this.role,
@@ -218,7 +222,9 @@ class WorkspaceMemberUpdateTable extends _i1.UpdateTable<WorkspaceMemberTable> {
     value,
   );
 
-  _i1.ColumnValue<int, int> workspaceId(int value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> workspaceId(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
     table.workspaceId,
     value,
   );
@@ -256,7 +262,7 @@ class WorkspaceMemberUpdateTable extends _i1.UpdateTable<WorkspaceMemberTable> {
   );
 }
 
-class WorkspaceMemberTable extends _i1.Table<int?> {
+class WorkspaceMemberTable extends _i1.Table<_i1.UuidValue?> {
   WorkspaceMemberTable({super.tableRelation})
     : super(tableName: 'workspace_member') {
     updateTable = WorkspaceMemberUpdateTable(this);
@@ -264,7 +270,7 @@ class WorkspaceMemberTable extends _i1.Table<int?> {
       'authUserId',
       this,
     );
-    workspaceId = _i1.ColumnInt(
+    workspaceId = _i1.ColumnUuid(
       'workspaceId',
       this,
     );
@@ -296,7 +302,7 @@ class WorkspaceMemberTable extends _i1.Table<int?> {
 
   late final _i1.ColumnUuid authUserId;
 
-  late final _i1.ColumnInt workspaceId;
+  late final _i1.ColumnUuid workspaceId;
 
   late final _i1.ColumnEnum<_i2.MemberRole> role;
 
@@ -328,7 +334,7 @@ class WorkspaceMemberInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => WorkspaceMember.t;
+  _i1.Table<_i1.UuidValue?> get table => WorkspaceMember.t;
 }
 
 class WorkspaceMemberIncludeList extends _i1.IncludeList {
@@ -348,7 +354,7 @@ class WorkspaceMemberIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => WorkspaceMember.t;
+  _i1.Table<_i1.UuidValue?> get table => WorkspaceMember.t;
 }
 
 class WorkspaceMemberRepository {
@@ -436,7 +442,7 @@ class WorkspaceMemberRepository {
   /// Finds a single [WorkspaceMember] by its [id] or null if no such row exists.
   Future<WorkspaceMember?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<WorkspaceMember>(
@@ -514,7 +520,7 @@ class WorkspaceMemberRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<WorkspaceMember?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<WorkspaceMemberUpdateTable>
     columnValues,
     _i1.Transaction? transaction,

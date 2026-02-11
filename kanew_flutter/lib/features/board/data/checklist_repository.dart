@@ -13,7 +13,7 @@ class ChecklistRepository {
   ChecklistRepository({Client? client}) : _client = client ?? getIt<Client>();
 
   /// Gets all checklists for a card
-  Future<Either<Failure, List<Checklist>>> getChecklists(int cardId) async {
+  Future<Either<Failure, List<Checklist>>> getChecklists(UuidValue cardId) async {
     developer.log(
       'ChecklistRepository.getChecklists($cardId)',
       name: 'checklist_repository',
@@ -43,7 +43,7 @@ class ChecklistRepository {
   }
 
   /// Gets items for a checklist
-  Future<Either<Failure, List<ChecklistItem>>> getItems(int checklistId) async {
+  Future<Either<Failure, List<ChecklistItem>>> getItems(UuidValue checklistId) async {
     developer.log(
       'ChecklistRepository.getItems($checklistId)',
       name: 'checklist_repository',
@@ -70,7 +70,7 @@ class ChecklistRepository {
 
   /// Creates a new checklist
   Future<Either<Failure, Checklist>> createChecklist(
-    int cardId,
+    UuidValue cardId,
     String title,
   ) async {
     developer.log(
@@ -99,7 +99,7 @@ class ChecklistRepository {
 
   /// Updates a checklist
   Future<Either<Failure, Checklist>> updateChecklist(
-    int checklistId,
+    UuidValue checklistId,
     String title,
   ) async {
     try {
@@ -120,7 +120,7 @@ class ChecklistRepository {
   }
 
   /// Deletes a checklist
-  Future<Either<Failure, Unit>> deleteChecklist(int checklistId) async {
+  Future<Either<Failure, Unit>> deleteChecklist(UuidValue checklistId) async {
     try {
       await _client.checklist.deleteChecklist(checklistId);
       return const Right(unit);
@@ -137,7 +137,7 @@ class ChecklistRepository {
 
   /// Creates a new item in a checklist
   Future<Either<Failure, ChecklistItem>> addItem(
-    int checklistId,
+    UuidValue checklistId,
     String title,
   ) async {
     try {
@@ -156,7 +156,7 @@ class ChecklistRepository {
 
   /// Updates a checklist item
   Future<Either<Failure, ChecklistItem>> updateItem(
-    int itemId, {
+    UuidValue itemId, {
     String? title,
     bool? isChecked,
   }) async {
@@ -179,7 +179,7 @@ class ChecklistRepository {
   }
 
   /// Deletes a checklist item
-  Future<Either<Failure, Unit>> deleteItem(int itemId) async {
+  Future<Either<Failure, Unit>> deleteItem(UuidValue itemId) async {
     try {
       await _client.checklist.deleteItem(itemId);
       return const Right(unit);

@@ -11,7 +11,7 @@ class CommentRepository {
 
   CommentRepository({Client? client}) : _client = client ?? getIt<Client>();
 
-  Future<Either<Failure, List<Comment>>> getComments(int cardId) async {
+  Future<Either<Failure, List<Comment>>> getComments(UuidValue cardId) async {
     try {
       final comments = await _client.comment.getComments(cardId);
       return Right(comments);
@@ -22,7 +22,7 @@ class CommentRepository {
   }
 
   Future<Either<Failure, Comment>> createComment(
-    int cardId,
+    UuidValue cardId,
     String content,
   ) async {
     try {
@@ -34,7 +34,7 @@ class CommentRepository {
     }
   }
 
-  Future<Either<Failure, Unit>> deleteComment(int commentId) async {
+  Future<Either<Failure, Unit>> deleteComment(UuidValue commentId) async {
     try {
       await _client.comment.deleteComment(commentId);
       return const Right(unit);

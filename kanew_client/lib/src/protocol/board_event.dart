@@ -26,9 +26,9 @@ abstract class BoardEvent implements _i1.SerializableModel {
 
   factory BoardEvent({
     required _i2.BoardEventType eventType,
-    required int boardId,
-    int? listId,
-    int? cardId,
+    required _i1.UuidValue boardId,
+    _i1.UuidValue? listId,
+    _i1.UuidValue? cardId,
     String? payload,
     required DateTime timestamp,
     required _i1.UuidValue actorId,
@@ -39,9 +39,15 @@ abstract class BoardEvent implements _i1.SerializableModel {
       eventType: _i2.BoardEventType.fromJson(
         (jsonSerialization['eventType'] as String),
       ),
-      boardId: jsonSerialization['boardId'] as int,
-      listId: jsonSerialization['listId'] as int?,
-      cardId: jsonSerialization['cardId'] as int?,
+      boardId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['boardId'],
+      ),
+      listId: jsonSerialization['listId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['listId']),
+      cardId: jsonSerialization['cardId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['cardId']),
       payload: jsonSerialization['payload'] as String?,
       timestamp: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['timestamp'],
@@ -54,11 +60,11 @@ abstract class BoardEvent implements _i1.SerializableModel {
 
   _i2.BoardEventType eventType;
 
-  int boardId;
+  _i1.UuidValue boardId;
 
-  int? listId;
+  _i1.UuidValue? listId;
 
-  int? cardId;
+  _i1.UuidValue? cardId;
 
   String? payload;
 
@@ -71,9 +77,9 @@ abstract class BoardEvent implements _i1.SerializableModel {
   @_i1.useResult
   BoardEvent copyWith({
     _i2.BoardEventType? eventType,
-    int? boardId,
-    int? listId,
-    int? cardId,
+    _i1.UuidValue? boardId,
+    _i1.UuidValue? listId,
+    _i1.UuidValue? cardId,
     String? payload,
     DateTime? timestamp,
     _i1.UuidValue? actorId,
@@ -83,9 +89,9 @@ abstract class BoardEvent implements _i1.SerializableModel {
     return {
       '__className__': 'BoardEvent',
       'eventType': eventType.toJson(),
-      'boardId': boardId,
-      if (listId != null) 'listId': listId,
-      if (cardId != null) 'cardId': cardId,
+      'boardId': boardId.toJson(),
+      if (listId != null) 'listId': listId?.toJson(),
+      if (cardId != null) 'cardId': cardId?.toJson(),
       if (payload != null) 'payload': payload,
       'timestamp': timestamp.toJson(),
       'actorId': actorId.toJson(),
@@ -103,9 +109,9 @@ class _Undefined {}
 class _BoardEventImpl extends BoardEvent {
   _BoardEventImpl({
     required _i2.BoardEventType eventType,
-    required int boardId,
-    int? listId,
-    int? cardId,
+    required _i1.UuidValue boardId,
+    _i1.UuidValue? listId,
+    _i1.UuidValue? cardId,
     String? payload,
     required DateTime timestamp,
     required _i1.UuidValue actorId,
@@ -125,7 +131,7 @@ class _BoardEventImpl extends BoardEvent {
   @override
   BoardEvent copyWith({
     _i2.BoardEventType? eventType,
-    int? boardId,
+    _i1.UuidValue? boardId,
     Object? listId = _Undefined,
     Object? cardId = _Undefined,
     Object? payload = _Undefined,
@@ -135,8 +141,8 @@ class _BoardEventImpl extends BoardEvent {
     return BoardEvent(
       eventType: eventType ?? this.eventType,
       boardId: boardId ?? this.boardId,
-      listId: listId is int? ? listId : this.listId,
-      cardId: cardId is int? ? cardId : this.cardId,
+      listId: listId is _i1.UuidValue? ? listId : this.listId,
+      cardId: cardId is _i1.UuidValue? ? cardId : this.cardId,
       payload: payload is String? ? payload : this.payload,
       timestamp: timestamp ?? this.timestamp,
       actorId: actorId ?? this.actorId,

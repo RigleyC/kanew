@@ -1,9 +1,9 @@
 class: BoardEvent
 fields:
   eventType: BoardEventType
-  boardId: int
-  listId: int?
-  cardId: int?
+  boardId: UuidValue
+  listId: UuidValue?
+  cardId: UuidValue?
   payload: String?
   timestamp: DateTime
   actorId: UuidValue

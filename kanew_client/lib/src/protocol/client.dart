@@ -287,7 +287,7 @@ class EndpointActivity extends _i2.EndpointRef {
   String get name => 'activity';
 
   /// Gets activity log for a card
-  _i3.Future<List<_i5.CardActivity>> getLog(int cardId) =>
+  _i3.Future<List<_i5.CardActivity>> getLog(_i2.UuidValue cardId) =>
       caller.callServerEndpoint<List<_i5.CardActivity>>(
         'activity',
         'getLog',
@@ -307,7 +307,7 @@ class EndpointAttachment extends _i2.EndpointRef {
   ///
   /// Requires: card.update permission
   _i3.Future<_i6.Attachment?> uploadFile({
-    required int cardId,
+    required _i2.UuidValue cardId,
     required String fileName,
     required _i7.ByteData fileData,
     required String mimeType,
@@ -328,7 +328,7 @@ class EndpointAttachment extends _i2.EndpointRef {
   ///
   /// Requires: card.update permission
   _i3.Future<String?> getUploadDescription({
-    required int cardId,
+    required _i2.UuidValue cardId,
     required String fileName,
     required int size,
     required String mimeType,
@@ -347,7 +347,7 @@ class EndpointAttachment extends _i2.EndpointRef {
   ///
   /// Requires: card.update permission
   _i3.Future<_i6.Attachment?> verifyUpload({
-    required int cardId,
+    required _i2.UuidValue cardId,
     required String fileName,
     required String storagePath,
     required String mimeType,
@@ -367,7 +367,7 @@ class EndpointAttachment extends _i2.EndpointRef {
   /// Lists all active attachments for a card.
   ///
   /// Requires: card.read permission
-  _i3.Future<List<_i6.Attachment>> listAttachments(int cardId) =>
+  _i3.Future<List<_i6.Attachment>> listAttachments(_i2.UuidValue cardId) =>
       caller.callServerEndpoint<List<_i6.Attachment>>(
         'attachment',
         'listAttachments',
@@ -377,7 +377,7 @@ class EndpointAttachment extends _i2.EndpointRef {
   /// Deletes an attachment (soft delete).
   ///
   /// Requires: card.update permission (and check ownership/admin logic)
-  _i3.Future<void> deleteAttachment(int attachmentId) =>
+  _i3.Future<void> deleteAttachment(_i2.UuidValue attachmentId) =>
       caller.callServerEndpoint<void>(
         'attachment',
         'deleteAttachment',
@@ -395,7 +395,7 @@ class EndpointBoard extends _i2.EndpointRef {
 
   /// Gets all boards for a workspace by ID
   /// Requires: board.read permission
-  _i3.Future<List<_i8.Board>> getBoards(int workspaceId) =>
+  _i3.Future<List<_i8.Board>> getBoards(_i2.UuidValue workspaceId) =>
       caller.callServerEndpoint<List<_i8.Board>>(
         'board',
         'getBoards',
@@ -414,7 +414,7 @@ class EndpointBoard extends _i2.EndpointRef {
   /// Gets a single board by slug within a workspace (by workspace ID)
   /// Requires: board.read permission
   _i3.Future<_i8.Board?> getBoard(
-    int workspaceId,
+    _i2.UuidValue workspaceId,
     String slug,
   ) => caller.callServerEndpoint<_i8.Board?>(
     'board',
@@ -442,7 +442,7 @@ class EndpointBoard extends _i2.EndpointRef {
   /// Creates a new board in a workspace (by workspace ID)
   /// Requires: board.create permission
   _i3.Future<_i8.Board> createBoard(
-    int workspaceId,
+    _i2.UuidValue workspaceId,
     String title,
   ) => caller.callServerEndpoint<_i8.Board>(
     'board',
@@ -470,7 +470,7 @@ class EndpointBoard extends _i2.EndpointRef {
   /// Updates a board's title and/or slug
   /// Requires: board.update permission
   _i3.Future<_i8.Board> updateBoard(
-    int boardId,
+    _i2.UuidValue boardId,
     String title,
     String? slug,
   ) => caller.callServerEndpoint<_i8.Board>(
@@ -485,11 +485,12 @@ class EndpointBoard extends _i2.EndpointRef {
 
   /// Soft deletes a board
   /// Requires: board.delete permission
-  _i3.Future<void> deleteBoard(int boardId) => caller.callServerEndpoint<void>(
-    'board',
-    'deleteBoard',
-    {'boardId': boardId},
-  );
+  _i3.Future<void> deleteBoard(_i2.UuidValue boardId) =>
+      caller.callServerEndpoint<void>(
+        'board',
+        'deleteBoard',
+        {'boardId': boardId},
+      );
 }
 
 /// Endpoint para streaming de eventos do Board em tempo real
@@ -507,7 +508,9 @@ class EndpointBoardStream extends _i2.EndpointRef {
   /// - Um card é criado, atualizado, movido ou deletado
   /// - Uma lista é criada, atualizada, reordenada ou deletada
   /// - O board é atualizado ou deletado
-  _i3.Stream<_i9.BoardEvent> subscribeToBoardUpdates(int boardId) => caller
+  _i3.Stream<_i9.BoardEvent> subscribeToBoardUpdates(
+    _i2.UuidValue boardId,
+  ) => caller
       .callStreamingServerEndpoint<_i3.Stream<_i9.BoardEvent>, _i9.BoardEvent>(
         'boardStream',
         'subscribeToBoardUpdates',
@@ -526,7 +529,7 @@ class EndpointCard extends _i2.EndpointRef {
 
   /// Gets all cards for a list
   /// Requires: board.read permission
-  _i3.Future<List<_i10.Card>> getCards(int listId) =>
+  _i3.Future<List<_i10.Card>> getCards(_i2.UuidValue listId) =>
       caller.callServerEndpoint<List<_i10.Card>>(
         'card',
         'getCards',
@@ -538,16 +541,17 @@ class EndpointCard extends _i2.EndpointRef {
   ///
   /// This is an aggregate endpoint that returns everything needed for the board page
   /// in a single request, reducing the number of HTTP calls from many to 1.
-  _i3.Future<List<_i11.CardDetail>> getCardsByBoardDetail(int boardId) =>
-      caller.callServerEndpoint<List<_i11.CardDetail>>(
-        'card',
-        'getCardsByBoardDetail',
-        {'boardId': boardId},
-      );
+  _i3.Future<List<_i11.CardDetail>> getCardsByBoardDetail(
+    _i2.UuidValue boardId,
+  ) => caller.callServerEndpoint<List<_i11.CardDetail>>(
+    'card',
+    'getCardsByBoardDetail',
+    {'boardId': boardId},
+  );
 
   /// Gets a single card by ID
   /// Requires: board.read permission
-  _i3.Future<_i10.Card?> getCard(int cardId) =>
+  _i3.Future<_i10.Card?> getCard(_i2.UuidValue cardId) =>
       caller.callServerEndpoint<_i10.Card?>(
         'card',
         'getCard',
@@ -557,7 +561,7 @@ class EndpointCard extends _i2.EndpointRef {
   /// Creates a new card in a list
   /// Requires: board.update permission
   _i3.Future<_i10.Card> createCard(
-    int listId,
+    _i2.UuidValue listId,
     String title, {
     String? description,
     required _i12.CardPriority priority,
@@ -577,7 +581,7 @@ class EndpointCard extends _i2.EndpointRef {
   /// Creates a new card and returns complete CardDetail
   /// Requires: board.update permission
   _i3.Future<_i11.CardDetail> createCardDetail(
-    int listId,
+    _i2.UuidValue listId,
     String title, {
     String? description,
     required _i12.CardPriority priority,
@@ -597,7 +601,7 @@ class EndpointCard extends _i2.EndpointRef {
   /// Updates a card's details
   /// Requires: board.update permission
   _i3.Future<_i10.Card> updateCard(
-    int cardId, {
+    _i2.UuidValue cardId, {
     String? title,
     String? description,
     _i12.CardPriority? priority,
@@ -619,8 +623,8 @@ class EndpointCard extends _i2.EndpointRef {
   /// Moves a card to a different list and/or reorders within the list
   /// Requires: board.update permission
   _i3.Future<_i10.Card> moveCard(
-    int cardId,
-    int targetListId, {
+    _i2.UuidValue cardId,
+    _i2.UuidValue targetListId, {
     String? afterRank,
     String? beforeRank,
     _i12.CardPriority? newPriority,
@@ -638,15 +642,16 @@ class EndpointCard extends _i2.EndpointRef {
 
   /// Soft deletes a card
   /// Requires: board.update permission
-  _i3.Future<void> deleteCard(int cardId) => caller.callServerEndpoint<void>(
-    'card',
-    'deleteCard',
-    {'cardId': cardId},
-  );
+  _i3.Future<void> deleteCard(_i2.UuidValue cardId) =>
+      caller.callServerEndpoint<void>(
+        'card',
+        'deleteCard',
+        {'cardId': cardId},
+      );
 
   /// Toggles card completion status
   /// Requires: board.update permission
-  _i3.Future<_i10.Card> toggleComplete(int cardId) =>
+  _i3.Future<_i10.Card> toggleComplete(_i2.UuidValue cardId) =>
       caller.callServerEndpoint<_i10.Card>(
         'card',
         'toggleComplete',
@@ -658,7 +663,7 @@ class EndpointCard extends _i2.EndpointRef {
   ///
   /// This is an aggregate endpoint that returns everything needed for the card detail page
   /// in a single request, reducing the number of HTTP calls from 7+ to 1.
-  _i3.Future<_i11.CardDetail?> getCardDetail(int cardId) =>
+  _i3.Future<_i11.CardDetail?> getCardDetail(_i2.UuidValue cardId) =>
       caller.callServerEndpoint<_i11.CardDetail?>(
         'card',
         'getCardDetail',
@@ -679,7 +684,7 @@ class EndpointCard extends _i2.EndpointRef {
   ///
   /// This endpoint returns BoardContext (loaded once) + CardSummary list (lightweight)
   /// Use this instead of getCardsByBoardDetail for better performance
-  _i3.Future<_i13.BoardWithCards> getBoardWithCards(int boardId) =>
+  _i3.Future<_i13.BoardWithCards> getBoardWithCards(_i2.UuidValue boardId) =>
       caller.callServerEndpoint<_i13.BoardWithCards>(
         'card',
         'getBoardWithCards',
@@ -697,7 +702,7 @@ class EndpointCardList extends _i2.EndpointRef {
 
   /// Gets all lists for a board
   /// Requires: board.read permission
-  _i3.Future<List<_i14.CardList>> getLists(int boardId) =>
+  _i3.Future<List<_i14.CardList>> getLists(_i2.UuidValue boardId) =>
       caller.callServerEndpoint<List<_i14.CardList>>(
         'cardList',
         'getLists',
@@ -707,7 +712,7 @@ class EndpointCardList extends _i2.EndpointRef {
   /// Creates a new list in a board
   /// Requires: board.update permission
   _i3.Future<_i14.CardList> createList(
-    int boardId,
+    _i2.UuidValue boardId,
     String title,
   ) => caller.callServerEndpoint<_i14.CardList>(
     'cardList',
@@ -721,7 +726,7 @@ class EndpointCardList extends _i2.EndpointRef {
   /// Updates a list's title
   /// Requires: board.update permission
   _i3.Future<_i14.CardList> updateList(
-    int listId,
+    _i2.UuidValue listId,
     String title,
   ) => caller.callServerEndpoint<_i14.CardList>(
     'cardList',
@@ -736,8 +741,8 @@ class EndpointCardList extends _i2.EndpointRef {
   /// Receives an ordered list of list IDs and recalculates ranks
   /// Requires: board.update permission
   _i3.Future<List<_i14.CardList>> reorderLists(
-    int boardId,
-    List<int> orderedListIds,
+    _i2.UuidValue boardId,
+    List<_i2.UuidValue> orderedListIds,
   ) => caller.callServerEndpoint<List<_i14.CardList>>(
     'cardList',
     'reorderLists',
@@ -749,15 +754,16 @@ class EndpointCardList extends _i2.EndpointRef {
 
   /// Soft deletes a list
   /// Requires: board.update permission
-  _i3.Future<void> deleteList(int listId) => caller.callServerEndpoint<void>(
-    'cardList',
-    'deleteList',
-    {'listId': listId},
-  );
+  _i3.Future<void> deleteList(_i2.UuidValue listId) =>
+      caller.callServerEndpoint<void>(
+        'cardList',
+        'deleteList',
+        {'listId': listId},
+      );
 
   /// Archives a list (sets archived = true)
   /// Requires: board.update permission
-  _i3.Future<_i14.CardList> archiveList(int listId) =>
+  _i3.Future<_i14.CardList> archiveList(_i2.UuidValue listId) =>
       caller.callServerEndpoint<_i14.CardList>(
         'cardList',
         'archiveList',
@@ -775,7 +781,7 @@ class EndpointChecklist extends _i2.EndpointRef {
 
   /// Gets all checklists for a card
   /// Requires: board.read permission
-  _i3.Future<List<_i15.Checklist>> getChecklists(int cardId) =>
+  _i3.Future<List<_i15.Checklist>> getChecklists(_i2.UuidValue cardId) =>
       caller.callServerEndpoint<List<_i15.Checklist>>(
         'checklist',
         'getChecklists',
@@ -784,7 +790,7 @@ class EndpointChecklist extends _i2.EndpointRef {
 
   /// Gets all items for a checklist
   /// Requires: board.read permission
-  _i3.Future<List<_i16.ChecklistItem>> getItems(int checklistId) =>
+  _i3.Future<List<_i16.ChecklistItem>> getItems(_i2.UuidValue checklistId) =>
       caller.callServerEndpoint<List<_i16.ChecklistItem>>(
         'checklist',
         'getItems',
@@ -794,7 +800,7 @@ class EndpointChecklist extends _i2.EndpointRef {
   /// Creates a new checklist in a card
   /// Requires: board.update permission
   _i3.Future<_i15.Checklist> createChecklist(
-    int cardId,
+    _i2.UuidValue cardId,
     String title,
   ) => caller.callServerEndpoint<_i15.Checklist>(
     'checklist',
@@ -808,7 +814,7 @@ class EndpointChecklist extends _i2.EndpointRef {
   /// Updates a checklist
   /// Requires: board.update permission
   _i3.Future<_i15.Checklist> updateChecklist(
-    int checklistId,
+    _i2.UuidValue checklistId,
     String title,
   ) => caller.callServerEndpoint<_i15.Checklist>(
     'checklist',
@@ -821,7 +827,7 @@ class EndpointChecklist extends _i2.EndpointRef {
 
   /// Soft deletes a checklist
   /// Requires: board.update permission
-  _i3.Future<void> deleteChecklist(int checklistId) =>
+  _i3.Future<void> deleteChecklist(_i2.UuidValue checklistId) =>
       caller.callServerEndpoint<void>(
         'checklist',
         'deleteChecklist',
@@ -831,7 +837,7 @@ class EndpointChecklist extends _i2.EndpointRef {
   /// Creates a new item in a checklist
   /// Requires: board.update permission
   _i3.Future<_i16.ChecklistItem> addItem(
-    int checklistId,
+    _i2.UuidValue checklistId,
     String title,
   ) => caller.callServerEndpoint<_i16.ChecklistItem>(
     'checklist',
@@ -845,7 +851,7 @@ class EndpointChecklist extends _i2.EndpointRef {
   /// Updates a checklist item
   /// Requires: board.update permission
   _i3.Future<_i16.ChecklistItem> updateItem(
-    int itemId, {
+    _i2.UuidValue itemId, {
     String? title,
     bool? isChecked,
   }) => caller.callServerEndpoint<_i16.ChecklistItem>(
@@ -860,11 +866,12 @@ class EndpointChecklist extends _i2.EndpointRef {
 
   /// Soft deletes a checklist item
   /// Requires: board.update permission
-  _i3.Future<void> deleteItem(int itemId) => caller.callServerEndpoint<void>(
-    'checklist',
-    'deleteItem',
-    {'itemId': itemId},
-  );
+  _i3.Future<void> deleteItem(_i2.UuidValue itemId) =>
+      caller.callServerEndpoint<void>(
+        'checklist',
+        'deleteItem',
+        {'itemId': itemId},
+      );
 }
 
 /// {@category Endpoint}
@@ -875,7 +882,7 @@ class EndpointComment extends _i2.EndpointRef {
   String get name => 'comment';
 
   /// Gets all comments for a card
-  _i3.Future<List<_i17.Comment>> getComments(int cardId) =>
+  _i3.Future<List<_i17.Comment>> getComments(_i2.UuidValue cardId) =>
       caller.callServerEndpoint<List<_i17.Comment>>(
         'comment',
         'getComments',
@@ -884,7 +891,7 @@ class EndpointComment extends _i2.EndpointRef {
 
   /// Creates a comment
   _i3.Future<_i17.Comment> createComment(
-    int cardId,
+    _i2.UuidValue cardId,
     String content,
   ) => caller.callServerEndpoint<_i17.Comment>(
     'comment',
@@ -896,11 +903,26 @@ class EndpointComment extends _i2.EndpointRef {
   );
 
   /// Deletes a comment (soft delete)
-  _i3.Future<void> deleteComment(int commentId) =>
+  _i3.Future<void> deleteComment(_i2.UuidValue commentId) =>
       caller.callServerEndpoint<void>(
         'comment',
         'deleteComment',
         {'commentId': commentId},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointHealth extends _i2.EndpointRef {
+  EndpointHealth(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'health';
+
+  _i3.Future<Map<String, dynamic>> check() =>
+      caller.callServerEndpoint<Map<String, dynamic>>(
+        'health',
+        'check',
+        {},
       );
 }
 
@@ -915,8 +937,8 @@ class EndpointInvite extends _i2.EndpointRef {
   /// Creates a new workspace invite
   /// Requires 'workspace.invite' permission
   _i3.Future<_i18.WorkspaceInvite> createInvite(
-    int workspaceId,
-    List<int> permissionIds, {
+    _i2.UuidValue workspaceId,
+    List<_i2.UuidValue> permissionIds, {
     String? email,
   }) => caller.callServerEndpoint<_i18.WorkspaceInvite>(
     'invite',
@@ -929,15 +951,16 @@ class EndpointInvite extends _i2.EndpointRef {
   );
 
   /// Gets all pending invites for a workspace
-  _i3.Future<List<_i18.WorkspaceInvite>> getInvites(int workspaceId) =>
-      caller.callServerEndpoint<List<_i18.WorkspaceInvite>>(
-        'invite',
-        'getInvites',
-        {'workspaceId': workspaceId},
-      );
+  _i3.Future<List<_i18.WorkspaceInvite>> getInvites(
+    _i2.UuidValue workspaceId,
+  ) => caller.callServerEndpoint<List<_i18.WorkspaceInvite>>(
+    'invite',
+    'getInvites',
+    {'workspaceId': workspaceId},
+  );
 
   /// Revokes an invite
-  _i3.Future<void> revokeInvite(int inviteId) =>
+  _i3.Future<void> revokeInvite(_i2.UuidValue inviteId) =>
       caller.callServerEndpoint<void>(
         'invite',
         'revokeInvite',
@@ -970,7 +993,7 @@ class EndpointLabel extends _i2.EndpointRef {
   String get name => 'label';
 
   /// Gets all labels defined for a board
-  _i3.Future<List<_i21.LabelDef>> getLabels(int boardId) =>
+  _i3.Future<List<_i21.LabelDef>> getLabels(_i2.UuidValue boardId) =>
       caller.callServerEndpoint<List<_i21.LabelDef>>(
         'label',
         'getLabels',
@@ -979,7 +1002,7 @@ class EndpointLabel extends _i2.EndpointRef {
 
   /// Creates a new label definition
   _i3.Future<_i21.LabelDef> createLabel(
-    int boardId,
+    _i2.UuidValue boardId,
     String name,
     String colorHex,
   ) => caller.callServerEndpoint<_i21.LabelDef>(
@@ -994,7 +1017,7 @@ class EndpointLabel extends _i2.EndpointRef {
 
   /// Updates a label definition
   _i3.Future<_i21.LabelDef> updateLabel(
-    int labelId,
+    _i2.UuidValue labelId,
     String name,
     String colorHex,
   ) => caller.callServerEndpoint<_i21.LabelDef>(
@@ -1008,16 +1031,17 @@ class EndpointLabel extends _i2.EndpointRef {
   );
 
   /// Deletes a label definition (soft delete)
-  _i3.Future<void> deleteLabel(int labelId) => caller.callServerEndpoint<void>(
-    'label',
-    'deleteLabel',
-    {'labelId': labelId},
-  );
+  _i3.Future<void> deleteLabel(_i2.UuidValue labelId) =>
+      caller.callServerEndpoint<void>(
+        'label',
+        'deleteLabel',
+        {'labelId': labelId},
+      );
 
   /// Attaches a label to a card
   _i3.Future<void> attachLabel(
-    int cardId,
-    int labelId,
+    _i2.UuidValue cardId,
+    _i2.UuidValue labelId,
   ) => caller.callServerEndpoint<void>(
     'label',
     'attachLabel',
@@ -1029,8 +1053,8 @@ class EndpointLabel extends _i2.EndpointRef {
 
   /// Detaches a label from a card
   _i3.Future<void> detachLabel(
-    int cardId,
-    int labelId,
+    _i2.UuidValue cardId,
+    _i2.UuidValue labelId,
   ) => caller.callServerEndpoint<void>(
     'label',
     'detachLabel',
@@ -1041,7 +1065,7 @@ class EndpointLabel extends _i2.EndpointRef {
   );
 
   /// Get labels attached to a card
-  _i3.Future<List<_i21.LabelDef>> getCardLabels(int cardId) =>
+  _i3.Future<List<_i21.LabelDef>> getCardLabels(_i2.UuidValue cardId) =>
       caller.callServerEndpoint<List<_i21.LabelDef>>(
         'label',
         'getCardLabels',
@@ -1058,7 +1082,7 @@ class EndpointMember extends _i2.EndpointRef {
   String get name => 'member';
 
   /// Gets all members of a workspace with UserInfo details
-  _i3.Future<List<_i22.MemberWithUser>> getMembers(int workspaceId) =>
+  _i3.Future<List<_i22.MemberWithUser>> getMembers(_i2.UuidValue workspaceId) =>
       caller.callServerEndpoint<List<_i22.MemberWithUser>>(
         'member',
         'getMembers',
@@ -1066,7 +1090,7 @@ class EndpointMember extends _i2.EndpointRef {
       );
 
   /// Removes a member from workspace (soft delete)
-  _i3.Future<void> removeMember(int memberId) =>
+  _i3.Future<void> removeMember(_i2.UuidValue memberId) =>
       caller.callServerEndpoint<void>(
         'member',
         'removeMember',
@@ -1075,7 +1099,7 @@ class EndpointMember extends _i2.EndpointRef {
 
   /// Updates member role
   _i3.Future<_i23.WorkspaceMember> updateMemberRole(
-    int memberId,
+    _i2.UuidValue memberId,
     _i24.MemberRole newRole,
   ) => caller.callServerEndpoint<_i23.WorkspaceMember>(
     'member',
@@ -1086,31 +1110,35 @@ class EndpointMember extends _i2.EndpointRef {
     },
   );
 
-  /// Gets all permissions for a member with granted status
-  _i3.Future<List<_i25.PermissionInfo>> getMemberPermissions(int memberId) =>
-      caller.callServerEndpoint<List<_i25.PermissionInfo>>(
-        'member',
-        'getMemberPermissions',
-        {'memberId': memberId},
-      );
+  /// Gets all permissions for a member with granted status and metadata.
+  _i3.Future<List<_i25.PermissionInfo>> getMemberPermissions(
+    _i2.UuidValue memberId,
+  ) => caller.callServerEndpoint<List<_i25.PermissionInfo>>(
+    'member',
+    'getMemberPermissions',
+    {'memberId': memberId},
+  );
 
-  /// Updates member permissions
+  /// Updates member permissions.
+  ///
+  /// The client sends the final set of granted permission ids. The server
+  /// calculates role defaults ± overrides and persists only the overrides.
   _i3.Future<void> updateMemberPermissions(
-    int memberId,
-    List<int> permissionIds,
+    _i2.UuidValue memberId,
+    List<_i2.UuidValue> grantedPermissionIds,
   ) => caller.callServerEndpoint<void>(
     'member',
     'updateMemberPermissions',
     {
       'memberId': memberId,
-      'permissionIds': permissionIds,
+      'grantedPermissionIds': grantedPermissionIds,
     },
   );
 
   /// Transfers workspace ownership to another member
   _i3.Future<void> transferOwnership(
-    int workspaceId,
-    int newOwnerId,
+    _i2.UuidValue workspaceId,
+    _i2.UuidValue newOwnerId,
   ) => caller.callServerEndpoint<void>(
     'member',
     'transferOwnership',
@@ -1169,7 +1197,7 @@ class EndpointWorkspace extends _i2.EndpointRef {
 
   /// Updates workspace settings
   _i3.Future<_i27.Workspace> updateWorkspace(
-    int workspaceId,
+    _i2.UuidValue workspaceId,
     String title,
     String? slug,
   ) => caller.callServerEndpoint<_i27.Workspace>(
@@ -1183,7 +1211,7 @@ class EndpointWorkspace extends _i2.EndpointRef {
   );
 
   /// Soft deletes a workspace
-  _i3.Future<void> deleteWorkspace(int workspaceId) =>
+  _i3.Future<void> deleteWorkspace(_i2.UuidValue workspaceId) =>
       caller.callServerEndpoint<void>(
         'workspace',
         'deleteWorkspace',
@@ -1262,6 +1290,7 @@ class Client extends _i2.ServerpodClientShared {
     cardList = EndpointCardList(this);
     checklist = EndpointChecklist(this);
     comment = EndpointComment(this);
+    health = EndpointHealth(this);
     invite = EndpointInvite(this);
     label = EndpointLabel(this);
     member = EndpointMember(this);
@@ -1290,6 +1319,8 @@ class Client extends _i2.ServerpodClientShared {
 
   late final EndpointComment comment;
 
+  late final EndpointHealth health;
+
   late final EndpointInvite invite;
 
   late final EndpointLabel label;
@@ -1314,6 +1345,7 @@ class Client extends _i2.ServerpodClientShared {
     'cardList': cardList,
     'checklist': checklist,
     'comment': comment,
+    'health': health,
     'invite': invite,
     'label': label,
     'member': member,

@@ -8,7 +8,7 @@ import '../../../../../core/di/injection.dart';
 /// List of pending workspace invites with revoke/copy actions
 class PendingInvitesList extends StatelessWidget {
   final List<WorkspaceInvite> invites;
-  final void Function(int inviteId) onRevoke;
+  final void Function(UuidValue inviteId) onRevoke;
 
   const PendingInvitesList({
     super.key,

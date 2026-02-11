@@ -43,11 +43,13 @@ class MemberRoleBadge extends StatelessWidget {
 
     switch (role) {
       case MemberRole.owner:
-        return (colorScheme.primary, 'Proprietario');
+        return (colorScheme.primary, 'Proprietário');
       case MemberRole.admin:
         return (Colors.orange, 'Admin');
       case MemberRole.member:
         return (colorScheme.secondary, 'Membro');
+      case MemberRole.guest:
+        return (colorScheme.outline, 'Convidado');
     }
   }
 }

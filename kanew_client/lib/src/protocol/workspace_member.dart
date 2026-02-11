@@ -27,9 +27,9 @@ abstract class WorkspaceMember implements _i1.SerializableModel {
   });
 
   factory WorkspaceMember({
-    int? id,
+    _i1.UuidValue? id,
     required _i1.UuidValue authUserId,
-    required int workspaceId,
+    required _i1.UuidValue workspaceId,
     required _i2.MemberRole role,
     required _i3.MemberStatus status,
     required DateTime joinedAt,
@@ -39,11 +39,15 @@ abstract class WorkspaceMember implements _i1.SerializableModel {
 
   factory WorkspaceMember.fromJson(Map<String, dynamic> jsonSerialization) {
     return WorkspaceMember(
-      id: jsonSerialization['id'] as int?,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       authUserId: _i1.UuidValueJsonExtension.fromJson(
         jsonSerialization['authUserId'],
       ),
-      workspaceId: jsonSerialization['workspaceId'] as int,
+      workspaceId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['workspaceId'],
+      ),
       role: _i2.MemberRole.fromJson((jsonSerialization['role'] as String)),
       status: _i3.MemberStatus.fromJson(
         (jsonSerialization['status'] as String),
@@ -63,11 +67,11 @@ abstract class WorkspaceMember implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
   _i1.UuidValue authUserId;
 
-  int workspaceId;
+  _i1.UuidValue workspaceId;
 
   _i2.MemberRole role;
 
@@ -83,9 +87,9 @@ abstract class WorkspaceMember implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   WorkspaceMember copyWith({
-    int? id,
+    _i1.UuidValue? id,
     _i1.UuidValue? authUserId,
-    int? workspaceId,
+    _i1.UuidValue? workspaceId,
     _i2.MemberRole? role,
     _i3.MemberStatus? status,
     DateTime? joinedAt,
@@ -96,9 +100,9 @@ abstract class WorkspaceMember implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'WorkspaceMember',
-      if (id != null) 'id': id,
+      if (id != null) 'id': id?.toJson(),
       'authUserId': authUserId.toJson(),
-      'workspaceId': workspaceId,
+      'workspaceId': workspaceId.toJson(),
       'role': role.toJson(),
       'status': status.toJson(),
       'joinedAt': joinedAt.toJson(),
@@ -117,9 +121,9 @@ class _Undefined {}
 
 class _WorkspaceMemberImpl extends WorkspaceMember {
   _WorkspaceMemberImpl({
-    int? id,
+    _i1.UuidValue? id,
     required _i1.UuidValue authUserId,
-    required int workspaceId,
+    required _i1.UuidValue workspaceId,
     required _i2.MemberRole role,
     required _i3.MemberStatus status,
     required DateTime joinedAt,
@@ -143,7 +147,7 @@ class _WorkspaceMemberImpl extends WorkspaceMember {
   WorkspaceMember copyWith({
     Object? id = _Undefined,
     _i1.UuidValue? authUserId,
-    int? workspaceId,
+    _i1.UuidValue? workspaceId,
     _i2.MemberRole? role,
     _i3.MemberStatus? status,
     DateTime? joinedAt,
@@ -151,7 +155,7 @@ class _WorkspaceMemberImpl extends WorkspaceMember {
     Object? deletedBy = _Undefined,
   }) {
     return WorkspaceMember(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       authUserId: authUserId ?? this.authUserId,
       workspaceId: workspaceId ?? this.workspaceId,
       role: role ?? this.role,

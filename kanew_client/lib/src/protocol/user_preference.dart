@@ -15,7 +15,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class UserPreference implements _i1.SerializableModel {
   UserPreference._({
     this.id,
-    required this.userInfoId,
+    required this.authUserId,
     this.lastWorkspaceId,
     this.theme,
     required this.createdAt,
@@ -23,9 +23,9 @@ abstract class UserPreference implements _i1.SerializableModel {
   });
 
   factory UserPreference({
-    int? id,
-    required int userInfoId,
-    int? lastWorkspaceId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue authUserId,
+    _i1.UuidValue? lastWorkspaceId,
     String? theme,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -33,9 +33,17 @@ abstract class UserPreference implements _i1.SerializableModel {
 
   factory UserPreference.fromJson(Map<String, dynamic> jsonSerialization) {
     return UserPreference(
-      id: jsonSerialization['id'] as int?,
-      userInfoId: jsonSerialization['userInfoId'] as int,
-      lastWorkspaceId: jsonSerialization['lastWorkspaceId'] as int?,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      authUserId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['authUserId'],
+      ),
+      lastWorkspaceId: jsonSerialization['lastWorkspaceId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(
+              jsonSerialization['lastWorkspaceId'],
+            ),
       theme: jsonSerialization['theme'] as String?,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
@@ -49,11 +57,11 @@ abstract class UserPreference implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
-  int userInfoId;
+  _i1.UuidValue authUserId;
 
-  int? lastWorkspaceId;
+  _i1.UuidValue? lastWorkspaceId;
 
   String? theme;
 
@@ -65,9 +73,9 @@ abstract class UserPreference implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   UserPreference copyWith({
-    int? id,
-    int? userInfoId,
-    int? lastWorkspaceId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? authUserId,
+    _i1.UuidValue? lastWorkspaceId,
     String? theme,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -76,9 +84,9 @@ abstract class UserPreference implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'UserPreference',
-      if (id != null) 'id': id,
-      'userInfoId': userInfoId,
-      if (lastWorkspaceId != null) 'lastWorkspaceId': lastWorkspaceId,
+      if (id != null) 'id': id?.toJson(),
+      'authUserId': authUserId.toJson(),
+      if (lastWorkspaceId != null) 'lastWorkspaceId': lastWorkspaceId?.toJson(),
       if (theme != null) 'theme': theme,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -95,15 +103,15 @@ class _Undefined {}
 
 class _UserPreferenceImpl extends UserPreference {
   _UserPreferenceImpl({
-    int? id,
-    required int userInfoId,
-    int? lastWorkspaceId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue authUserId,
+    _i1.UuidValue? lastWorkspaceId,
     String? theme,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) : super._(
          id: id,
-         userInfoId: userInfoId,
+         authUserId: authUserId,
          lastWorkspaceId: lastWorkspaceId,
          theme: theme,
          createdAt: createdAt,
@@ -116,16 +124,16 @@ class _UserPreferenceImpl extends UserPreference {
   @override
   UserPreference copyWith({
     Object? id = _Undefined,
-    int? userInfoId,
+    _i1.UuidValue? authUserId,
     Object? lastWorkspaceId = _Undefined,
     Object? theme = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return UserPreference(
-      id: id is int? ? id : this.id,
-      userInfoId: userInfoId ?? this.userInfoId,
-      lastWorkspaceId: lastWorkspaceId is int?
+      id: id is _i1.UuidValue? ? id : this.id,
+      authUserId: authUserId ?? this.authUserId,
+      lastWorkspaceId: lastWorkspaceId is _i1.UuidValue?
           ? lastWorkspaceId
           : this.lastWorkspaceId,
       theme: theme is String? ? theme : this.theme,

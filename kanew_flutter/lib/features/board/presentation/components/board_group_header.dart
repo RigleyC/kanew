@@ -6,8 +6,8 @@ import 'package:kanew_flutter/features/board/presentation/dialogs/add_card_dialo
 class BoardGroupHeader extends StatelessWidget {
   final AppFlowyGroupData groupData;
   final List<CardList> lists;
-  final Future<void> Function(int listId) onDelete;
-  final Future<void> Function(int listId, String title) onAddCard;
+  final Future<void> Function(UuidValue listId) onDelete;
+  final Future<void> Function(UuidValue listId, String title) onAddCard;
 
   const BoardGroupHeader({
     super.key,
@@ -20,7 +20,7 @@ class BoardGroupHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final listId = int.tryParse(groupData.id) ?? 0;
+    final listId = groupData.id;
     final cardList = lists.where((l) => l.id == listId).firstOrNull;
     final title = cardList?.title ?? groupData.headerData.groupName;
 
@@ -48,13 +48,13 @@ class BoardGroupHeader extends StatelessWidget {
                 onPressed: () async {
                   await showAddCardDialog(
                     context,
-                    int.parse(groupData.id),
+                    UuidValue.fromString(groupData.id),
                     onAddCard,
                   );
                 },
                 icon: const Icon(Icons.add_rounded),
               ),
-              _buildActionsMenu(context, colorScheme, listId),
+              _buildActionsMenu(context, colorScheme, UuidValue.fromString(listId)),
             ],
           ),
         ],
@@ -65,7 +65,7 @@ class BoardGroupHeader extends StatelessWidget {
   Widget _buildActionsMenu(
     BuildContext context,
     ColorScheme colorScheme,
-    int listId,
+    UuidValue listId,
   ) {
     return MenuAnchor(
       menuChildren: [

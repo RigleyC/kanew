@@ -8,7 +8,7 @@ class MembersPageController extends ChangeNotifier {
   final MemberRepository _repository;
   final WorkspaceRepository _workspaceRepository;
 
-  int? _workspaceId;
+  UuidValue? _workspaceId;
   String? _initError;
 
   MembersPageController({
@@ -30,7 +30,7 @@ class MembersPageController extends ChangeNotifier {
   List<Permission> get allPermissions => _allPermissions;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  int? get workspaceId => _workspaceId;
+  UuidValue? get workspaceId => _workspaceId;
   String? get initError => _initError;
   bool get isInitialized => _workspaceId != null && _initError == null;
 
@@ -65,7 +65,7 @@ class MembersPageController extends ChangeNotifier {
   }
 
   /// Loads members and invites for a workspace
-  Future<void> loadData(int workspaceId) async {
+  Future<void> loadData(UuidValue workspaceId) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -98,7 +98,7 @@ class MembersPageController extends ChangeNotifier {
   }
 
   /// Removes a member
-  Future<bool> removeMember(int memberId) async {
+  Future<bool> removeMember(UuidValue memberId) async {
     final result = await _repository.removeMember(memberId);
 
     return result.fold(
@@ -116,7 +116,7 @@ class MembersPageController extends ChangeNotifier {
   }
 
   /// Updates member role
-  Future<bool> updateMemberRole(int memberId, MemberRole newRole) async {
+  Future<bool> updateMemberRole(UuidValue memberId, MemberRole newRole) async {
     final result = await _repository.updateMemberRole(memberId, newRole);
 
     return result.fold(
@@ -139,7 +139,7 @@ class MembersPageController extends ChangeNotifier {
   }
 
   /// Gets permissions for a member
-  Future<List<PermissionInfo>?> getMemberPermissions(int memberId) async {
+  Future<List<PermissionInfo>?> getMemberPermissions(UuidValue memberId) async {
     final result = await _repository.getMemberPermissions(memberId);
 
     return result.fold(
@@ -154,8 +154,8 @@ class MembersPageController extends ChangeNotifier {
 
   /// Updates member permissions
   Future<bool> updateMemberPermissions(
-    int memberId,
-    List<int> permissionIds,
+    UuidValue memberId,
+    List<UuidValue> permissionIds,
   ) async {
     final result = await _repository.updateMemberPermissions(
       memberId,
@@ -176,7 +176,7 @@ class MembersPageController extends ChangeNotifier {
   }
 
   /// Transfers ownership
-  Future<bool> transferOwnership(int workspaceId, int newOwnerId) async {
+  Future<bool> transferOwnership(UuidValue workspaceId, UuidValue newOwnerId) async {
     final result = await _repository.transferOwnership(
       workspaceId,
       newOwnerId,
@@ -197,8 +197,8 @@ class MembersPageController extends ChangeNotifier {
 
   /// Creates an invite
   Future<WorkspaceInvite?> createInvite(
-    int workspaceId,
-    List<int> permissionIds, {
+    UuidValue workspaceId,
+    List<UuidValue> permissionIds, {
     String? email,
   }) async {
     final result = await _repository.createInvite(
@@ -222,7 +222,7 @@ class MembersPageController extends ChangeNotifier {
   }
 
   /// Revokes an invite
-  Future<bool> revokeInvite(int inviteId) async {
+  Future<bool> revokeInvite(UuidValue inviteId) async {
     final result = await _repository.revokeInvite(inviteId);
 
     return result.fold(

@@ -8,12 +8,12 @@ class BoardFilterStore extends ChangeNotifier {
   final Set<CardPriority> _priorities = {};
 
   // Label filter (for future use)
-  final Set<int> _labelIds = {};
+  final Set<UuidValue> _labelIds = {};
 
   // --- Getters ---
 
   Set<CardPriority> get priorities => Set.unmodifiable(_priorities);
-  Set<int> get labelIds => Set.unmodifiable(_labelIds);
+  Set<UuidValue> get labelIds => Set.unmodifiable(_labelIds);
 
   /// Total count of active filters
   int get activeCount => _priorities.length + _labelIds.length;
@@ -37,7 +37,7 @@ class BoardFilterStore extends ChangeNotifier {
 
   // --- Label Operations ---
 
-  void toggleLabel(int labelId) {
+  void toggleLabel(UuidValue labelId) {
     if (_labelIds.contains(labelId)) {
       _labelIds.remove(labelId);
     } else {
@@ -46,7 +46,7 @@ class BoardFilterStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool isLabelSelected(int labelId) => _labelIds.contains(labelId);
+  bool isLabelSelected(UuidValue labelId) => _labelIds.contains(labelId);
 
   // --- Clear ---
 

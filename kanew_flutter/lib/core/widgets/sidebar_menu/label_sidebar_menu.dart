@@ -5,7 +5,7 @@ import '../../constants/label_colors.dart';
 class LabelSidebarMenu extends StatefulWidget {
   final List<LabelDef> labels;
   final List<LabelDef> selectedLabels;
-  final Function(int labelId) onToggleLabel;
+  final Function(UuidValue labelId) onToggleLabel;
   final Function(String name, String color) onCreateLabel;
 
   const LabelSidebarMenu({

@@ -12,7 +12,7 @@ class MemberEndpoint extends Endpoint {
   /// Gets all members of a workspace with UserInfo details
   Future<List<MemberWithUser>> getMembers(
     Session session,
-    int workspaceId,
+    UuidValue workspaceId,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -61,7 +61,7 @@ class MemberEndpoint extends Endpoint {
   }
 
   /// Removes a member from workspace (soft delete)
-  Future<void> removeMember(Session session, int memberId) async {
+  Future<void> removeMember(Session session, UuidValue memberId) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 
     final member = await WorkspaceMember.db.findById(session, memberId);
@@ -101,7 +101,7 @@ class MemberEndpoint extends Endpoint {
   /// Updates member role
   Future<WorkspaceMember> updateMemberRole(
     Session session,
-    int memberId,
+    UuidValue memberId,
     MemberRole newRole,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
@@ -129,6 +129,12 @@ class MemberEndpoint extends Endpoint {
       throw Exception('Cannot change owner role');
     }
 
+    // Reset overrides when changing role
+    await MemberPermission.db.deleteWhere(
+      session,
+      where: (mp) => mp.workspaceMemberId.equals(memberId),
+    );
+
     final updated = member.copyWith(role: newRole);
     final result = await WorkspaceMember.db.updateRow(session, updated);
 
@@ -139,10 +145,10 @@ class MemberEndpoint extends Endpoint {
     return result;
   }
 
-  /// Gets all permissions for a member with granted status
+  /// Gets all permissions for a member with granted status and metadata.
   Future<List<PermissionInfo>> getMemberPermissions(
     Session session,
-    int memberId,
+    UuidValue memberId,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -152,7 +158,6 @@ class MemberEndpoint extends Endpoint {
       throw Exception('Member not found');
     }
 
-    // Check permission
     final hasPermission = await PermissionService.hasPermission(
       session,
       userId: userId,
@@ -166,36 +171,17 @@ class MemberEndpoint extends Endpoint {
       );
     }
 
-    // Get all permissions
-    final allPermissions = await Permission.db.find(session);
-
-    // Get member's granted permissions
-    final memberPermissions = await MemberPermission.db.find(
-      session,
-      where: (mp) =>
-          mp.workspaceMemberId.equals(memberId) & mp.scopeBoardId.equals(null),
-    );
-
-    final grantedPermissionIds = memberPermissions
-        .map((mp) => mp.permissionId)
-        .toSet();
-
-    // Build result
-    final result = allPermissions.map((permission) {
-      return PermissionInfo(
-        permission: permission,
-        granted: grantedPermissionIds.contains(permission.id),
-      );
-    }).toList();
-
-    return result;
+    return PermissionService.getEffectivePermissions(session, memberId);
   }
 
-  /// Updates member permissions
+  /// Updates member permissions.
+  ///
+  /// The client sends the final set of granted permission ids. The server
+  /// calculates role defaults ± overrides and persists only the overrides.
   Future<void> updateMemberPermissions(
     Session session,
-    int memberId,
-    List<int> permissionIds,
+    UuidValue memberId,
+    List<UuidValue> grantedPermissionIds,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -205,7 +191,6 @@ class MemberEndpoint extends Endpoint {
       throw Exception('Member not found');
     }
 
-    // Check permission
     final hasPermission = await PermissionService.hasPermission(
       session,
       userId: userId,
@@ -219,43 +204,27 @@ class MemberEndpoint extends Endpoint {
       );
     }
 
-    // Cannot change owner permissions
     if (member.role == MemberRole.owner) {
       throw Exception('Cannot change owner permissions');
     }
 
-    // Delete all existing permissions (workspace-level only)
-    final existing = await MemberPermission.db.find(
+    await PermissionService.applyPermissionOverrides(
       session,
-      where: (mp) =>
-          mp.workspaceMemberId.equals(memberId) & mp.scopeBoardId.equals(null),
+      workspaceMemberId: memberId,
+      role: member.role,
+      grantedPermissionIds: grantedPermissionIds,
     );
 
-    for (final perm in existing) {
-      await MemberPermission.db.deleteRow(session, perm);
-    }
-
-    // Insert new permissions
-    for (final permissionId in permissionIds) {
-      await MemberPermission.db.insertRow(
-        session,
-        MemberPermission(
-          workspaceMemberId: memberId,
-          permissionId: permissionId,
-        ),
-      );
-    }
-
     session.log(
-      '[MemberEndpoint] Updated permissions for member $memberId: ${permissionIds.length} permissions',
+      '[MemberEndpoint] Updated permissions for member $memberId: granted=${grantedPermissionIds.length}',
     );
   }
 
   /// Transfers workspace ownership to another member
   Future<void> transferOwnership(
     Session session,
-    int workspaceId,
-    int newOwnerId,
+    UuidValue workspaceId,
+    UuidValue newOwnerId,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 

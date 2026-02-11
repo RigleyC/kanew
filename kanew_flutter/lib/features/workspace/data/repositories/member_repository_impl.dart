@@ -12,7 +12,7 @@ class MemberRepositoryImpl implements MemberRepository {
 
   @override
   Future<Either<Failure, List<MemberWithUser>>> getMembers(
-    int workspaceId,
+    UuidValue workspaceId,
   ) async {
     try {
       final members = await _client.member.getMembers(workspaceId);
@@ -23,7 +23,7 @@ class MemberRepositoryImpl implements MemberRepository {
   }
 
   @override
-  Future<Either<Failure, void>> removeMember(int memberId) async {
+  Future<Either<Failure, void>> removeMember(UuidValue memberId) async {
     try {
       await _client.member.removeMember(memberId);
       return const Right(null);
@@ -34,7 +34,7 @@ class MemberRepositoryImpl implements MemberRepository {
 
   @override
   Future<Either<Failure, WorkspaceMember>> updateMemberRole(
-    int memberId,
+    UuidValue memberId,
     MemberRole role,
   ) async {
     try {
@@ -47,7 +47,7 @@ class MemberRepositoryImpl implements MemberRepository {
 
   @override
   Future<Either<Failure, List<PermissionInfo>>> getMemberPermissions(
-    int memberId,
+    UuidValue memberId,
   ) async {
     try {
       final permissions = await _client.member.getMemberPermissions(memberId);
@@ -59,8 +59,8 @@ class MemberRepositoryImpl implements MemberRepository {
 
   @override
   Future<Either<Failure, void>> updateMemberPermissions(
-    int memberId,
-    List<int> permissionIds,
+    UuidValue memberId,
+    List<UuidValue> permissionIds,
   ) async {
     try {
       await _client.member.updateMemberPermissions(memberId, permissionIds);
@@ -72,8 +72,8 @@ class MemberRepositoryImpl implements MemberRepository {
 
   @override
   Future<Either<Failure, void>> transferOwnership(
-    int workspaceId,
-    int newOwnerId,
+    UuidValue workspaceId,
+    UuidValue newOwnerId,
   ) async {
     try {
       await _client.member.transferOwnership(workspaceId, newOwnerId);
@@ -85,8 +85,8 @@ class MemberRepositoryImpl implements MemberRepository {
 
   @override
   Future<Either<Failure, WorkspaceInvite>> createInvite(
-    int workspaceId,
-    List<int> permissionIds, {
+    UuidValue workspaceId,
+    List<UuidValue> permissionIds, {
     String? email,
   }) async {
     try {
@@ -103,7 +103,7 @@ class MemberRepositoryImpl implements MemberRepository {
 
   @override
   Future<Either<Failure, List<WorkspaceInvite>>> getInvites(
-    int workspaceId,
+    UuidValue workspaceId,
   ) async {
     try {
       final invites = await _client.invite.getInvites(workspaceId);
@@ -114,7 +114,7 @@ class MemberRepositoryImpl implements MemberRepository {
   }
 
   @override
-  Future<Either<Failure, void>> revokeInvite(int inviteId) async {
+  Future<Either<Failure, void>> revokeInvite(UuidValue inviteId) async {
     try {
       await _client.invite.revokeInvite(inviteId);
       return const Right(null);

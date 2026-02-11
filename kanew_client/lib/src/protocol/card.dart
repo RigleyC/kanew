@@ -16,7 +16,6 @@ import 'card_priority.dart' as _i2;
 abstract class Card implements _i1.SerializableModel {
   Card._({
     this.id,
-    required this.uuid,
     required this.listId,
     required this.boardId,
     required this.title,
@@ -33,10 +32,9 @@ abstract class Card implements _i1.SerializableModel {
   });
 
   factory Card({
-    int? id,
-    required _i1.UuidValue uuid,
-    required int listId,
-    required int boardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue listId,
+    required _i1.UuidValue boardId,
     required String title,
     String? descriptionDocument,
     required _i2.CardPriority priority,
@@ -52,10 +50,13 @@ abstract class Card implements _i1.SerializableModel {
 
   factory Card.fromJson(Map<String, dynamic> jsonSerialization) {
     return Card(
-      id: jsonSerialization['id'] as int?,
-      uuid: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['uuid']),
-      listId: jsonSerialization['listId'] as int,
-      boardId: jsonSerialization['boardId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      listId: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['listId']),
+      boardId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['boardId'],
+      ),
       title: jsonSerialization['title'] as String,
       descriptionDocument: jsonSerialization['descriptionDocument'] as String?,
       priority: _i2.CardPriority.fromJson(
@@ -87,13 +88,11 @@ abstract class Card implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
-  _i1.UuidValue uuid;
+  _i1.UuidValue listId;
 
-  int listId;
-
-  int boardId;
+  _i1.UuidValue boardId;
 
   String title;
 
@@ -121,10 +120,9 @@ abstract class Card implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   Card copyWith({
-    int? id,
-    _i1.UuidValue? uuid,
-    int? listId,
-    int? boardId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? listId,
+    _i1.UuidValue? boardId,
     String? title,
     String? descriptionDocument,
     _i2.CardPriority? priority,
@@ -141,10 +139,9 @@ abstract class Card implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'Card',
-      if (id != null) 'id': id,
-      'uuid': uuid.toJson(),
-      'listId': listId,
-      'boardId': boardId,
+      if (id != null) 'id': id?.toJson(),
+      'listId': listId.toJson(),
+      'boardId': boardId.toJson(),
       'title': title,
       if (descriptionDocument != null)
         'descriptionDocument': descriptionDocument,
@@ -170,10 +167,9 @@ class _Undefined {}
 
 class _CardImpl extends Card {
   _CardImpl({
-    int? id,
-    required _i1.UuidValue uuid,
-    required int listId,
-    required int boardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue listId,
+    required _i1.UuidValue boardId,
     required String title,
     String? descriptionDocument,
     required _i2.CardPriority priority,
@@ -187,7 +183,6 @@ class _CardImpl extends Card {
     _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
-         uuid: uuid,
          listId: listId,
          boardId: boardId,
          title: title,
@@ -209,9 +204,8 @@ class _CardImpl extends Card {
   @override
   Card copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? uuid,
-    int? listId,
-    int? boardId,
+    _i1.UuidValue? listId,
+    _i1.UuidValue? boardId,
     String? title,
     Object? descriptionDocument = _Undefined,
     _i2.CardPriority? priority,
@@ -225,8 +219,7 @@ class _CardImpl extends Card {
     Object? deletedBy = _Undefined,
   }) {
     return Card(
-      id: id is int? ? id : this.id,
-      uuid: uuid ?? this.uuid,
+      id: id is _i1.UuidValue? ? id : this.id,
       listId: listId ?? this.listId,
       boardId: boardId ?? this.boardId,
       title: title ?? this.title,

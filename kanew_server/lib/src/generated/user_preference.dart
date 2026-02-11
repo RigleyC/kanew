@@ -13,10 +13,10 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class UserPreference
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   UserPreference._({
     this.id,
-    required this.userInfoId,
+    required this.authUserId,
     this.lastWorkspaceId,
     this.theme,
     required this.createdAt,
@@ -24,9 +24,9 @@ abstract class UserPreference
   });
 
   factory UserPreference({
-    int? id,
-    required int userInfoId,
-    int? lastWorkspaceId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue authUserId,
+    _i1.UuidValue? lastWorkspaceId,
     String? theme,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -34,9 +34,17 @@ abstract class UserPreference
 
   factory UserPreference.fromJson(Map<String, dynamic> jsonSerialization) {
     return UserPreference(
-      id: jsonSerialization['id'] as int?,
-      userInfoId: jsonSerialization['userInfoId'] as int,
-      lastWorkspaceId: jsonSerialization['lastWorkspaceId'] as int?,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      authUserId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['authUserId'],
+      ),
+      lastWorkspaceId: jsonSerialization['lastWorkspaceId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(
+              jsonSerialization['lastWorkspaceId'],
+            ),
       theme: jsonSerialization['theme'] as String?,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
@@ -52,11 +60,11 @@ abstract class UserPreference
   static const db = UserPreferenceRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
-  int userInfoId;
+  _i1.UuidValue authUserId;
 
-  int? lastWorkspaceId;
+  _i1.UuidValue? lastWorkspaceId;
 
   String? theme;
 
@@ -65,15 +73,15 @@ abstract class UserPreference
   DateTime updatedAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [UserPreference]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   UserPreference copyWith({
-    int? id,
-    int? userInfoId,
-    int? lastWorkspaceId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? authUserId,
+    _i1.UuidValue? lastWorkspaceId,
     String? theme,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -82,9 +90,9 @@ abstract class UserPreference
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'UserPreference',
-      if (id != null) 'id': id,
-      'userInfoId': userInfoId,
-      if (lastWorkspaceId != null) 'lastWorkspaceId': lastWorkspaceId,
+      if (id != null) 'id': id?.toJson(),
+      'authUserId': authUserId.toJson(),
+      if (lastWorkspaceId != null) 'lastWorkspaceId': lastWorkspaceId?.toJson(),
       if (theme != null) 'theme': theme,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -95,9 +103,9 @@ abstract class UserPreference
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'UserPreference',
-      if (id != null) 'id': id,
-      'userInfoId': userInfoId,
-      if (lastWorkspaceId != null) 'lastWorkspaceId': lastWorkspaceId,
+      if (id != null) 'id': id?.toJson(),
+      'authUserId': authUserId.toJson(),
+      if (lastWorkspaceId != null) 'lastWorkspaceId': lastWorkspaceId?.toJson(),
       if (theme != null) 'theme': theme,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -138,15 +146,15 @@ class _Undefined {}
 
 class _UserPreferenceImpl extends UserPreference {
   _UserPreferenceImpl({
-    int? id,
-    required int userInfoId,
-    int? lastWorkspaceId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue authUserId,
+    _i1.UuidValue? lastWorkspaceId,
     String? theme,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) : super._(
          id: id,
-         userInfoId: userInfoId,
+         authUserId: authUserId,
          lastWorkspaceId: lastWorkspaceId,
          theme: theme,
          createdAt: createdAt,
@@ -159,16 +167,16 @@ class _UserPreferenceImpl extends UserPreference {
   @override
   UserPreference copyWith({
     Object? id = _Undefined,
-    int? userInfoId,
+    _i1.UuidValue? authUserId,
     Object? lastWorkspaceId = _Undefined,
     Object? theme = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return UserPreference(
-      id: id is int? ? id : this.id,
-      userInfoId: userInfoId ?? this.userInfoId,
-      lastWorkspaceId: lastWorkspaceId is int?
+      id: id is _i1.UuidValue? ? id : this.id,
+      authUserId: authUserId ?? this.authUserId,
+      lastWorkspaceId: lastWorkspaceId is _i1.UuidValue?
           ? lastWorkspaceId
           : this.lastWorkspaceId,
       theme: theme is String? ? theme : this.theme,
@@ -181,12 +189,16 @@ class _UserPreferenceImpl extends UserPreference {
 class UserPreferenceUpdateTable extends _i1.UpdateTable<UserPreferenceTable> {
   UserPreferenceUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> userInfoId(int value) => _i1.ColumnValue(
-    table.userInfoId,
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> authUserId(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
+    table.authUserId,
     value,
   );
 
-  _i1.ColumnValue<int, int> lastWorkspaceId(int? value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> lastWorkspaceId(
+    _i1.UuidValue? value,
+  ) => _i1.ColumnValue(
     table.lastWorkspaceId,
     value,
   );
@@ -209,15 +221,15 @@ class UserPreferenceUpdateTable extends _i1.UpdateTable<UserPreferenceTable> {
       );
 }
 
-class UserPreferenceTable extends _i1.Table<int?> {
+class UserPreferenceTable extends _i1.Table<_i1.UuidValue?> {
   UserPreferenceTable({super.tableRelation})
     : super(tableName: 'user_preference') {
     updateTable = UserPreferenceUpdateTable(this);
-    userInfoId = _i1.ColumnInt(
-      'userInfoId',
+    authUserId = _i1.ColumnUuid(
+      'authUserId',
       this,
     );
-    lastWorkspaceId = _i1.ColumnInt(
+    lastWorkspaceId = _i1.ColumnUuid(
       'lastWorkspaceId',
       this,
     );
@@ -237,9 +249,9 @@ class UserPreferenceTable extends _i1.Table<int?> {
 
   late final UserPreferenceUpdateTable updateTable;
 
-  late final _i1.ColumnInt userInfoId;
+  late final _i1.ColumnUuid authUserId;
 
-  late final _i1.ColumnInt lastWorkspaceId;
+  late final _i1.ColumnUuid lastWorkspaceId;
 
   late final _i1.ColumnString theme;
 
@@ -250,7 +262,7 @@ class UserPreferenceTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
-    userInfoId,
+    authUserId,
     lastWorkspaceId,
     theme,
     createdAt,
@@ -265,7 +277,7 @@ class UserPreferenceInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => UserPreference.t;
+  _i1.Table<_i1.UuidValue?> get table => UserPreference.t;
 }
 
 class UserPreferenceIncludeList extends _i1.IncludeList {
@@ -285,7 +297,7 @@ class UserPreferenceIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => UserPreference.t;
+  _i1.Table<_i1.UuidValue?> get table => UserPreference.t;
 }
 
 class UserPreferenceRepository {
@@ -373,7 +385,7 @@ class UserPreferenceRepository {
   /// Finds a single [UserPreference] by its [id] or null if no such row exists.
   Future<UserPreference?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<UserPreference>(
@@ -451,7 +463,7 @@ class UserPreferenceRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<UserPreference?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<UserPreferenceUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

@@ -13,7 +13,7 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class Attachment
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   Attachment._({
     this.id,
     required this.cardId,
@@ -29,9 +29,9 @@ abstract class Attachment
   });
 
   factory Attachment({
-    int? id,
-    required int cardId,
-    required int workspaceId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
+    required _i1.UuidValue workspaceId,
     required String fileName,
     required String mimeType,
     required int size,
@@ -44,9 +44,13 @@ abstract class Attachment
 
   factory Attachment.fromJson(Map<String, dynamic> jsonSerialization) {
     return Attachment(
-      id: jsonSerialization['id'] as int?,
-      cardId: jsonSerialization['cardId'] as int,
-      workspaceId: jsonSerialization['workspaceId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      cardId: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['cardId']),
+      workspaceId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['workspaceId'],
+      ),
       fileName: jsonSerialization['fileName'] as String,
       mimeType: jsonSerialization['mimeType'] as String,
       size: jsonSerialization['size'] as int,
@@ -69,11 +73,11 @@ abstract class Attachment
   static const db = AttachmentRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
-  int cardId;
+  _i1.UuidValue cardId;
 
-  int workspaceId;
+  _i1.UuidValue workspaceId;
 
   String fileName;
 
@@ -92,15 +96,15 @@ abstract class Attachment
   DateTime? deletedAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [Attachment]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   Attachment copyWith({
-    int? id,
-    int? cardId,
-    int? workspaceId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? cardId,
+    _i1.UuidValue? workspaceId,
     String? fileName,
     String? mimeType,
     int? size,
@@ -114,9 +118,9 @@ abstract class Attachment
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'Attachment',
-      if (id != null) 'id': id,
-      'cardId': cardId,
-      'workspaceId': workspaceId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
+      'workspaceId': workspaceId.toJson(),
       'fileName': fileName,
       'mimeType': mimeType,
       'size': size,
@@ -132,9 +136,9 @@ abstract class Attachment
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'Attachment',
-      if (id != null) 'id': id,
-      'cardId': cardId,
-      'workspaceId': workspaceId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
+      'workspaceId': workspaceId.toJson(),
       'fileName': fileName,
       'mimeType': mimeType,
       'size': size,
@@ -180,9 +184,9 @@ class _Undefined {}
 
 class _AttachmentImpl extends Attachment {
   _AttachmentImpl({
-    int? id,
-    required int cardId,
-    required int workspaceId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
+    required _i1.UuidValue workspaceId,
     required String fileName,
     required String mimeType,
     required int size,
@@ -211,8 +215,8 @@ class _AttachmentImpl extends Attachment {
   @override
   Attachment copyWith({
     Object? id = _Undefined,
-    int? cardId,
-    int? workspaceId,
+    _i1.UuidValue? cardId,
+    _i1.UuidValue? workspaceId,
     String? fileName,
     String? mimeType,
     int? size,
@@ -223,7 +227,7 @@ class _AttachmentImpl extends Attachment {
     Object? deletedAt = _Undefined,
   }) {
     return Attachment(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       cardId: cardId ?? this.cardId,
       workspaceId: workspaceId ?? this.workspaceId,
       fileName: fileName ?? this.fileName,
@@ -241,12 +245,15 @@ class _AttachmentImpl extends Attachment {
 class AttachmentUpdateTable extends _i1.UpdateTable<AttachmentTable> {
   AttachmentUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> cardId(int value) => _i1.ColumnValue(
-    table.cardId,
-    value,
-  );
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> cardId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.cardId,
+        value,
+      );
 
-  _i1.ColumnValue<int, int> workspaceId(int value) => _i1.ColumnValue(
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> workspaceId(
+    _i1.UuidValue value,
+  ) => _i1.ColumnValue(
     table.workspaceId,
     value,
   );
@@ -296,14 +303,14 @@ class AttachmentUpdateTable extends _i1.UpdateTable<AttachmentTable> {
       );
 }
 
-class AttachmentTable extends _i1.Table<int?> {
+class AttachmentTable extends _i1.Table<_i1.UuidValue?> {
   AttachmentTable({super.tableRelation}) : super(tableName: 'attachment') {
     updateTable = AttachmentUpdateTable(this);
-    cardId = _i1.ColumnInt(
+    cardId = _i1.ColumnUuid(
       'cardId',
       this,
     );
-    workspaceId = _i1.ColumnInt(
+    workspaceId = _i1.ColumnUuid(
       'workspaceId',
       this,
     );
@@ -343,9 +350,9 @@ class AttachmentTable extends _i1.Table<int?> {
 
   late final AttachmentUpdateTable updateTable;
 
-  late final _i1.ColumnInt cardId;
+  late final _i1.ColumnUuid cardId;
 
-  late final _i1.ColumnInt workspaceId;
+  late final _i1.ColumnUuid workspaceId;
 
   late final _i1.ColumnString fileName;
 
@@ -386,7 +393,7 @@ class AttachmentInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => Attachment.t;
+  _i1.Table<_i1.UuidValue?> get table => Attachment.t;
 }
 
 class AttachmentIncludeList extends _i1.IncludeList {
@@ -406,7 +413,7 @@ class AttachmentIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => Attachment.t;
+  _i1.Table<_i1.UuidValue?> get table => Attachment.t;
 }
 
 class AttachmentRepository {
@@ -494,7 +501,7 @@ class AttachmentRepository {
   /// Finds a single [Attachment] by its [id] or null if no such row exists.
   Future<Attachment?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<Attachment>(
@@ -572,7 +579,7 @@ class AttachmentRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<Attachment?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<AttachmentUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

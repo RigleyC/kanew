@@ -13,7 +13,7 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class Permission
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   Permission._({
     this.id,
     required this.slug,
@@ -21,14 +21,16 @@ abstract class Permission
   });
 
   factory Permission({
-    int? id,
+    _i1.UuidValue? id,
     required String slug,
     String? description,
   }) = _PermissionImpl;
 
   factory Permission.fromJson(Map<String, dynamic> jsonSerialization) {
     return Permission(
-      id: jsonSerialization['id'] as int?,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       slug: jsonSerialization['slug'] as String,
       description: jsonSerialization['description'] as String?,
     );
@@ -39,20 +41,20 @@ abstract class Permission
   static const db = PermissionRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
   String slug;
 
   String? description;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [Permission]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   Permission copyWith({
-    int? id,
+    _i1.UuidValue? id,
     String? slug,
     String? description,
   });
@@ -60,7 +62,7 @@ abstract class Permission
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'Permission',
-      if (id != null) 'id': id,
+      if (id != null) 'id': id?.toJson(),
       'slug': slug,
       if (description != null) 'description': description,
     };
@@ -70,7 +72,7 @@ abstract class Permission
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'Permission',
-      if (id != null) 'id': id,
+      if (id != null) 'id': id?.toJson(),
       'slug': slug,
       if (description != null) 'description': description,
     };
@@ -110,7 +112,7 @@ class _Undefined {}
 
 class _PermissionImpl extends Permission {
   _PermissionImpl({
-    int? id,
+    _i1.UuidValue? id,
     required String slug,
     String? description,
   }) : super._(
@@ -129,7 +131,7 @@ class _PermissionImpl extends Permission {
     Object? description = _Undefined,
   }) {
     return Permission(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       slug: slug ?? this.slug,
       description: description is String? ? description : this.description,
     );
@@ -150,7 +152,7 @@ class PermissionUpdateTable extends _i1.UpdateTable<PermissionTable> {
   );
 }
 
-class PermissionTable extends _i1.Table<int?> {
+class PermissionTable extends _i1.Table<_i1.UuidValue?> {
   PermissionTable({super.tableRelation}) : super(tableName: 'permission') {
     updateTable = PermissionUpdateTable(this);
     slug = _i1.ColumnString(
@@ -184,7 +186,7 @@ class PermissionInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => Permission.t;
+  _i1.Table<_i1.UuidValue?> get table => Permission.t;
 }
 
 class PermissionIncludeList extends _i1.IncludeList {
@@ -204,7 +206,7 @@ class PermissionIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => Permission.t;
+  _i1.Table<_i1.UuidValue?> get table => Permission.t;
 }
 
 class PermissionRepository {
@@ -292,7 +294,7 @@ class PermissionRepository {
   /// Finds a single [Permission] by its [id] or null if no such row exists.
   Future<Permission?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<Permission>(
@@ -370,7 +372,7 @@ class PermissionRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<Permission?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<PermissionUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

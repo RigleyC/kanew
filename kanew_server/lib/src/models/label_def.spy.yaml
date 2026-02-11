@@ -2,7 +2,10 @@
 class: LabelDef
 table: label_def
 fields:
-  boardId: int, relation(parent=board)
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
+  boardId: UuidValue, relation(parent=board)
   name: String
   colorHex: String
   deletedAt: DateTime?

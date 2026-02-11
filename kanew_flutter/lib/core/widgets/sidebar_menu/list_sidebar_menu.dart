@@ -4,8 +4,8 @@ import 'index.dart';
 
 class ListSidebarMenu extends StatelessWidget {
   final List<CardList> lists;
-  final int currentListId;
-  final Function(int listId) onSelect;
+  final UuidValue currentListId;
+  final Function(UuidValue listId) onSelect;
 
   const ListSidebarMenu({
     super.key,

@@ -3,3 +3,6 @@ class: PermissionInfo
 fields:
   permission: Permission
   granted: bool
+  isDefault: bool
+  isAdded: bool
+  isRemoved: bool

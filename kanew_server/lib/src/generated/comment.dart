@@ -13,7 +13,7 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class Comment
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   Comment._({
     this.id,
     required this.cardId,
@@ -25,8 +25,8 @@ abstract class Comment
   });
 
   factory Comment({
-    int? id,
-    required int cardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
     required _i1.UuidValue authorId,
     required String content,
     required DateTime createdAt,
@@ -36,8 +36,10 @@ abstract class Comment
 
   factory Comment.fromJson(Map<String, dynamic> jsonSerialization) {
     return Comment(
-      id: jsonSerialization['id'] as int?,
-      cardId: jsonSerialization['cardId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      cardId: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['cardId']),
       authorId: _i1.UuidValueJsonExtension.fromJson(
         jsonSerialization['authorId'],
       ),
@@ -59,9 +61,9 @@ abstract class Comment
   static const db = CommentRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
-  int cardId;
+  _i1.UuidValue cardId;
 
   _i1.UuidValue authorId;
 
@@ -74,14 +76,14 @@ abstract class Comment
   DateTime? deletedAt;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [Comment]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   Comment copyWith({
-    int? id,
-    int? cardId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? cardId,
     _i1.UuidValue? authorId,
     String? content,
     DateTime? createdAt,
@@ -92,8 +94,8 @@ abstract class Comment
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'Comment',
-      if (id != null) 'id': id,
-      'cardId': cardId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
       'authorId': authorId.toJson(),
       'content': content,
       'createdAt': createdAt.toJson(),
@@ -106,8 +108,8 @@ abstract class Comment
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'Comment',
-      if (id != null) 'id': id,
-      'cardId': cardId,
+      if (id != null) 'id': id?.toJson(),
+      'cardId': cardId.toJson(),
       'authorId': authorId.toJson(),
       'content': content,
       'createdAt': createdAt.toJson(),
@@ -150,8 +152,8 @@ class _Undefined {}
 
 class _CommentImpl extends Comment {
   _CommentImpl({
-    int? id,
-    required int cardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue cardId,
     required _i1.UuidValue authorId,
     required String content,
     required DateTime createdAt,
@@ -173,7 +175,7 @@ class _CommentImpl extends Comment {
   @override
   Comment copyWith({
     Object? id = _Undefined,
-    int? cardId,
+    _i1.UuidValue? cardId,
     _i1.UuidValue? authorId,
     String? content,
     DateTime? createdAt,
@@ -181,7 +183,7 @@ class _CommentImpl extends Comment {
     Object? deletedAt = _Undefined,
   }) {
     return Comment(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       cardId: cardId ?? this.cardId,
       authorId: authorId ?? this.authorId,
       content: content ?? this.content,
@@ -195,10 +197,11 @@ class _CommentImpl extends Comment {
 class CommentUpdateTable extends _i1.UpdateTable<CommentTable> {
   CommentUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> cardId(int value) => _i1.ColumnValue(
-    table.cardId,
-    value,
-  );
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> cardId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.cardId,
+        value,
+      );
 
   _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> authorId(_i1.UuidValue value) =>
       _i1.ColumnValue(
@@ -230,10 +233,10 @@ class CommentUpdateTable extends _i1.UpdateTable<CommentTable> {
       );
 }
 
-class CommentTable extends _i1.Table<int?> {
+class CommentTable extends _i1.Table<_i1.UuidValue?> {
   CommentTable({super.tableRelation}) : super(tableName: 'comment') {
     updateTable = CommentUpdateTable(this);
-    cardId = _i1.ColumnInt(
+    cardId = _i1.ColumnUuid(
       'cardId',
       this,
     );
@@ -261,7 +264,7 @@ class CommentTable extends _i1.Table<int?> {
 
   late final CommentUpdateTable updateTable;
 
-  late final _i1.ColumnInt cardId;
+  late final _i1.ColumnUuid cardId;
 
   late final _i1.ColumnUuid authorId;
 
@@ -292,7 +295,7 @@ class CommentInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => Comment.t;
+  _i1.Table<_i1.UuidValue?> get table => Comment.t;
 }
 
 class CommentIncludeList extends _i1.IncludeList {
@@ -312,7 +315,7 @@ class CommentIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => Comment.t;
+  _i1.Table<_i1.UuidValue?> get table => Comment.t;
 }
 
 class CommentRepository {
@@ -400,7 +403,7 @@ class CommentRepository {
   /// Finds a single [Comment] by its [id] or null if no such row exists.
   Future<Comment?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<Comment>(
@@ -478,7 +481,7 @@ class CommentRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<Comment?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<CommentUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

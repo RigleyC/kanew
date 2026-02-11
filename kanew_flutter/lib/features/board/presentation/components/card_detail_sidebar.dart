@@ -15,9 +15,9 @@ class CardDetailSidebar extends StatelessWidget {
   final List<LabelDef> labels;
   final List<LabelDef> boardLabels;
   final Function(DateTime) onDueDateChanged;
-  final Function(int) onToggleLabel;
+  final Function(UuidValue) onToggleLabel;
   final Function(String, String) onCreateLabel;
-  final Function(int) onListChanged;
+  final Function(UuidValue) onListChanged;
   final Function(CardPriority) onPriorityChanged;
 
   const CardDetailSidebar({
@@ -38,7 +38,7 @@ class CardDetailSidebar extends StatelessWidget {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 
-  int get _currentListId => card.listId;
+  UuidValue get _currentListId => card.listId;
 
   @override
   Widget build(BuildContext context) {

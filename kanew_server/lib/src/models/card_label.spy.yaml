@@ -2,8 +2,11 @@
 class: CardLabel
 table: card_label
 fields:
-  cardId: int, relation(parent=card)
-  labelDefId: int, relation(parent=label_def)
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
+  cardId: UuidValue, relation(parent=card)
+  labelDefId: UuidValue, relation(parent=label_def)
 indexes:
   card_label_unique:
     fields: cardId, labelDefId

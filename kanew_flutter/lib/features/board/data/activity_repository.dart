@@ -11,7 +11,7 @@ class ActivityRepository {
 
   ActivityRepository({Client? client}) : _client = client ?? getIt<Client>();
 
-  Future<Either<Failure, List<CardActivity>>> getLog(int cardId) async {
+  Future<Either<Failure, List<CardActivity>>> getLog(UuidValue cardId) async {
     try {
       final logs = await _client.activity.getLog(cardId);
       return Right(logs);

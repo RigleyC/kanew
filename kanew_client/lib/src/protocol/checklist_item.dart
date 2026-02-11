@@ -23,8 +23,8 @@ abstract class ChecklistItem implements _i1.SerializableModel {
   });
 
   factory ChecklistItem({
-    int? id,
-    required int checklistId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue checklistId,
     required String title,
     required bool isChecked,
     required String rank,
@@ -33,8 +33,12 @@ abstract class ChecklistItem implements _i1.SerializableModel {
 
   factory ChecklistItem.fromJson(Map<String, dynamic> jsonSerialization) {
     return ChecklistItem(
-      id: jsonSerialization['id'] as int?,
-      checklistId: jsonSerialization['checklistId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      checklistId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['checklistId'],
+      ),
       title: jsonSerialization['title'] as String,
       isChecked: jsonSerialization['isChecked'] as bool,
       rank: jsonSerialization['rank'] as String,
@@ -47,9 +51,9 @@ abstract class ChecklistItem implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
-  int checklistId;
+  _i1.UuidValue checklistId;
 
   String title;
 
@@ -63,8 +67,8 @@ abstract class ChecklistItem implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   ChecklistItem copyWith({
-    int? id,
-    int? checklistId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? checklistId,
     String? title,
     bool? isChecked,
     String? rank,
@@ -74,8 +78,8 @@ abstract class ChecklistItem implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'ChecklistItem',
-      if (id != null) 'id': id,
-      'checklistId': checklistId,
+      if (id != null) 'id': id?.toJson(),
+      'checklistId': checklistId.toJson(),
       'title': title,
       'isChecked': isChecked,
       'rank': rank,
@@ -93,8 +97,8 @@ class _Undefined {}
 
 class _ChecklistItemImpl extends ChecklistItem {
   _ChecklistItemImpl({
-    int? id,
-    required int checklistId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue checklistId,
     required String title,
     required bool isChecked,
     required String rank,
@@ -114,14 +118,14 @@ class _ChecklistItemImpl extends ChecklistItem {
   @override
   ChecklistItem copyWith({
     Object? id = _Undefined,
-    int? checklistId,
+    _i1.UuidValue? checklistId,
     String? title,
     bool? isChecked,
     String? rank,
     Object? deletedAt = _Undefined,
   }) {
     return ChecklistItem(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       checklistId: checklistId ?? this.checklistId,
       title: title ?? this.title,
       isChecked: isChecked ?? this.isChecked,

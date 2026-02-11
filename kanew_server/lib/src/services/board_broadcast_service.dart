@@ -5,7 +5,7 @@ import '../generated/protocol.dart';
 /// Service responsável por broadcast de eventos do Board em tempo real
 class BoardBroadcastService {
   /// Retorna o nome do canal para um board específico
-  static String channelName(int boardId) => 'board_$boardId';
+  static String channelName(UuidValue boardId) => 'board_$boardId';
 
   /// Broadcast genérico de evento
   static void broadcast(
@@ -28,9 +28,9 @@ class BoardBroadcastService {
 
   static void cardCreated(
     Session session, {
-    required int boardId,
-    required int listId,
-    required int cardId,
+    required UuidValue boardId,
+    required UuidValue listId,
+    required UuidValue cardId,
     required UuidValue actorId,
     required CardSummary cardSummary,
   }) {
@@ -52,9 +52,9 @@ class BoardBroadcastService {
 
   static void cardUpdated(
     Session session, {
-    required int boardId,
-    required int listId,
-    required int cardId,
+    required UuidValue boardId,
+    required UuidValue listId,
+    required UuidValue cardId,
     required UuidValue actorId,
     required Card card,
   }) {
@@ -76,10 +76,10 @@ class BoardBroadcastService {
 
   static void cardMoved(
     Session session, {
-    required int boardId,
-    required int oldListId,
-    required int newListId,
-    required int cardId,
+    required UuidValue boardId,
+    required UuidValue oldListId,
+    required UuidValue newListId,
+    required UuidValue cardId,
     required UuidValue actorId,
     required String newRank,
     required String priority,
@@ -105,9 +105,9 @@ class BoardBroadcastService {
 
   static void cardDeleted(
     Session session, {
-    required int boardId,
-    required int listId,
-    required int cardId,
+    required UuidValue boardId,
+    required UuidValue listId,
+    required UuidValue cardId,
     required UuidValue actorId,
   }) {
     broadcast(
@@ -127,8 +127,8 @@ class BoardBroadcastService {
 
   static void listCreated(
     Session session, {
-    required int boardId,
-    required int listId,
+    required UuidValue boardId,
+    required UuidValue listId,
     required UuidValue actorId,
     required CardList cardList,
   }) {
@@ -149,8 +149,8 @@ class BoardBroadcastService {
 
   static void listUpdated(
     Session session, {
-    required int boardId,
-    required int listId,
+    required UuidValue boardId,
+    required UuidValue listId,
     required UuidValue actorId,
     required CardList cardList,
   }) {
@@ -171,9 +171,9 @@ class BoardBroadcastService {
 
   static void listReordered(
     Session session, {
-    required int boardId,
+    required UuidValue boardId,
     required UuidValue actorId,
-    required List<int> orderedListIds,
+    required List<UuidValue> orderedListIds,
   }) {
     broadcast(
       session,
@@ -191,8 +191,8 @@ class BoardBroadcastService {
 
   static void listDeleted(
     Session session, {
-    required int boardId,
-    required int listId,
+    required UuidValue boardId,
+    required UuidValue listId,
     required UuidValue actorId,
   }) {
     broadcast(
@@ -211,7 +211,7 @@ class BoardBroadcastService {
 
   static void boardUpdated(
     Session session, {
-    required int boardId,
+    required UuidValue boardId,
     required UuidValue actorId,
     required Board board,
   }) {
@@ -231,7 +231,7 @@ class BoardBroadcastService {
 
   static void boardDeleted(
     Session session, {
-    required int boardId,
+    required UuidValue boardId,
     required UuidValue actorId,
   }) {
     broadcast(
@@ -249,8 +249,8 @@ class BoardBroadcastService {
 
   static void labelCreated(
     Session session, {
-    required int boardId,
-    required int labelId,
+    required UuidValue boardId,
+    required UuidValue labelId,
     required UuidValue actorId,
     required LabelDef label,
   }) {
@@ -270,8 +270,8 @@ class BoardBroadcastService {
 
   static void labelUpdated(
     Session session, {
-    required int boardId,
-    required int labelId,
+    required UuidValue boardId,
+    required UuidValue labelId,
     required UuidValue actorId,
     required LabelDef label,
   }) {
@@ -291,8 +291,8 @@ class BoardBroadcastService {
 
   static void labelDeleted(
     Session session, {
-    required int boardId,
-    required int labelId,
+    required UuidValue boardId,
+    required UuidValue labelId,
     required UuidValue actorId,
   }) {
     broadcast(
@@ -311,9 +311,9 @@ class BoardBroadcastService {
 
   static void cardLabelsUpdated(
     Session session, {
-    required int boardId,
-    required int cardId,
-    required int listId,
+    required UuidValue boardId,
+    required UuidValue cardId,
+    required UuidValue listId,
     required UuidValue actorId,
     required List<LabelDef> labels,
   }) {

@@ -1,8 +1,10 @@
 class: Workspace
 table: workspace
 fields:
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
   # Identificadores
-  uuid: UuidValue
   title: String
   slug: String # URL amigável
   
@@ -14,9 +16,6 @@ fields:
   deletedAt: DateTime?
   deletedBy: UuidValue? # Changed from int to UuidValue
 indexes:
-  workspace_uuid_idx:
-    fields: uuid
-    unique: true
   workspace_slug_idx:
     fields: slug
     unique: true

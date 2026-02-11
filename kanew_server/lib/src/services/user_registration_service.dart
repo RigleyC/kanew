@@ -58,9 +58,7 @@ class UserRegistrationService {
     );
 
     // Create workspace
-    final workspace = Workspace(
-      uuid: const Uuid().v4obj(),
-      title: workspaceTitle,
+    final workspace = Workspace(      title: workspaceTitle,
       slug: slug,
       ownerId: authUserId,
       createdAt: DateTime.now(),

@@ -13,10 +13,9 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class CardList
-    implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   CardList._({
     this.id,
-    required this.uuid,
     required this.boardId,
     required this.title,
     required this.rank,
@@ -27,9 +26,8 @@ abstract class CardList
   });
 
   factory CardList({
-    int? id,
-    required _i1.UuidValue uuid,
-    required int boardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue boardId,
     required String title,
     required String rank,
     required bool archived,
@@ -40,9 +38,12 @@ abstract class CardList
 
   factory CardList.fromJson(Map<String, dynamic> jsonSerialization) {
     return CardList(
-      id: jsonSerialization['id'] as int?,
-      uuid: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['uuid']),
-      boardId: jsonSerialization['boardId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      boardId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['boardId'],
+      ),
       title: jsonSerialization['title'] as String,
       rank: jsonSerialization['rank'] as String,
       archived: jsonSerialization['archived'] as bool,
@@ -63,11 +64,9 @@ abstract class CardList
   static const db = CardListRepository._();
 
   @override
-  int? id;
+  _i1.UuidValue? id;
 
-  _i1.UuidValue uuid;
-
-  int boardId;
+  _i1.UuidValue boardId;
 
   String title;
 
@@ -82,15 +81,14 @@ abstract class CardList
   _i1.UuidValue? deletedBy;
 
   @override
-  _i1.Table<int?> get table => t;
+  _i1.Table<_i1.UuidValue?> get table => t;
 
   /// Returns a shallow copy of this [CardList]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   CardList copyWith({
-    int? id,
-    _i1.UuidValue? uuid,
-    int? boardId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? boardId,
     String? title,
     String? rank,
     bool? archived,
@@ -102,9 +100,8 @@ abstract class CardList
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'CardList',
-      if (id != null) 'id': id,
-      'uuid': uuid.toJson(),
-      'boardId': boardId,
+      if (id != null) 'id': id?.toJson(),
+      'boardId': boardId.toJson(),
       'title': title,
       'rank': rank,
       'archived': archived,
@@ -118,9 +115,8 @@ abstract class CardList
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'CardList',
-      if (id != null) 'id': id,
-      'uuid': uuid.toJson(),
-      'boardId': boardId,
+      if (id != null) 'id': id?.toJson(),
+      'boardId': boardId.toJson(),
       'title': title,
       'rank': rank,
       'archived': archived,
@@ -164,9 +160,8 @@ class _Undefined {}
 
 class _CardListImpl extends CardList {
   _CardListImpl({
-    int? id,
-    required _i1.UuidValue uuid,
-    required int boardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue boardId,
     required String title,
     required String rank,
     required bool archived,
@@ -175,7 +170,6 @@ class _CardListImpl extends CardList {
     _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
-         uuid: uuid,
          boardId: boardId,
          title: title,
          rank: rank,
@@ -191,8 +185,7 @@ class _CardListImpl extends CardList {
   @override
   CardList copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? uuid,
-    int? boardId,
+    _i1.UuidValue? boardId,
     String? title,
     String? rank,
     bool? archived,
@@ -201,8 +194,7 @@ class _CardListImpl extends CardList {
     Object? deletedBy = _Undefined,
   }) {
     return CardList(
-      id: id is int? ? id : this.id,
-      uuid: uuid ?? this.uuid,
+      id: id is _i1.UuidValue? ? id : this.id,
       boardId: boardId ?? this.boardId,
       title: title ?? this.title,
       rank: rank ?? this.rank,
@@ -217,16 +209,11 @@ class _CardListImpl extends CardList {
 class CardListUpdateTable extends _i1.UpdateTable<CardListTable> {
   CardListUpdateTable(super.table);
 
-  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> uuid(_i1.UuidValue value) =>
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> boardId(_i1.UuidValue value) =>
       _i1.ColumnValue(
-        table.uuid,
+        table.boardId,
         value,
       );
-
-  _i1.ColumnValue<int, int> boardId(int value) => _i1.ColumnValue(
-    table.boardId,
-    value,
-  );
 
   _i1.ColumnValue<String, String> title(String value) => _i1.ColumnValue(
     table.title,
@@ -263,14 +250,10 @@ class CardListUpdateTable extends _i1.UpdateTable<CardListTable> {
   );
 }
 
-class CardListTable extends _i1.Table<int?> {
+class CardListTable extends _i1.Table<_i1.UuidValue?> {
   CardListTable({super.tableRelation}) : super(tableName: 'card_list') {
     updateTable = CardListUpdateTable(this);
-    uuid = _i1.ColumnUuid(
-      'uuid',
-      this,
-    );
-    boardId = _i1.ColumnInt(
+    boardId = _i1.ColumnUuid(
       'boardId',
       this,
     );
@@ -302,9 +285,7 @@ class CardListTable extends _i1.Table<int?> {
 
   late final CardListUpdateTable updateTable;
 
-  late final _i1.ColumnUuid uuid;
-
-  late final _i1.ColumnInt boardId;
+  late final _i1.ColumnUuid boardId;
 
   late final _i1.ColumnString title;
 
@@ -321,7 +302,6 @@ class CardListTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
-    uuid,
     boardId,
     title,
     rank,
@@ -339,7 +319,7 @@ class CardListInclude extends _i1.IncludeObject {
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<int?> get table => CardList.t;
+  _i1.Table<_i1.UuidValue?> get table => CardList.t;
 }
 
 class CardListIncludeList extends _i1.IncludeList {
@@ -359,7 +339,7 @@ class CardListIncludeList extends _i1.IncludeList {
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<int?> get table => CardList.t;
+  _i1.Table<_i1.UuidValue?> get table => CardList.t;
 }
 
 class CardListRepository {
@@ -447,7 +427,7 @@ class CardListRepository {
   /// Finds a single [CardList] by its [id] or null if no such row exists.
   Future<CardList?> findById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     _i1.Transaction? transaction,
   }) async {
     return session.db.findById<CardList>(
@@ -525,7 +505,7 @@ class CardListRepository {
   /// Returns the updated row or null if no row with the given id exists.
   Future<CardList?> updateById(
     _i1.Session session,
-    int id, {
+    _i1.UuidValue id, {
     required _i1.ColumnValueListBuilder<CardListUpdateTable> columnValues,
     _i1.Transaction? transaction,
   }) async {

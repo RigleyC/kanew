@@ -22,8 +22,8 @@ abstract class LabelDef implements _i1.SerializableModel {
   });
 
   factory LabelDef({
-    int? id,
-    required int boardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue boardId,
     required String name,
     required String colorHex,
     DateTime? deletedAt,
@@ -31,8 +31,12 @@ abstract class LabelDef implements _i1.SerializableModel {
 
   factory LabelDef.fromJson(Map<String, dynamic> jsonSerialization) {
     return LabelDef(
-      id: jsonSerialization['id'] as int?,
-      boardId: jsonSerialization['boardId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      boardId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['boardId'],
+      ),
       name: jsonSerialization['name'] as String,
       colorHex: jsonSerialization['colorHex'] as String,
       deletedAt: jsonSerialization['deletedAt'] == null
@@ -44,9 +48,9 @@ abstract class LabelDef implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
-  int boardId;
+  _i1.UuidValue boardId;
 
   String name;
 
@@ -58,8 +62,8 @@ abstract class LabelDef implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   LabelDef copyWith({
-    int? id,
-    int? boardId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? boardId,
     String? name,
     String? colorHex,
     DateTime? deletedAt,
@@ -68,8 +72,8 @@ abstract class LabelDef implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'LabelDef',
-      if (id != null) 'id': id,
-      'boardId': boardId,
+      if (id != null) 'id': id?.toJson(),
+      'boardId': boardId.toJson(),
       'name': name,
       'colorHex': colorHex,
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
@@ -86,8 +90,8 @@ class _Undefined {}
 
 class _LabelDefImpl extends LabelDef {
   _LabelDefImpl({
-    int? id,
-    required int boardId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue boardId,
     required String name,
     required String colorHex,
     DateTime? deletedAt,
@@ -105,13 +109,13 @@ class _LabelDefImpl extends LabelDef {
   @override
   LabelDef copyWith({
     Object? id = _Undefined,
-    int? boardId,
+    _i1.UuidValue? boardId,
     String? name,
     String? colorHex,
     Object? deletedAt = _Undefined,
   }) {
     return LabelDef(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       boardId: boardId ?? this.boardId,
       name: name ?? this.name,
       colorHex: colorHex ?? this.colorHex,

@@ -16,7 +16,6 @@ import 'board_visibility.dart' as _i2;
 abstract class Board implements _i1.SerializableModel {
   Board._({
     this.id,
-    required this.uuid,
     required this.workspaceId,
     required this.title,
     required this.slug,
@@ -30,9 +29,8 @@ abstract class Board implements _i1.SerializableModel {
   });
 
   factory Board({
-    int? id,
-    required _i1.UuidValue uuid,
-    required int workspaceId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue workspaceId,
     required String title,
     required String slug,
     required _i2.BoardVisibility visibility,
@@ -46,9 +44,12 @@ abstract class Board implements _i1.SerializableModel {
 
   factory Board.fromJson(Map<String, dynamic> jsonSerialization) {
     return Board(
-      id: jsonSerialization['id'] as int?,
-      uuid: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['uuid']),
-      workspaceId: jsonSerialization['workspaceId'] as int,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      workspaceId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['workspaceId'],
+      ),
       title: jsonSerialization['title'] as String,
       slug: jsonSerialization['slug'] as String,
       visibility: _i2.BoardVisibility.fromJson(
@@ -74,11 +75,9 @@ abstract class Board implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
-  _i1.UuidValue uuid;
-
-  int workspaceId;
+  _i1.UuidValue workspaceId;
 
   String title;
 
@@ -102,9 +101,8 @@ abstract class Board implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   Board copyWith({
-    int? id,
-    _i1.UuidValue? uuid,
-    int? workspaceId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? workspaceId,
     String? title,
     String? slug,
     _i2.BoardVisibility? visibility,
@@ -119,9 +117,8 @@ abstract class Board implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'Board',
-      if (id != null) 'id': id,
-      'uuid': uuid.toJson(),
-      'workspaceId': workspaceId,
+      if (id != null) 'id': id?.toJson(),
+      'workspaceId': workspaceId.toJson(),
       'title': title,
       'slug': slug,
       'visibility': visibility.toJson(),
@@ -144,9 +141,8 @@ class _Undefined {}
 
 class _BoardImpl extends Board {
   _BoardImpl({
-    int? id,
-    required _i1.UuidValue uuid,
-    required int workspaceId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue workspaceId,
     required String title,
     required String slug,
     required _i2.BoardVisibility visibility,
@@ -158,7 +154,6 @@ class _BoardImpl extends Board {
     _i1.UuidValue? deletedBy,
   }) : super._(
          id: id,
-         uuid: uuid,
          workspaceId: workspaceId,
          title: title,
          slug: slug,
@@ -177,8 +172,7 @@ class _BoardImpl extends Board {
   @override
   Board copyWith({
     Object? id = _Undefined,
-    _i1.UuidValue? uuid,
-    int? workspaceId,
+    _i1.UuidValue? workspaceId,
     String? title,
     String? slug,
     _i2.BoardVisibility? visibility,
@@ -190,8 +184,7 @@ class _BoardImpl extends Board {
     Object? deletedBy = _Undefined,
   }) {
     return Board(
-      id: id is int? ? id : this.id,
-      uuid: uuid ?? this.uuid,
+      id: id is _i1.UuidValue? ? id : this.id,
       workspaceId: workspaceId ?? this.workspaceId,
       title: title ?? this.title,
       slug: slug ?? this.slug,

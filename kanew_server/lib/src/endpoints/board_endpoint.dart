@@ -15,7 +15,7 @@ class BoardEndpoint extends Endpoint {
   /// Requires: board.read permission
   Future<List<Board>> getBoards(
     Session session,
-    int workspaceId,
+    UuidValue workspaceId,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -85,7 +85,7 @@ class BoardEndpoint extends Endpoint {
   /// Requires: board.read permission
   Future<Board?> getBoard(
     Session session,
-    int workspaceId,
+    UuidValue workspaceId,
     String slug,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
@@ -157,7 +157,7 @@ class BoardEndpoint extends Endpoint {
   /// Requires: board.create permission
   Future<Board> createBoard(
     Session session,
-    int workspaceId,
+    UuidValue workspaceId,
     String title,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
@@ -195,9 +195,7 @@ class BoardEndpoint extends Endpoint {
           .then((b) => b != null),
     );
 
-    final board = Board(
-      uuid: const Uuid().v4obj(),
-      workspaceId: workspaceId,
+    final board = Board(      workspaceId: workspaceId,
       title: title,
       slug: slug,
       visibility: BoardVisibility.workspace,
@@ -240,7 +238,7 @@ class BoardEndpoint extends Endpoint {
   /// Requires: board.update permission
   Future<Board> updateBoard(
     Session session,
-    int boardId,
+    UuidValue boardId,
     String title,
     String? slug,
   ) async {
@@ -308,7 +306,7 @@ class BoardEndpoint extends Endpoint {
   /// Requires: board.delete permission
   Future<void> deleteBoard(
     Session session,
-    int boardId,
+    UuidValue boardId,
   ) async {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 

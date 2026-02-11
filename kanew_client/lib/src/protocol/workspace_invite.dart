@@ -27,12 +27,12 @@ abstract class WorkspaceInvite implements _i1.SerializableModel {
   });
 
   factory WorkspaceInvite({
-    int? id,
+    _i1.UuidValue? id,
     String? email,
     required String code,
-    required int workspaceId,
+    required _i1.UuidValue workspaceId,
     required _i1.UuidValue createdBy,
-    required List<int> initialPermissions,
+    required List<_i1.UuidValue> initialPermissions,
     DateTime? acceptedAt,
     DateTime? revokedAt,
     required DateTime createdAt,
@@ -40,14 +40,18 @@ abstract class WorkspaceInvite implements _i1.SerializableModel {
 
   factory WorkspaceInvite.fromJson(Map<String, dynamic> jsonSerialization) {
     return WorkspaceInvite(
-      id: jsonSerialization['id'] as int?,
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       email: jsonSerialization['email'] as String?,
       code: jsonSerialization['code'] as String,
-      workspaceId: jsonSerialization['workspaceId'] as int,
+      workspaceId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['workspaceId'],
+      ),
       createdBy: _i1.UuidValueJsonExtension.fromJson(
         jsonSerialization['createdBy'],
       ),
-      initialPermissions: _i2.Protocol().deserialize<List<int>>(
+      initialPermissions: _i2.Protocol().deserialize<List<_i1.UuidValue>>(
         jsonSerialization['initialPermissions'],
       ),
       acceptedAt: jsonSerialization['acceptedAt'] == null
@@ -65,17 +69,17 @@ abstract class WorkspaceInvite implements _i1.SerializableModel {
   /// The database id, set if the object has been inserted into the
   /// database or if it has been fetched from the database. Otherwise,
   /// the id will be null.
-  int? id;
+  _i1.UuidValue? id;
 
   String? email;
 
   String code;
 
-  int workspaceId;
+  _i1.UuidValue workspaceId;
 
   _i1.UuidValue createdBy;
 
-  List<int> initialPermissions;
+  List<_i1.UuidValue> initialPermissions;
 
   DateTime? acceptedAt;
 
@@ -87,12 +91,12 @@ abstract class WorkspaceInvite implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   WorkspaceInvite copyWith({
-    int? id,
+    _i1.UuidValue? id,
     String? email,
     String? code,
-    int? workspaceId,
+    _i1.UuidValue? workspaceId,
     _i1.UuidValue? createdBy,
-    List<int>? initialPermissions,
+    List<_i1.UuidValue>? initialPermissions,
     DateTime? acceptedAt,
     DateTime? revokedAt,
     DateTime? createdAt,
@@ -101,12 +105,14 @@ abstract class WorkspaceInvite implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'WorkspaceInvite',
-      if (id != null) 'id': id,
+      if (id != null) 'id': id?.toJson(),
       if (email != null) 'email': email,
       'code': code,
-      'workspaceId': workspaceId,
+      'workspaceId': workspaceId.toJson(),
       'createdBy': createdBy.toJson(),
-      'initialPermissions': initialPermissions.toJson(),
+      'initialPermissions': initialPermissions.toJson(
+        valueToJson: (v) => v.toJson(),
+      ),
       if (acceptedAt != null) 'acceptedAt': acceptedAt?.toJson(),
       if (revokedAt != null) 'revokedAt': revokedAt?.toJson(),
       'createdAt': createdAt.toJson(),
@@ -123,12 +129,12 @@ class _Undefined {}
 
 class _WorkspaceInviteImpl extends WorkspaceInvite {
   _WorkspaceInviteImpl({
-    int? id,
+    _i1.UuidValue? id,
     String? email,
     required String code,
-    required int workspaceId,
+    required _i1.UuidValue workspaceId,
     required _i1.UuidValue createdBy,
-    required List<int> initialPermissions,
+    required List<_i1.UuidValue> initialPermissions,
     DateTime? acceptedAt,
     DateTime? revokedAt,
     required DateTime createdAt,
@@ -152,15 +158,15 @@ class _WorkspaceInviteImpl extends WorkspaceInvite {
     Object? id = _Undefined,
     Object? email = _Undefined,
     String? code,
-    int? workspaceId,
+    _i1.UuidValue? workspaceId,
     _i1.UuidValue? createdBy,
-    List<int>? initialPermissions,
+    List<_i1.UuidValue>? initialPermissions,
     Object? acceptedAt = _Undefined,
     Object? revokedAt = _Undefined,
     DateTime? createdAt,
   }) {
     return WorkspaceInvite(
-      id: id is int? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       email: email is String? ? email : this.email,
       code: code ?? this.code,
       workspaceId: workspaceId ?? this.workspaceId,

@@ -18,7 +18,7 @@ class BoardStreamEndpoint extends Endpoint {
   /// - O board é atualizado ou deletado
   Stream<BoardEvent> subscribeToBoardUpdates(
     Session session,
-    int boardId,
+    UuidValue boardId,
   ) async* {
     final userId = AuthHelper.getAuthenticatedUserId(session);
 

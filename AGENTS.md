@@ -1,325 +1,810 @@
 # AGENTS.md
 
-**Resumo:** este documento descreve regras, padrões e passos suficientes para alguém implementar uma feature nova sem conhecer a codebase. Foca em organização por feature, MVVM (com Controllers), go_router, provider, get_it, Serverpod 3.x, testes, lints e boas práticas.
+**Resumo:** Guia completo para implementar, corrigir ou rodar qualquer feature do projeto. Contém estrutura, padrões, comandos e referências necessárias.
 
 ---
 
-## Objetivo
+## 1. Quick Start
 
-* Tornar possível implementar uma feature seguindo padrões consistentes.
-* Minimizar decisões ad-hoc: siga este guia.
-* Manter arquivos pequenos e fáceis de revisar.
+### Comandos Essenciais
+
+```bash
+# Rodar o app
+flutter run
+
+# Com flavors
+flutter run --flavor develop --dart-define-from-file=.dev.env
+flutter run --flavor production --dart-define-from-file=.prod.env
+
+# Análise
+flutter analyze
+
+# Formatação
+dart format lib/
+
+# Testes
+flutter test
+flutter test --coverage
+
+# Serverpod (backend)
+cd kanew_server
+serverpod generate
+dart run bin/main.dart
+```
+
+###上下文中文字符
+
+O contexto do projeto está nos arquivos:
+- `AGENTS.md` - Este arquivo
+- `RULES.md` - Regras e boas práticas
+- `plan.md` - Especificação do produto
+- `ARCHITECTURE.md` - Decisões arquiteturais
 
 ---
 
-## Sumário rápido (passos para agregar uma feature)
+## 2. Stack Tecnológica
 
-1. Criar branch `feat/<short-desc>`.
-2. Criar pasta de feature em `lib/features/<feature-name>/` com subpastas (presentation, domain, data).
-3. Definir models e DTOs (data layer) e, quando necessário, migrar no Serverpod.
-4. Implementar repositório (interface no `domain`, implementação no `data`).
-5. Implementar **Controller** (em `presentation/controllers`).
-6. Registrar o Controller como `Factory` no `lib/core/di/injection.dart`.
-7. Implementar UI (widgets/screen) seguindo padrões de botões e theme.
-   - Use `StatefulWidget` para gerenciar o ciclo de vida do controller (`initState`/`dispose`).
-   - Use `ListenableBuilder` para reagir a mudanças de estado.
-8. Adicionar rotas em `go_router`.
-9. Testes unitários e widget tests antes do PR.
-10. PR com `feat: breve-desc` seguindo Conventional Commits.
+| Componente | Tecnologia | Propósito |
+|------------|------------|-----------|
+| Frontend | Flutter 3.x | UI multiplataforma (iOS, Android, Web, Desktop) |
+| Backend | Serverpod 3.x | API + WebSockets + Auth + Banco |
+| Database | PostgreSQL | Dados persistentes |
+| DI | GetIt | Injeção de dependência |
+| Navegação | go_router | Roteamento declarativo |
+| State | ChangeNotifier + Sealed Classes | Gerenciamento de estado |
+| Errors | dartz (Either) | Tratamento funcional de erros |
 
 ---
 
-## Organização de pastas (sugestão — feature-first)
+## 3. Arquitetura
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Presentation (UI)                       │
+│  Pages → Controllers → States/Stores → Components          │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                         Domain                              │
+│  UseCases → Repository Interfaces → Entities               │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                           Data                              │
+│  Repository Implementations → Serverpod Client              │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Serverpod Backend                       │
+│  Endpoints → Models → PostgreSQL                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Fluxo de dados:** Page → Controller → UseCase → Repository → Serverpod → Database
+
+---
+
+## 4. Estrutura de Pastas
 
 ```
 lib/
-└─ features/
-   └─ payments/
-      ├─ presentation/
-      │  ├─ pages/
-      │  │  └─ payments_page.dart
-      │  ├─ widgets/
-      │  │  └─ payment_card.dart
-      │  └─ controllers/
-      │     └─ payments_page_controller.dart
-      ├─ domain/
-      │  ├─ models/
-      │  ├─ repositories/
-      │  │  └─ payments_repository.dart
-      │  └─ usecases/
-      │     └─ fetch_payments.dart
-      └─ data/
-         ├─ datasources/
-         │  └─ payments_remote_datasource.dart
-         └─ repositories/
-            └─ payments_repository_impl.dart
+├── core/
+│   ├── di/              # injection.dart (setup do GetIt)
+│   ├── error/           # failures.dart (classes de erro)
+│   ├── router/          # app_router.dart (go_router config)
+│   ├── theme/           # app_theme.dart
+│   ├── widgets/         # snackbar, dialog, bottom_sheet
+│   └── utils/           # helpers, extensions
+└── features/
+    └── auth/
+        ├── data/
+        │   └── repositories/
+        │       └── auth_repository_impl.dart
+        ├── domain/
+        │   ├── models/
+        │   ├── repositories/
+        │   │   └── auth_repository.dart
+        │   └── usecases/
+        │       ├── login_usecase.dart
+        │       └── logout_usecase.dart
+        ├── presentation/
+        │   ├── controllers/
+        │   │   └── login_controller.dart
+        │   ├── states/
+        │   │   └── login_state.dart
+        │   ├── stores/
+        │   │   └── login_store.dart
+        │   ├── pages/
+        │   │   └── login_page.dart
+        │   ├── components/
+        │   └── dialogs/           # Dialogs de feature
+        │       └── invite_user_dialog.dart
+        └── auth_injector.dart   # Registro de dependências
 ```
 
 ---
 
-## Architecture: View-Controller Pattern
+## 5. Padrões de Implementação
 
-Estamos migrando para um padrão onde **Views criam e gerenciam seus Controllers**.
-
-* **View (UI)**: Widgets + Pages.
-  - Responsabilidade: Layout, criação do controller, binding de eventos.
-  - Usa `StatefulWidget` para inicializar (`getIt<Controller>()`) e descartar (`controller.dispose()`) o controller.
-  - Usa `ListenableBuilder` para rebuildar quando o controller notificar mudanças.
-
-* **Controller**: Lógica de apresentação e estado.
-  - Extende `ChangeNotifier`.
-  - Expõe estado via getters (ex: `isLoading`, `data`, `error`).
-  - Métodos retornam `Future<void>` ou `Future<T>` e atualizam estado interno.
-  - Não depende de `BuildContext` (idealmente).
-  - Trata erros de negócio e notifica a UI via estado (ex: `error` string).
-
-* **Repository**: Acesso a dados.
-  - Retorna `Future<Either<Failure, T>>` (usando dartz).
-  - Trata exceções do Serverpod e converte para `Failure`.
-
----
-
-## Injeção de dependências (get_it)
-
-* O projeto usa **get_it como service locator principal**.
-
-### Registros em `lib/core/di/injection.dart`
-
-1.  **Singletons / LazySingletons**:
-    -   Core services (Client, AuthManager, Config).
-    -   Repositories (`AuthRepository`, `BoardRepository`).
-    -   Controllers **Globais** (apenas `AuthController`, `WorkspaceController`).
-
-2.  **Factories**:
-    -   **Page Controllers** (ex: `BoardsPageController`, `CardDetailPageController`).
-    -   Uma nova instância é criada cada vez que a página é aberta.
+### 5.1 States (Sealed Classes - OBRIGATÓRIO)
 
 ```dart
-// Exemplo injection.dart
-void setupDependencies() {
-  // Repositories (LazySingleton)
-  getIt.registerLazySingleton<PaymentsRepository>(() => PaymentsRepositoryImpl(getIt()));
+// features/auth/presentation/states/login_state.dart
+sealed class LoginState {
+  const LoginState();
+}
 
-  // Page Controllers (Factory)
-  getIt.registerFactory<PaymentsPageController>(
-    () => PaymentsPageController(repository: getIt<PaymentsRepository>()),
-  );
+class LoginInitial extends LoginState {
+  const LoginInitial();
+}
+
+class LoginLoading extends LoginState {
+  const LoginLoading();
+}
+
+class LoginSuccess extends LoginState {
+  final UserEntity user;
+  const LoginSuccess(this.user);
+}
+
+class LoginError extends LoginState {
+  final String message;
+  const LoginError(this.message);
 }
 ```
 
----
-
-## Implementação na UI (Page)
-
-O padrão recomendado para Pages é criar o controller no `initState` e fazer dispose no `dispose`.
+### 5.2 Stores
 
 ```dart
-class PaymentsPage extends StatefulWidget {
-  const PaymentsPage({super.key});
+// features/auth/presentation/stores/login_store.dart
+class LoginStore extends ValueNotifier<LoginState> {
+  LoginStore() : super(const LoginInitial());
+}
+```
 
+### 5.3 Controllers
+
+```dart
+// features/auth/presentation/controllers/login_controller.dart
+class LoginController extends ChangeNotifier {
+  final LoginUseCase _useCase;
+  final LoginStore _store;
+  
+  LoginController({
+    required LoginUseCase useCase,
+    required LoginStore store,
+  })  : _useCase = useCase,
+        _store = store;
+  
+  LoginState get state => _store.value;
+  
+  Future<void> login(String email, String password) async {
+    _store.value = const LoginLoading();
+    
+    final result = await _useCase(LoginParams(email, password));
+    
+    result.fold(
+      (failure) => _store.value = LoginError(failure.message),
+      (user) => _store.value = LoginSuccess(user),
+    );
+  }
+  
   @override
-  State<PaymentsPage> createState() => _PaymentsPageState();
+  void dispose() {
+    _store.dispose();
+    super.dispose();
+  }
+}
+```
+
+### 5.4 Repositories (Either Pattern)
+
+```dart
+// features/auth/data/repositories/auth_repository_impl.dart
+class AuthRepositoryImpl implements AuthRepository {
+  final Client _client;
+  
+  AuthRepositoryImpl({required Client client}) : _client = client;
+  
+  @override
+  Future<Either<Failure, UserEntity>> login(String email, String password) async {
+    try {
+      final result = await _client.emailIdp.login(email: email, password: password);
+      return Right(result);
+    } on Exception catch (e, s) {
+      return Left(ServerFailure('Erro no login', e, s));
+    }
+  }
+}
+```
+
+### 5.5 UseCases
+
+```dart
+// features/auth/domain/usecases/login_usecase.dart
+class LoginUseCase {
+  final AuthRepository _repository;
+  
+  LoginUseCase({required AuthRepository repository}) : _repository = repository;
+  
+  Future<Either<Failure, UserEntity>> call(String email, String password) async {
+    if (email.isEmpty) {
+      return const Left(ValidationFailure('Email é obrigatório'));
+    }
+    return await _repository.login(email, password);
+  }
+}
+```
+
+### 5.6 Pages
+
+```dart
+// features/auth/presentation/pages/login_page.dart
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+  
+  @override
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _PaymentsPageState extends State<PaymentsPage> {
-  // 1. Declare o controller
-  late final PaymentsPageController _controller;
-
+class _LoginPageState extends State<LoginPage> {
+  late final LoginController _controller;
+  
   @override
   void initState() {
     super.initState();
-    // 2. Injete via GetIt (cria nova instância)
-    _controller = getIt<PaymentsPageController>();
-    // 3. Inicialize dados se necessário
-    _controller.loadPayments();
+    _controller = getIt<LoginController>();
   }
-
+  
   @override
   void dispose() {
-    // 4. Dispose obrigatório
     _controller.dispose();
     super.dispose();
   }
-
+  
   @override
   Widget build(BuildContext context) {
-    // 5. Use ListenableBuilder para ouvir mudanças
-    return ListenableBuilder(
-      listenable: _controller,
-      builder: (context, _) {
-        if (_controller.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        
-        if (_controller.error != null) {
-          return Center(child: Text(_controller.error!));
-        }
-
-        return ListView.builder(
-          itemCount: _controller.payments.length,
-          itemBuilder: (context, index) {
-            final payment = _controller.payments[index];
-            return ListTile(title: Text(payment.title));
-          },
-        );
-      },
+    return Scaffold(
+      body: ValueListenableBuilder<LoginState>(
+        valueListenable: _controller._store,
+        builder: (context, state, _) {
+          return switch (state) {
+            LoginInitial() => const LoginForm(),
+            LoginLoading() => const Center(child: CircularProgressIndicator()),
+            LoginSuccess(user: final user) => HomePage(user: user),
+            LoginError(message: final msg) => ErrorWidget(message: msg),
+          };
+        },
+      ),
     );
   }
 }
 ```
 
----
-
-## Navegação (go_router)
-
-* **Centralize** a definição de rotas em `app_router.dart`.
-* **RefreshListenable**: Use `Listenable.merge` com controllers globais (Auth, Workspace) para redirecionamento.
-* **Passagem de Parâmetros**:
-  - Use `pathParameters` para IDs/Slugs (ex: `:boardSlug`).
-  - A Page recebe esses parâmetros via construtor e os passa para o Controller no `initState` (ex: `_controller.load(widget.boardSlug)`).
-
----
-
-## Components, Snackbar, Dialogs, Sheets
-
-**Centralize** os componentes em uma pasta no core, eles podem ser chamados de qualquer lugar e recebem um widget ou texto. São responsáveis apenas por exibir onde o conteudo é passado ao chamar. O context pode ser passado tambem.
-
-### Dialogs - Padrão com Callbacks
-
-Dialogs **não devem receber controllers**. Em vez disso, recebem callbacks para executar ações:
+### 5.7 Feature Injectors (OBRIGATÓRIO)
 
 ```dart
-/// Shows a dialog to create a payment
-Future<void> showCreatePaymentDialog(
-  BuildContext context,
-  Future<void> Function(String title, double amount) onSubmit,
-) async {
-  final titleController = TextEditingController();
-  final amountController = TextEditingController();
+// features/auth/auth_injector.dart
+class AuthInjector extends Injector {
+  final GetIt _getIt = getIt;
+  
+  @override
+  void register() {
+    _getIt.registerLazySingleton<AuthRepository>(
+      () => AuthRepositoryImpl(client: _getIt<Client>()),
+    );
+    
+    _getIt.registerLazySingleton(() => LoginUseCase(repository: _getIt()));
+    _getIt.registerLazySingleton(() => LogoutUseCase(repository: _getIt()));
+    
+    _getIt.registerFactory<LoginStore>(() => LoginStore());
+    _getIt.registerFactory<LoginController>(
+      () => LoginController(useCase: _getIt(), store: _getIt()),
+    );
+  }
+}
+```
 
-  final result = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Novo Pagamento'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: titleController,
-            decoration: const InputDecoration(labelText: 'Título'),
-          ),
-          TextField(
-            controller: amountController,
-            decoration: const InputDecoration(labelText: 'Valor'),
-            keyboardType: TextInputType.number,
-          ),
-        ],
+```dart
+// core/di/injection.dart
+final getIt = GetIt.instance;
+
+Future<void> setupDependencies() async {
+  getIt.registerSingleton(Client());
+  getIt.registerSingleton(FlutterAuthSessionManager());
+  
+  AuthInjector().register();
+  BoardInjector().register();
+  WorkspaceInjector().register();
+  CardInjector().register();
+  
+  getIt.registerLazySingleton<BoardStore>(() => BoardStore());
+  getIt.registerLazySingleton<AuthController>(() => AuthController(
+    repository: getIt<AuthRepository>(),
+    authManager: getIt<FlutterAuthSessionManager>(),
+  ));
+}
+```
+
+---
+
+## 6. Failures (Core)
+
+```dart
+// core/error/failures.dart
+sealed class Failure {
+  final String message;
+  final dynamic originalError;
+  final StackTrace? stackTrace;
+  const Failure(this.message, [this.originalError, this.stackTrace]);
+}
+
+class ServerFailure extends Failure {
+  const ServerFailure([super.message = 'Erro no servidor']);
+}
+
+class NetworkFailure extends Failure {
+  const NetworkFailure([super.message = 'Sem conexão com a internet']);
+}
+
+class ValidationFailure extends Failure {
+  const ValidationFailure(super.message);
+}
+
+class AuthFailure extends Failure {
+  const AuthFailure(super.message);
+}
+
+class NotFoundFailure extends Failure {
+  const NotFoundFailure([super.message = 'Não encontrado']);
+}
+
+class PermissionFailure extends Failure {
+  const PermissionFailure([super.message = 'Sem permissão']);
+}
+```
+
+---
+
+## 7. Navegação (go_router)
+
+```dart
+// core/router/app_router.dart
+final GoRouter appRouter = GoRouter(
+  initialLocation: '/login',
+  refreshListenable: Listenable.merge([
+    getIt<AuthController>(),
+    getIt<WorkspaceController>(),
+  ]),
+  redirect: (context, state) {
+    final auth = getIt<AuthController>();
+    final isLogin = state.uri.path == '/login';
+    
+    if (!auth.isAuthenticated && !isLogin) return '/login';
+    if (auth.isAuthenticated && isLogin) return '/workspaces';
+    return null;
+  },
+  routes: [
+    GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
+    GoRoute(path: '/workspaces', builder: (_, __) => const WorkspacesPage()),
+    GoRoute(
+      path: '/w/:workspaceSlug',
+      builder: (context, state) => BoardsPage(
+        workspaceSlug: state.pathParameters['workspaceSlug']!,
+      ),
+    ),
+    GoRoute(
+      path: '/w/:workspaceSlug/b/:boardSlug',
+      builder: (context, state) => BoardPage(
+        workspaceSlug: state.pathParameters['workspaceSlug']!,
+        boardSlug: state.pathParameters['boardSlug']!,
+      ),
+    ),
+    GoRoute(
+      path: '/w/:workspaceSlug/b/:boardSlug/c/:cardUuid',
+      builder: (context, state) => CardDetailPage(
+        workspaceSlug: state.pathParameters['workspaceSlug']!,
+        boardSlug: state.pathParameters['boardSlug']!,
+        cardUuid: state.pathParameters['cardUuid']!,
+      ),
+    ),
+  ],
+);
+```
+
+---
+
+## 8. Banco de Dados (Serverpod)
+
+### 8.1 Estrutura
+
+Models ficam em `kanew_server/config/tables/`
+
+```yaml
+# kanew_server/config/tables/card.yaml
+class: Card
+table: card
+fields:
+  id: UuidValue
+  workspaceId: UuidValue
+  boardId: UuidValue
+  listId: UuidValue
+  title: String
+  description: String?
+  priority: CardPriority
+  rank: String
+  deletedAt: DateTime?
+  createdAt: DateTime, default=now
+```
+
+### 8.2 Soft Deletes (OBRIGATÓRIO)
+
+Toda entidade DEVE ter `deletedAt` para soft delete:
+
+```yaml
+fields:
+  deletedAt: DateTime?  # ← Obrigatório
+```
+
+**No Repository:** SEMPRE filtre registros deletados:
+
+```dart
+Future<List<Card>> getCards(int listId) async {
+  return (await _client.card.getCardsByListId(listId))
+    .where((card) => card.deletedAt == null)
+    .toList();
+}
+```
+
+### 8.3 Activity Tracking (OBRIGATÓRIO)
+
+```yaml
+class: Activity
+table: activity
+fields:
+  id: UuidValue
+  cardId: UuidValue
+  actorId: UuidValue
+  type: String        # card.created, card.title.changed, etc.
+  payload: Map<String, dynamic>  # { 'from': 'Old', 'to': 'New' }
+  createdAt: DateTime, default=now
+```
+
+**Crie activity para:**
+- Criação de entidades
+- Mudanças de campos
+- Movimentação de cards
+- Adição/remoção de labels, membros
+- Comentários
+- Checklists
+
+### 8.4 LexoRank (Ordenação)
+
+Cards são ordenados por:
+
+```sql
+ORDER BY priority DESC, rank ASC
+```
+
+### 8.5 Gerando Código
+
+```bash
+cd kanew_server
+serverpod generate
+```
+
+---
+
+## 9. Segurança
+
+### 9.1 UUIDs Públicos (OBRIGATÓRIO)
+
+**NUNCA exponha IDs internos do banco em URLs ou APIs externas:**
+
+```dart
+// ❌ ERRADO - ID interno
+GoRoute(path: '/card/:id')
+
+// ✅ CORRETO - UUID público
+GoRoute(path: '/c/:cardUuid')
+```
+
+### 9.2 Autorização (OBRIGATÓRIO)
+
+```dart
+// Em TODO endpoint protegido:
+Future<CardDetail?> getCardDetail(Session session, String cardUuid) async {
+  // 1. Verificar autenticação
+  final userId = await session.auth.authenticatedUserId;
+  if (userId == null) throw UnauthorizedException();
+  
+  // 2. Verificar acesso ao workspace
+  final hasAccess = await _workspaceService.userInWorkspace(
+    userId: userId,
+    workspaceId: card.workspaceId,
+  );
+  if (!hasAccess) throw ForbiddenException();
+  
+  return card;
+}
+```
+
+### 9.3 Tratamento de Erros HTTP
+
+| Código | Uso |
+|--------|-----|
+| `UNAUTHORIZED` | Não autenticado |
+| `FORBIDDEN` | Sem permissão |
+| `NOT_FOUND` | Recurso não existe |
+| `BAD_REQUEST` | Validação falhou |
+| `INTERNAL_SERVER_ERROR` | Erro inesperado |
+
+---
+
+## 10. Widgets Globais
+
+### 10.1 Snackbar
+
+```dart
+// core/widgets/snackbar.dart
+void showSnackbar(String message, [Color? color]) {
+  final context = getIt<GlobalKey<NavigatorState>>().currentContext;
+  ScaffoldMessenger.of(context!).showSnackBar(SnackBar(
+    content: Text(message),
+    backgroundColor: color,
+  ));
+}
+```
+
+### 10.2 Dialog Genérico
+
+```dart
+// core/widgets/dialog.dart
+Future<T?> showAppDialog<T>({
+  required Widget child,
+  bool barrierDismissible = true,
+}) async {
+  final context = getIt<GlobalKey<NavigatorState>>().currentContext;
+  return showDialog<T>(
+    context: context!,
+    barrierDismissible: barrierDismissible,
+    builder: (_) => child,
+  );
+}
+```
+
+### 10.3 Dialogs de Feature
+
+Cada feature cria seus próprios diálogos em `presentation/dialogs/`:
+
+```
+features/auth/presentation/dialogs/
+└── invite_user_dialog.dart
+```
+
+**Estrutura do dialog:**
+
+```dart
+// features/auth/presentation/dialogs/invite_user_dialog.dart
+class InviteUserDialog extends StatefulWidget {
+  final String workspaceSlug;
+  
+  const InviteUserDialog({super.key, required this.workspaceSlug});
+  
+  @override
+  State<InviteUserDialog> createState() => _InviteUserDialogState();
+}
+
+class _InviteUserDialogState extends State<InviteUserDialog> {
+  late final InviteUserController _controller;
+  
+  @override
+  void initState() {
+    super.initState();
+    _controller = getIt<InviteUserController>();
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Convidar usuário'),
+      content: ValueListenableBuilder<InviteUserState>(
+        valueListenable: _controller.store,
+        builder: (context, state, _) {
+          return switch (state) {
+            InviteUserInitial() => InviteUserForm(controller: _controller),
+            InviteUserLoading() => const Center(child: CircularProgressIndicator()),
+            InviteUserSuccess() => const Text('Convite enviado!'),
+            InviteUserError(message: final msg) => Text(msg, style: const TextStyle(color: Colors.red)),
+          };
+        },
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () => Navigator.pop(context),
           child: const Text('Cancelar'),
         ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Criar'),
+        ElevatedButton(
+          onPressed: () => _controller.sendInvite(widget.workspaceSlug),
+          child: const Text('Enviar'),
         ),
       ],
-    ),
-  );
-
-  if (result == true) {
-    await onSubmit(titleController.text, double.parse(amountController.text));
+    );
   }
-
-  titleController.dispose();
-  amountController.dispose();
 }
 ```
 
-**Na página/widget que chama o dialog:**
+**Como usar:**
 
 ```dart
-// Correto: passa callback
-onPressed: () => showCreatePaymentDialog(
-  context,
-  (title, amount) => _controller.createPayment(title, amount),
-)
-
-// Incorreto: passa controller
-onPressed: () => showCreatePaymentDialog(context, _controller)
-```
----
-
-## Separação de componentes e boas práticas
-- Ao criar uma página, evite criar métodos que retornem widget, se precisar criar um componente (ex. card. chip, header etc.) verifique se ele já existe, se não existir você deve criar como componete separado, se for um componente que será usado em todo projeto, crie de forma global, se não, pode criar na pasta da feature. 
-- O componente deve ser o mais agnóstico possível, permitindo a troca do mesmo com facilidade respeitando os princpios de SOLID.
-- O componente dev ser chamado na página que vai ser exibido.
-- Tente utilizar sempre o tema como base e os botões definidos em widgets globais, sempre verifique se algum componente já existe antes de criar outro.
-
----
-
-## Tratamento de Erros e `Either`
-
-* Repositories retornam `Either<Failure, T>`.
-* Controllers tratam o `Either`:
-
-```dart
-Future<void> load() async {
-  _isLoading = true; notifyListeners();
-  
-  final result = await _repo.fetch();
-  
-  result.fold(
-    (failure) => _error = failure.message,
-    (data) => _data = data,
+// Na Page ou Component
+onPressed: () async {
+  await showAppDialog(
+    child: const InviteUserDialog(workspaceSlug: widget.workspaceSlug),
   );
-  
-  _isLoading = false; notifyListeners();
+},
+```
+
+### 10.4 Bottom Sheet
+
+```dart
+// core/widgets/bottom_sheet.dart
+Future<T?> showAppBottomSheet<T>({required Widget child, bool dismissible = true}) async {
+  final context = getIt<GlobalKey<NavigatorState>>().currentContext;
+  return showModalBottomSheet<T>(context: context!, builder: (_) => child, isDismissible: dismissible);
 }
 ```
 
 ---
 
-## Serverpod 3.x
+## 11. Adicionando uma Feature (Passo a Passo)
 
-* Mantenha models no `kanew_client` (protocol).
-* Gere código com `serverpod generate` na pasta server.
-* Use `Client` injetado nos repositórios.
+### Passo 1: Banco de Dados
+1. Crie/atualize o model no `kanew_server/config/tables/`
+2. Execute `serverpod generate`
+3. Crie migrations se necessário
+
+### Passo 2: Domain
+1. Crie entities em `features/<feature>/domain/models/`
+2. Crie interfaces de repository em `features/<feature>/domain/repositories/`
+3. Crie UseCases em `features/<feature>/domain/usecases/`
+
+### Passo 3: Data
+1. Implemente o repository em `features/<feature>/data/repositories/`
+
+### Passo 4: Presentation
+1. Crie States em `features/<feature>/presentation/states/`
+2. Crie Stores em `features/<feature>/presentation/stores/`
+3. Crie Controllers em `features/<feature>/presentation/controllers/`
+4. Crie Pages em `features/<feature>/presentation/pages/`
+5. Crie Components em `features/<feature>/presentation/components/`
+6. Crie Dialogs em `features/<feature>/presentation/dialogs/`
+
+### Passo 5: DI
+1. Crie/Atualize o Feature Injector
+2. Registre no `core/di/injection.dart`
+
+### Passo 6: Navegação
+1. Adicione rotas no `core/router/app_router.dart`
+
+### Passo 7: Testes
+1. Testes unitários para Controllers
+2. Testes para UseCases
 
 ---
 
-## Boas práticas Flutter
+## 12. Troubleshooting Comum
 
-- Use a propriedade spacing para definir espaços nas Columns() e Rows().
-
----
-## Boas práticas Comentários
-
-- Evite comentários desncessários, use comentários que explicam apenas coisas mais complexas, comentários obvios sobre o que uma classe ou método faz não são necessários a não ser que eles sejam grandes e perteçam a um fluxo específico.
-- Use comentários curtos caso seja necessário explicando o porquê daquele metodo ou classe.
-- Seja objetivo ao explicar.
-
----
-## Boas práticas desenvolvimento
-
-- Sempre preze por formas simples de resolver um problema ou implementar uma feature.
-- Pense bem antes de fazer algo analisando se aquilo está sendo feito da forma mais otimizada possível, sem tornar o código complexo de ler ou carregar algo.
-- Se tiver dúvidas sobre sua própria implementação, confirme com o usuário sobre o que ele acha.
-- Ao pensar em uma solução, certifique-se de que você analisou os arquivos necessários, ao investigar, analise todos os lugares onde a feature vai afetar ou onde o método é usado ou até mesmo onde a variável é usada, isso evita de propor uma solução que resolve um problema mas afeta outro lugar e acaba quebrando.
-- Preze por boas práticas, sempre seguindo a arquitetura do projeto, caso seja necessário (ex. controller muito grande, estados muitos grandes no controller) você pode criar outras pastas/arquivos derivados do clean arch como UseCases, Store/State etc.
-- Valide se sua proposta também segue boas práticas de mercado, as vezes a sua solução pode ser complexa e outra pessoa na internet já resolveu o problema de forma mais simples.
-- Você pode usar os MCPs disponíveis como do dart, serverpod etc. caso ele nao tire sua dúvida, busque na internet em documentações oficiais ou forums, github etc.
-- Ao corrigir ou implementar algo, sempre crie um branch usando as convenções padrão, feat, chore, refactor. Não faça o merge com a master enquanto o usuário não confirmar.
-
+| Problema | Solução |
+|----------|---------|
+| "GetIt: Object not registered" | Verifique se o Injector foi chamado no `setupDependencies()` |
+| "Null check operator on null value" | Use `??` ou `?.` ao invés de `!` |
+| "setState called during build" | Use `WidgetsBinding.instance.addPostFrameCallback` |
+| Serverpod não gera código | Execute `serverpod generate` na pasta server |
+| flutter analyze com erros | Execute `flutter clean && flutter pub get` |
 
 ---
 
-## Checklist de entrega de feature
+## 13. Convenções de Código
 
-* [ ] Controller implementado e registrado como Factory.
-* [ ] Page implementada com initState/dispose e ListenableBuilder.
-* [ ] Repositório usando Either.
-* [ ] Testes (se aplicável).
-* [ ] `flutter analyze` sem erros.
-* [ ] PR seguindo convenção.
+### Naming
+
+| Conceito | Formato | Exemplo |
+|----------|---------|---------|
+| Pages | `XxxPage` | `BoardsPage` |
+| Controllers | `XxxController` | `BoardsPageController` |
+| States | `XxxState` (sealed) | `BoardsState` |
+| Stores | `XxxStore` | `BoardsStore` |
+| Repositories | `XxxRepository` | `BoardRepository` |
+| UseCases | `XxxUseCase` | `CreateBoardUseCase` |
+| Failures | `XxxFailure` | `ServerFailure` |
+| Injectors | `XxxInjector` | `BoardInjector` |
+| Activities | `entity.action` | `card.title.changed` |
+| Arquivos | `snake_case.dart` | `boards_page_controller.dart` |
+
+### Imports
+
+```dart
+// Ordem obrigatória
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+import 'package:dartz/dartz.dart';
+import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:kanew_flutter/core/error/failures.dart';
+
+import '../../domain/repositories/board_repository.dart';
+```
+
+---
+
+## 14. Testes
+
+### Estrutura
+
+```
+test/
+├── core/
+└── features/
+    └── auth/
+        ├── domain/
+        │   └── usecases/
+        │       └── login_usecase_test.dart
+        ├── data/
+        │   └── repositories/
+        │       └── auth_repository_impl_test.dart
+        └── presentation/
+            └── controllers/
+                └── login_controller_test.dart
+```
+
+### Exemplo
+
+```dart
+void main() {
+  late LoginUseCase useCase;
+  late MockAuthRepository mockRepository;
+  
+  setUp(() {
+    mockRepository = MockAuthRepository();
+    useCase = LoginUseCase(mockRepository);
+  });
+  
+  test('deve retornar usuário quando login bem-sucedido', () async {
+    when(() => mockRepository.login(any(), any()))
+        .thenAnswer((_) async => Right(mockUser));
+    
+    final result = await useCase('email', 'senha');
+    
+    expect(result, Right(mockUser));
+  });
+}
+```
+
+---
+
+## 15. Referências
+
+- Flutter Docs: https://docs.flutter.dev/
+- Dart Docs: https://dart.dev/
+- Serverpod: https://serverpod.dev/
+- go_router: https://pub.dev/packages/go_router
+- dartz: https://pub.dev/packages/dartz
+- GetIt: https://pub.dev/packages/get_it
+- Clean Dart: https://github.com/Flutterando/Clean-Dart
+
+---
+
+**Última Atualização:** Fevereiro 2026

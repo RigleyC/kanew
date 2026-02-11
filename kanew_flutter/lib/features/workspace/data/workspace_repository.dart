@@ -25,7 +25,7 @@ class WorkspaceRepository {
 
   /// Updates a workspace
   Future<Workspace> updateWorkspace(
-    int workspaceId,
+    UuidValue workspaceId,
     String title, {
     String? slug,
   }) async {
@@ -33,7 +33,7 @@ class WorkspaceRepository {
   }
 
   /// Deletes a workspace (soft delete)
-  Future<void> deleteWorkspace(int workspaceId) async {
+  Future<void> deleteWorkspace(UuidValue workspaceId) async {
     await _client.workspace.deleteWorkspace(workspaceId);
   }
 }

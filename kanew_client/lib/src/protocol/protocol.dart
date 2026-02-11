@@ -387,8 +387,9 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<int>) {
-      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    if (t == List<_i1.UuidValue>) {
+      return (data as List).map((e) => deserialize<_i1.UuidValue>(e)).toList()
+          as T;
     }
     if (t == List<_i36.CardActivity>) {
       return (data as List)
@@ -415,8 +416,9 @@ class Protocol extends _i1.SerializationManager {
       return (data as List).map((e) => deserialize<_i41.CardList>(e)).toList()
           as T;
     }
-    if (t == List<int>) {
-      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    if (t == List<_i1.UuidValue>) {
+      return (data as List).map((e) => deserialize<_i1.UuidValue>(e)).toList()
+          as T;
     }
     if (t == List<_i42.Checklist>) {
       return (data as List).map((e) => deserialize<_i42.Checklist>(e)).toList()
@@ -430,6 +432,12 @@ class Protocol extends _i1.SerializationManager {
     }
     if (t == List<_i44.Comment>) {
       return (data as List).map((e) => deserialize<_i44.Comment>(e)).toList()
+          as T;
+    }
+    if (t == Map<String, dynamic>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<dynamic>(v)),
+          )
           as T;
     }
     if (t == List<_i45.WorkspaceInvite>) {

@@ -1,7 +1,10 @@
 class: ChecklistItem
 table: checklist_item
 fields:
-  checklistId: int, relation(parent=checklist)
+  # Primary Key - UuidValue using Serverpod 3.x pattern
+  id: UuidValue?, defaultPersist=random_v7
+  
+  checklistId: UuidValue, relation(parent=checklist)
   title: String
   isChecked: bool
   rank: String # Lexorank para reordenar itens

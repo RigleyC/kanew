@@ -75,6 +75,10 @@ class MemberListTile extends StatelessWidget {
               itemBuilder: (context) => [
                 if (onChangeRole != null) ...[
                   const PopupMenuItem(
+                    value: 'role_guest',
+                    child: Text('Definir como Convidado'),
+                  ),
+                  const PopupMenuItem(
                     value: 'role_member',
                     child: Text('Definir como Membro'),
                   ),
@@ -117,13 +121,16 @@ class MemberListTile extends StatelessWidget {
   }
 
   void _handleMenuAction(String action, BuildContext context) {
-    switch (action) {
-      case 'role_member':
-        onChangeRole?.call(MemberRole.member);
-        break;
-      case 'role_admin':
-        onChangeRole?.call(MemberRole.admin);
-        break;
+      switch (action) {
+        case 'role_guest':
+          onChangeRole?.call(MemberRole.guest);
+          break;
+        case 'role_member':
+          onChangeRole?.call(MemberRole.member);
+          break;
+        case 'role_admin':
+          onChangeRole?.call(MemberRole.admin);
+          break;
       case 'permissions':
         onManagePermissions?.call();
         break;

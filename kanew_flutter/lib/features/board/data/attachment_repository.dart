@@ -14,7 +14,7 @@ class AttachmentRepository {
   AttachmentRepository({Client? client}) : _client = client ?? getIt<Client>();
 
   /// Busca todos os anexos de um card
-  Future<Either<Failure, List<Attachment>>> getAttachments(int cardId) async {
+  Future<Either<Failure, List<Attachment>>> getAttachments(UuidValue cardId) async {
     developer.log(
       'AttachmentRepository.getAttachments($cardId)',
       name: 'attachment_repository',
@@ -45,7 +45,7 @@ class AttachmentRepository {
 
   /// Faz upload de um anexo para o card
   Future<Either<Failure, Attachment>> uploadAttachment(
-    int cardId,
+    UuidValue cardId,
     PickedFile file,
   ) async {
     developer.log(
@@ -98,7 +98,7 @@ class AttachmentRepository {
   }
 
   /// Exclui um anexo
-  Future<Either<Failure, Unit>> deleteAttachment(int attachmentId) async {
+  Future<Either<Failure, Unit>> deleteAttachment(UuidValue attachmentId) async {
     developer.log(
       'AttachmentRepository.deleteAttachment($attachmentId)',
       name: 'attachment_repository',
