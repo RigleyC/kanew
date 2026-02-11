@@ -1007,7 +1007,8 @@ class CardEndpoint extends Endpoint {
       throw ArgumentError('Unexpected int value type: ${value.runtimeType}');
     }
 
-    final ids = cardIds.join(',');
+    // Build safe query with quoted UUID strings
+    final ids = cardIds.map((id) => "'$id'").join(',');
     final deletedAtClause =
         includeDeletedAtFilter ? ' AND "deletedAt" IS NULL' : '';
 
@@ -1021,7 +1022,7 @@ class CardEndpoint extends Endpoint {
     final map = <UuidValue, int>{};
     for (final row in rows) {
       if (row.length < 2) continue;
-      final cardId = row[0] as UuidValue;
+      final cardId = UuidValue.fromString(row[0].toString());
       final count = toInt(row[1]);
       map[cardId] = count;
     }
@@ -1041,7 +1042,9 @@ class CardEndpoint extends Endpoint {
       throw ArgumentError('Unexpected int value type: ${value.runtimeType}');
     }
 
-    final ids = cardIds.join(',');
+    // Build safe query with quoted UUID strings
+    final ids = cardIds.map((id) => "'$id'").join(',');
+
     final rows = await session.db.unsafeQuery(
       'SELECT c."cardId", '
       'COUNT(i.id) AS total, '
@@ -1056,7 +1059,7 @@ class CardEndpoint extends Endpoint {
     final map = <UuidValue, _ChecklistCounts>{};
     for (final row in rows) {
       if (row.length < 3) continue;
-      final cardId = row[0] as UuidValue;
+      final cardId = UuidValue.fromString(row[0].toString());
       final total = toInt(row[1]);
       final completed = toInt(row[2]);
       map[cardId] = _ChecklistCounts(total: total, completed: completed);

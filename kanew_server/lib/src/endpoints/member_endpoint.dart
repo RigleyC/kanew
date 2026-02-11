@@ -3,6 +3,7 @@ import 'package:serverpod_auth_server/serverpod_auth_server.dart';
 import '../generated/protocol.dart';
 import '../services/permission_service.dart';
 import '../services/auth_helper.dart';
+import '../services/user_service.dart';
 
 /// Endpoint for managing workspace members
 class MemberEndpoint extends Endpoint {
@@ -38,25 +39,28 @@ class MemberEndpoint extends Endpoint {
       orderBy: (m) => m.joinedAt,
     );
 
-    // Get UserInfo for each member
+    session.log('[MemberEndpoint.getMembers] Found ${members.length} members in workspace $workspaceId');
+
+    // Get UserInfo for each member using UserService
     final result = <MemberWithUser>[];
 
     for (final member in members) {
-      final userInfo = await Users.findUserByIdentifier(
-        session,
-        member.authUserId.toString(),
-      );
+      session.log('[MemberEndpoint.getMembers] Processing member ${member.id} with authUserId ${member.authUserId}');
+      final userInfo = await UserService.getUserInfo(session, member.authUserId);
+
+      session.log('[MemberEndpoint.getMembers] UserInfo for ${member.authUserId}: $userInfo');
 
       result.add(
         MemberWithUser(
           member: member,
-          userName: userInfo?.userName ?? 'Usuario',
-          userEmail: userInfo?.email ?? 'email@exemplo.com',
-          userImageUrl: userInfo?.imageUrl,
+          userName: userInfo['displayName']!,
+          userEmail: userInfo['email']!,
+          userImageUrl: null,
         ),
       );
     }
 
+    session.log('[MemberEndpoint.getMembers] Returning ${result.length} members');
     return result;
   }
 
@@ -86,6 +90,12 @@ class MemberEndpoint extends Endpoint {
     if (member.role == MemberRole.owner) {
       throw Exception('Cannot remove workspace owner');
     }
+
+    // Delete all permissions before soft delete
+    await MemberPermission.db.deleteWhere(
+      session,
+      where: (mp) => mp.workspaceMemberId.equals(memberId),
+    );
 
     // Soft delete
     final updated = member.copyWith(
@@ -269,9 +279,16 @@ class MemberEndpoint extends Endpoint {
     );
     await Workspace.db.updateRow(session, updatedWorkspace);
 
-    // Update current owner to admin
+    // Update current owner to admin and clear their explicit permissions
+    // (admin has permissions by default)
     final downgraded = currentOwnerMember.copyWith(role: MemberRole.admin);
     await WorkspaceMember.db.updateRow(session, downgraded);
+
+    // Delete all permissions from the old owner (now admin)
+    await MemberPermission.db.deleteWhere(
+      session,
+      where: (mp) => mp.workspaceMemberId.equals(currentOwnerMember.id!),
+    );
 
     // Update new owner role
     final upgraded = newOwnerMember.copyWith(role: MemberRole.owner);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kanew_client/kanew_client.dart' hide Card;
-import '../../widgets/member/member_avatar.dart';
-import '../../widgets/member/member_role_badge.dart';
+import '../../../../core/widgets/member/member_avatar.dart';
+import '../../../../core/widgets/member/member_role_badge.dart';
 
 class TransferOwnershipDialog extends StatefulWidget {
   final List<MemberWithUser> members;
@@ -14,8 +14,9 @@ class TransferOwnershipDialog extends StatefulWidget {
   });
 
   @override
-  State<TransferOwnershipDialog> createState() =>
-      _TransferOwnershipDialogState();
+  State<TransferOwnershipDialog> createState() {
+    return _TransferOwnershipDialogState();
+  }
 }
 
 class _TransferOwnershipDialogState extends State<TransferOwnershipDialog> {

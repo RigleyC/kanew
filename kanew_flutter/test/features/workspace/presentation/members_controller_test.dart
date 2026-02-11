@@ -1,53 +1,66 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kanew_client/kanew_client.dart';
-import 'package:kanew_flutter/features/workspace/presentation/controllers/members_page_controller.dart';
+import 'package:kanew_flutter/features/workspace/presentation/controllers/members_controller.dart';
+import 'package:kanew_flutter/features/workspace/presentation/stores/members_store.dart';
+import 'package:kanew_flutter/features/workspace/presentation/states/members_state.dart';
 import 'package:kanew_flutter/features/workspace/domain/repositories/member_repository.dart';
 import 'package:kanew_flutter/features/workspace/data/workspace_repository.dart';
+import 'package:kanew_flutter/features/workspace/domain/usecases/get_members_usecase.dart';
+import 'package:kanew_flutter/features/workspace/domain/usecases/remove_member_usecase.dart';
+import 'package:kanew_flutter/features/workspace/domain/usecases/update_member_role_usecase.dart';
+import 'package:kanew_flutter/features/workspace/domain/usecases/get_member_permissions_usecase.dart';
+import 'package:kanew_flutter/features/workspace/domain/usecases/update_member_permissions_usecase.dart';
+import 'package:kanew_flutter/features/workspace/domain/usecases/transfer_ownership_usecase.dart';
+import 'package:kanew_flutter/features/workspace/domain/usecases/create_invite_usecase.dart';
+import 'package:kanew_flutter/features/workspace/domain/usecases/get_invites_usecase.dart';
+import 'package:kanew_flutter/features/workspace/domain/usecases/revoke_invite_usecase.dart';
+import 'package:kanew_flutter/features/workspace/domain/usecases/get_all_permissions_usecase.dart';
 import 'package:kanew_flutter/core/error/failures.dart';
 import 'package:dartz/dartz.dart';
 
 void main() {
-  group('MembersPageController', () {
-    test('should initialize with correct default state', () {
-      // Arrange
-      final mockMemberRepository = _MockMemberRepository();
-      final mockWorkspaceRepository = _MockWorkspaceRepository();
-      final controller = MembersPageController(
-        repository: mockMemberRepository,
+  group('MembersController', () {
+    late MembersController controller;
+    late MembersStore store;
+    late _MockMemberRepository mockMemberRepository;
+    late _MockWorkspaceRepository mockWorkspaceRepository;
+
+    setUp(() {
+      mockMemberRepository = _MockMemberRepository();
+      mockWorkspaceRepository = _MockWorkspaceRepository();
+      store = MembersStore();
+      
+      controller = MembersController(
+        getMembersUseCase: GetMembersUseCase(repository: mockMemberRepository),
+        removeMemberUseCase: RemoveMemberUseCase(repository: mockMemberRepository),
+        updateMemberRoleUseCase: UpdateMemberRoleUseCase(repository: mockMemberRepository),
+        getMemberPermissionsUseCase: GetMemberPermissionsUseCase(repository: mockMemberRepository),
+        updateMemberPermissionsUseCase: UpdateMemberPermissionsUseCase(repository: mockMemberRepository),
+        transferOwnershipUseCase: TransferOwnershipUseCase(repository: mockMemberRepository),
+        createInviteUseCase: CreateInviteUseCase(repository: mockMemberRepository),
+        getInvitesUseCase: GetInvitesUseCase(repository: mockMemberRepository),
+        revokeInviteUseCase: RevokeInviteUseCase(repository: mockMemberRepository),
+        getAllPermissionsUseCase: GetAllPermissionsUseCase(repository: mockMemberRepository),
         workspaceRepository: mockWorkspaceRepository,
+        store: store,
       );
+    });
 
-      // Assert
-      expect(controller.isLoading, false);
-      expect(controller.error, null);
-      expect(controller.members, isEmpty);
-      expect(controller.invites, isEmpty);
-      expect(controller.allPermissions, isEmpty);
-      expect(controller.workspaceId, null);
-      expect(controller.initError, null);
-      expect(controller.isInitialized, false);
-
-      // Cleanup
+    tearDown(() {
       controller.dispose();
     });
 
-    test('should clear error when clearError is called', () {
-      // Arrange
-      final mockMemberRepository = _MockMemberRepository();
-      final mockWorkspaceRepository = _MockWorkspaceRepository();
-      final controller = MembersPageController(
-        repository: mockMemberRepository,
-        workspaceRepository: mockWorkspaceRepository,
-      );
-
-      // Act
-      controller.clearError();
-
+    test('should initialize with correct default state', () {
       // Assert
-      expect(controller.error, null);
+      expect(controller.state, isA<MembersInitial>());
+      expect(controller.workspaceId, null);
+      expect(controller.initError, null);
+      expect(controller.isInitialized, false);
+    });
 
-      // Cleanup
-      controller.dispose();
+    test('should have store accessible', () {
+      // Assert
+      expect(controller.store, isA<MembersStore>());
     });
   });
 }

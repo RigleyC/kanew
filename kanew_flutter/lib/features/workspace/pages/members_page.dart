@@ -5,11 +5,12 @@ import 'package:kanew_client/kanew_client.dart' hide Card;
 import '../../../core/di/injection.dart';
 import '../../../core/widgets/sidebar/sidebar.dart';
 import '../../../core/widgets/base/button.dart';
-import '../../../core/dialogs/members/invite_member_dialog.dart';
-import '../../../core/dialogs/members/transfer_ownership_dialog.dart';
-import '../../../core/dialogs/members/pending_invites_list.dart';
 import '../../../core/widgets/member/permission_matrix.dart';
-import '../presentation/controllers/members_page_controller.dart';
+import '../presentation/controllers/members_controller.dart';
+import '../presentation/states/members_state.dart';
+import '../presentation/dialogs/invite_member_dialog.dart';
+import '../presentation/dialogs/transfer_ownership_dialog.dart';
+import '../presentation/dialogs/pending_invites_list.dart';
 import '../presentation/widgets/members/member_list_tile.dart';
 
 class MembersPage extends StatefulWidget {
@@ -25,12 +26,12 @@ class MembersPage extends StatefulWidget {
 }
 
 class _MembersPageState extends State<MembersPage> {
-  late final MembersPageController _controller;
+  late final MembersController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = getIt<MembersPageController>();
+    _controller = getIt<MembersController>();
     _controller.init(widget.workspaceSlug);
   }
 
@@ -80,120 +81,26 @@ class _MembersPageState extends State<MembersPage> {
           ),
         ),
         Expanded(
-          child: ListenableBuilder(
-            listenable: _controller,
-            builder: (context, _) {
-              if (_controller.initError != null) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 16,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Colors.red,
-                      ),
-                      Text('Erro ao carregar workspace: ${_controller.initError}'),
-                      FilledButton(
-                        onPressed: () => _controller.init(widget.workspaceSlug),
-                        child: const Text('Tentar novamente'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              if (_controller.workspaceId == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (_controller.isLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (_controller.error != null) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 16,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Colors.red,
-                      ),
-                      Text(_controller.error!),
-                      FilledButton(
-                        onPressed: () =>
-                            _controller.loadData(_controller.workspaceId!),
-                        child: const Text('Tentar novamente'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 24,
-                  children: [
-                    Text(
-                      'Membros Ativos',
-                      style: Theme.of(context).textTheme.titleLarge
-                          ?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                    Card(
-                      child: Column(
-                        children: _controller.members.map(
-                          (memberWithUser) {
-                            final isOwner =
-                                memberWithUser.member.role ==
-                                MemberRole.owner;
-                            return MemberListTile(
-                              memberWithUser: memberWithUser,
-                              canEdit: !isOwner,
-                              onRemove: () => _confirmRemoveMember(context,
-                                  memberWithUser.member.id!,
-                                memberWithUser.userName,
-                              ),
-                              onChangeRole: (newRole) => _changeMemberRole(
-                                memberWithUser.member.id!,
-                                newRole,
-                              ),
-                              onManagePermissions: () =>
-                                  _showPermissionsDialog(
-                                    memberWithUser.member.id!,
-                                    memberWithUser.userName,
-                                  ),
-                              onTransferOwnership: () =>
-                                  _showTransferOwnershipDialog(),
-                            );
-                          },
-                        ).toList(),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    Text(
-                      'Convites Pendentes',
-                      style: Theme.of(context).textTheme.titleLarge
-                          ?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                    Card(
-                      child: PendingInvitesList(
-                        invites: _controller.invites,
-                        onRevoke: _revokeInvite,
-                      ),
-                    ),
-                  ],
+          child: ValueListenableBuilder<MembersState>(
+            valueListenable: _controller.store,
+            builder: (context, state, _) {
+              return switch (state) {
+                MembersInitial() => _buildLoadingState(
+                  context,
+                  'Inicializando...',
                 ),
-              );
+                MembersLoading() => _buildLoadingState(
+                  context,
+                  'Carregando membros...',
+                ),
+                MembersLoaded(
+                  :final members,
+                  :final invites,
+                  :final allPermissions,
+                ) =>
+                  _buildContent(context, members, invites, allPermissions),
+                MembersError(:final message) => _buildError(context, message),
+              };
             },
           ),
         ),
@@ -201,11 +108,156 @@ class _MembersPageState extends State<MembersPage> {
     );
   }
 
+  Widget _buildContent(
+    BuildContext context,
+    List<MemberWithUser> members,
+    List<WorkspaceInvite> invites,
+    List<Permission> allPermissions,
+  ) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 24,
+        children: [
+          Text(
+            'Membros Ativos',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Card(
+            child: members.isEmpty
+                ? _buildEmptyState(
+                    context,
+                    icon: Icons.people_outline,
+                    message: 'Nenhum membro encontrado',
+                  )
+                : Column(
+                    children: members.map((memberWithUser) {
+                      final isOwner =
+                          memberWithUser.member.role == MemberRole.owner;
+                      return MemberListTile(
+                        memberWithUser: memberWithUser,
+                        canEdit: !isOwner,
+                        onRemove: () => _confirmRemoveMember(
+                          context,
+                          memberWithUser.member.id!,
+                          memberWithUser.userName,
+                        ),
+                        onChangeRole: (newRole) => _changeMemberRole(
+                          memberWithUser.member.id!,
+                          newRole,
+                        ),
+                        onManagePermissions: () => _showPermissionsDialog(
+                          memberWithUser.member.id!,
+                          memberWithUser.userName,
+                        ),
+                        onTransferOwnership: () =>
+                            _showTransferOwnershipDialog(members),
+                      );
+                    }).toList(),
+                  ),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            'Convites Pendentes',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+
+          Card(
+            child: invites.isEmpty
+                ? _buildEmptyState(
+                    context,
+                    icon: Icons.mail_outline,
+                    message: 'Nenhum convite pendente',
+                  )
+                : PendingInvitesList(
+                    invites: invites,
+                    onRevoke: _revokeInvite,
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(
+    BuildContext context, {
+    required IconData icon,
+    required String message,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            size: 48,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context, String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 16,
+        children: [
+          const CircularProgressIndicator(),
+          Text(
+            message,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildError(BuildContext context, String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 16,
+        children: [
+          const Icon(
+            Icons.error_outline,
+            size: 64,
+            color: Colors.red,
+          ),
+          Text(message),
+          FilledButton(
+            onPressed: () => _controller.init(widget.workspaceSlug),
+            child: const Text('Tentar novamente'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showInviteDialog() {
+    final state = _controller.state;
+    if (state is! MembersLoaded) return;
+
     showDialog(
       context: context,
       builder: (context) => InviteMemberDialog(
-        allPermissions: _controller.allPermissions
+        allPermissions: state.allPermissions
             .map(
               (p) => PermissionInfo(
                 permission: p,
@@ -282,7 +334,10 @@ class _MembersPageState extends State<MembersPage> {
     }
   }
 
-  Future<void> _showPermissionsDialog(UuidValue memberId, String userName) async {
+  Future<void> _showPermissionsDialog(
+    UuidValue memberId,
+    String userName,
+  ) async {
     final permissions = await _controller.getMemberPermissions(memberId);
     if (permissions == null || !mounted) return;
 
@@ -298,14 +353,16 @@ class _MembersPageState extends State<MembersPage> {
     );
   }
 
-  void _showTransferOwnershipDialog() {
+  void _showTransferOwnershipDialog(List<MemberWithUser> members) {
     showDialog(
       context: context,
       builder: (context) => TransferOwnershipDialog(
-        members: _controller.members,
+        members: members,
         onTransfer: (newOwnerId) {
           return _controller.transferOwnership(
-              _controller.workspaceId!, newOwnerId);
+            _controller.workspaceId!,
+            newOwnerId,
+          );
         },
       ),
     );

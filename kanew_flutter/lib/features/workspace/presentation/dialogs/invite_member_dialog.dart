@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:kanew_client/kanew_client.dart' hide Card;
 import '../../../../config/app_config.dart';
 import '../../../../core/di/injection.dart';
-import '../../widgets/member/permission_matrix.dart';
+import '../../../../core/widgets/member/permission_matrix.dart';
 
 class InviteMemberDialog extends StatefulWidget {
   final List<PermissionInfo> allPermissions;

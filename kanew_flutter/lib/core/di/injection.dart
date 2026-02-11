@@ -27,7 +27,7 @@ import '../../features/workspace/data/workspace_repository.dart';
 import '../../features/workspace/domain/repositories/member_repository.dart';
 import '../../features/workspace/data/repositories/member_repository_impl.dart';
 import '../../features/workspace/viewmodel/workspace_controller.dart';
-import '../../features/workspace/presentation/controllers/members_page_controller.dart';
+import '../../features/workspace/member_injector.dart';
 import '../services/file_picker_service.dart';
 
 /// Global service locator instance
@@ -204,12 +204,8 @@ getIt.registerLazySingleton<MemberRepository>(
     ),
   );
 
-getIt.registerFactory<MembersPageController>(
-      () => MembersPageController(
-        repository: getIt<MemberRepository>(),
-        workspaceRepository: getIt<WorkspaceRepository>(),
-      ),
-    );
+  // Register Member feature dependencies
+  MemberInjector().register();
 }
 
 /// Gets the Serverpod client

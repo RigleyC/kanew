@@ -13,8 +13,13 @@ class SlashMenuOverlay extends StatefulWidget {
   State<SlashMenuOverlay> createState() => _SlashMenuOverlayState();
 }
 
-class _SlashMenuOverlayState extends State<SlashMenuOverlay> {
+class _SlashMenuOverlayState extends State<SlashMenuOverlay>
+    with SingleTickerProviderStateMixin {
   late final ScrollController _scrollController;
+  late final AnimationController _animationController;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<double> _scaleAnimation;
+
   String _lastQuery = '';
   bool _lastIsOpen = false;
   int _lastSelectedIndex = 0;
@@ -23,7 +28,29 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
     widget.plugin.addListener(_onPluginChange);
+
+    // Iniciar animação se já estiver aberto (caso raro no init, mas possível)
+    if (widget.plugin.isOpen) {
+      _animationController.forward();
+    }
   }
 
   @override
@@ -39,29 +66,47 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay> {
   void dispose() {
     widget.plugin.removeListener(_onPluginChange);
     _scrollController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
   void _onPluginChange() {
     if (!mounted) return;
-    
-    // ✅ Só rebuildar se mudou algo visual
+
     final plugin = widget.plugin;
-    final shouldRebuild = plugin.isOpen != _lastIsOpen ||
-                         plugin.query != _lastQuery ||
-                         plugin.selectedIndex != _lastSelectedIndex;
-    
-    if (shouldRebuild) {
-      setState(() {});
-      _lastQuery = plugin.query;
-      _lastIsOpen = plugin.isOpen;
-      _lastSelectedIndex = plugin.selectedIndex;
+
+    final wasOpen = _lastIsOpen;
+    final wasQuery = _lastQuery;
+    final wasSelectedIndex = _lastSelectedIndex;
+
+    _lastIsOpen = plugin.isOpen;
+    _lastQuery = plugin.query;
+    _lastSelectedIndex = plugin.selectedIndex;
+
+    final isOpening = plugin.isOpen && !wasOpen;
+    final isClosing = !plugin.isOpen && wasOpen;
+
+    if (isOpening) {
+      _animationController.forward(from: 0.0);
+    } else if (isClosing) {
+      _animationController.reverse();
     }
 
-    // Scroll após render
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _ensureSelectedVisible(),
-    );
+    final needsRebuild =
+        isOpening ||
+        isClosing ||
+        plugin.query != wasQuery ||
+        plugin.selectedIndex != wasSelectedIndex;
+
+    if (needsRebuild) {
+      setState(() {});
+    }
+
+    if (plugin.isOpen) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _ensureSelectedVisible(),
+      );
+    }
   }
 
   void _ensureSelectedVisible() {
@@ -74,13 +119,11 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay> {
     final selectedIndex = plugin.selectedIndex.clamp(0, items.length - 1);
     final itemHeight = 56.0;
 
-    // Reset scroll quando abre ou muda query
     if (!_lastIsOpen && plugin.isOpen || _lastQuery != plugin.query) {
       _scrollController.jumpTo(0);
       return;
     }
 
-    // Auto-scroll para item selecionado
     final position = _scrollController.position;
     final viewport = position.viewportDimension;
     final currentOffset = position.pixels;
@@ -116,45 +159,61 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay> {
 
     final items = widget.plugin.filteredItems;
 
-    // Empty state
-    if (items.isEmpty) {
-      return Container(
-        constraints: const BoxConstraints(maxWidth: 300),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: child,
           ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color.fromRGBO(0, 0, 0, 0.15),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Text(
-          'No results found',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.color
-                ?.withValues(alpha: 0.6),
-          ),
-        ),
-      );
-    }
+        );
+      },
+      child: items.isEmpty
+          ? Container(
+              constraints: const BoxConstraints(maxWidth: 300),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).highlightColor
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color.fromRGBO(0, 0, 0, 0.15),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                'No results found',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                ),
+              ),
+            )
+          : _buildMenuList(context, items),
+    );
+  }
 
-    final selectedIndex = widget.plugin.selectedIndex.clamp(0, items.length - 1);
+  Widget _buildMenuList(BuildContext context, List<SlashMenuItem> items) {
+    final selectedIndex = widget.plugin.selectedIndex.clamp(
+      0,
+      items.length - 1,
+    );
 
     return Container(
       constraints: const BoxConstraints(
-        maxHeight: 384, // Spec Tiptap
-        maxWidth: 300,
+        maxHeight: 384,
+        maxWidth: 200,
       ),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(8),
@@ -171,7 +230,7 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay> {
       ),
       child: ListView.builder(
         controller: _scrollController,
-        itemExtent: 56.0, // ✅ Perfeito para performance
+        itemExtent: 32,
         shrinkWrap: true,
         padding: EdgeInsets.zero,
         itemCount: items.length,
@@ -182,60 +241,31 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay> {
           return InkWell(
             onTap: () => widget.plugin.executeSelected(item),
             hoverColor: Colors.transparent,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200), // Spec Tiptap
-              curve: Curves.easeInOut,
+            child: Container(
               decoration: BoxDecoration(
-                color: isSelected 
-                  ? Theme.of(context).highlightColor 
-                  : Colors.transparent,
-                borderRadius: BorderRadius.circular(4), // Spec Tiptap
+                color: isSelected
+                    ? Theme.of(context).highlightColor
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
               ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12, // Spec: 12px
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: Row(
+                spacing: 8,
                 children: [
                   Icon(
                     item.icon,
-                    size: 20, // Spec: 20px (você tinha 14)
+                    size: 14,
                     color: Theme.of(context).iconTheme.color,
                   ),
-                  const SizedBox(width: 12), // Gap entre icon e texto
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          item.title,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        if (item.subtitle.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            item.subtitle,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  fontSize: 12.8, // Spec Tiptap
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color
-                                      ?.withValues(alpha: 0.6), // Spec: 60%
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ],
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        item.title,
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                    ],
                   ),
                 ],
               ),

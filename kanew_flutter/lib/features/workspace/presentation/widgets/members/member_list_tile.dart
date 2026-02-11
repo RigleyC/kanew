@@ -110,27 +110,21 @@ class MemberListTile extends StatelessWidget {
                 ],
               ],
             )
-          : isOwner
-              ? const Chip(
-                  label: Text('Proprietário'),
-                  labelStyle: TextStyle(fontSize: 12),
-                  visualDensity: VisualDensity.compact,
-                )
-              : null,
+          : null,
     );
   }
 
   void _handleMenuAction(String action, BuildContext context) {
-      switch (action) {
-        case 'role_guest':
-          onChangeRole?.call(MemberRole.guest);
-          break;
-        case 'role_member':
-          onChangeRole?.call(MemberRole.member);
-          break;
-        case 'role_admin':
-          onChangeRole?.call(MemberRole.admin);
-          break;
+    switch (action) {
+      case 'role_guest':
+        onChangeRole?.call(MemberRole.guest);
+        break;
+      case 'role_member':
+        onChangeRole?.call(MemberRole.member);
+        break;
+      case 'role_admin':
+        onChangeRole?.call(MemberRole.admin);
+        break;
       case 'permissions':
         onManagePermissions?.call();
         break;

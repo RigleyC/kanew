@@ -14,24 +14,9 @@ class WorkspaceService {
     required UuidValue authUserId,
     required String email,
   }) async {
-    // Check if user was invited (has pending invite with their email)
-    // Note: email is now optional, so we check if it exists and matches
-    final invite = await WorkspaceInvite.db.findFirstRow(
-      session,
-      where: (t) =>
-          t.email.equals(email) &
-          t.acceptedAt.equals(null) &
-          t.revokedAt.equals(null),
-    );
-
-    if (invite != null) {
-      // Invited user - don't create default workspace
-      // They'll be added to the inviting workspace via invite flow
-      session.log(
-        '[WorkspaceService] User $email was invited, skipping default workspace',
-      );
-      throw Exception('User was invited, should join invited workspace');
-    }
+    // User always creates default workspace on signup
+    // Invite flow is separate - user accepts invitation AFTER having an account
+    // See plan.md line 184: email is optional in invites
 
     // Get the user's email username as workspace title base
     final emailUsername = email.split('@').first;

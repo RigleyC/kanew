@@ -47,7 +47,7 @@ class BoardDataAdapter {
 
     for (final cardList in lists) {
       final groupId = cardList.id.toString();
-      final cardsForList = cardsByListId[cardList.id] ?? const <CardSummary>[];
+      final cardsForList = cardsByListId[groupId] ?? const <CardSummary>[];
 
       if (!currentGroupIds.contains(groupId)) {
         final items = List<AppFlowyGroupItem>.from(

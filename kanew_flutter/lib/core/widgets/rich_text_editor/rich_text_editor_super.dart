@@ -120,44 +120,54 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
     }
 
-    // Return SuperEditor directly. It produces a RenderSliver.
-    // Needs to be placed inside a CustomScrollView.
-    final isEmptyDoc = _isDocumentEmpty(editorState.document);
+    // SuperEditor produces a RenderSliver and must be used in a CustomScrollView's `slivers`.
+    return SliverLayoutBuilder(
+      builder: (context, constraints) {
+        final extraBottomPadding = _calculateExtraBottomPadding(
+          context: context,
+          document: editorState.document,
+          colorScheme: colorScheme,
+          availableWidth: constraints.crossAxisExtent,
+        );
 
-    return SuperEditor(
-      scrollController: _scrollController,
-      editor: editorState.editor,
-      selectionLayerLinks: _selectionLinks,
-      stylesheet: _buildStylesheet(colorScheme, isEmptyDoc: isEmptyDoc),
-      componentBuilders: _buildComponentBuilders(),
-      selectionStyle: SelectionStyles(
-        selectionColor: colorScheme.primary.withValues(alpha: 0.3),
-      ),
-      documentOverlayBuilders: [
-        // Filtrar para evitar duplicação do caret
-        ...defaultSuperEditorDocumentOverlayBuilders.where(
-          (builder) => builder is! DefaultCaretOverlayBuilder,
-        ),
-        // Caret customizado
-        DefaultCaretOverlayBuilder(
-          caretStyle: CaretStyle(
-            color: colorScheme.primary,
-            width: 2.0,
+        return SuperEditor(
+          scrollController: _scrollController,
+          editor: editorState.editor,
+          selectionLayerLinks: _selectionLinks,
+          stylesheet: _buildStylesheet(
+            colorScheme,
+            extraBottomPadding: extraBottomPadding,
           ),
-        ),
-      ],
-      // Enable keyboard shortcuts (Cmd+B, etc) and markdown input handlers
-      keyboardActions: [
-        if (_slashMenuPlugin != null)
-          ({
-            required SuperEditorContext editContext,
-            required KeyEvent keyEvent,
-          }) =>
-              _slashMenuPlugin!.onKeyEvent(editContext, keyEvent),
-        _copyRichTextWhenAvailable,
-        _pasteRichTextWhenAvailable,
-        ...defaultKeyboardActions,
-      ],
+          componentBuilders: _buildComponentBuilders(),
+          selectionStyle: SelectionStyles(
+            selectionColor: colorScheme.primary.withValues(alpha: 0.3),
+          ),
+          documentOverlayBuilders: [
+            // Filtrar para evitar duplicação do caret
+            ...defaultSuperEditorDocumentOverlayBuilders.where(
+              (builder) => builder is! DefaultCaretOverlayBuilder,
+            ),
+            // Caret customizado
+            DefaultCaretOverlayBuilder(
+              caretStyle: CaretStyle(
+                color: colorScheme.primary,
+                width: 2.0,
+              ),
+            ),
+          ],
+          // Enable keyboard shortcuts (Cmd+B, etc) and markdown input handlers
+          keyboardActions: [
+            if (_slashMenuPlugin != null)
+              ({
+                required SuperEditorContext editContext,
+                required KeyEvent keyEvent,
+              }) => _slashMenuPlugin!.onKeyEvent(editContext, keyEvent),
+            _copyRichTextWhenAvailable,
+            _pasteRichTextWhenAvailable,
+            ...defaultKeyboardActions,
+          ],
+        );
+      },
     );
   }
 
@@ -322,21 +332,20 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
 
   Stylesheet _buildStylesheet(
     ColorScheme colorScheme, {
-    required bool isEmptyDoc,
+    required double extraBottomPadding,
   }) {
-    final minHeight = widget.config.minHeight ?? 0;
-    final extraBottomPadding =
-        isEmptyDoc ? math.max(0, minHeight - 24) : 0;
     return Stylesheet(
       rules: [
         // Base style for all blocks
         StyleRule(
           BlockSelector.all,
           (doc, docNode) {
+            final isLastNode =
+                doc.getNodeIndexById(docNode.id) == doc.nodeCount - 1;
             return {
               Styles.padding: CascadingPadding.only(
                 top: 4,
-                bottom: 4 + extraBottomPadding.toDouble(),
+                bottom: 4 + (isLastNode ? extraBottomPadding : 0),
               ),
               Styles.textStyle: TextStyle(
                 color: colorScheme.onSurface,
@@ -350,8 +359,13 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
         StyleRule(
           const BlockSelector("header1"),
           (doc, docNode) {
+            final isLastNode =
+                doc.getNodeIndexById(docNode.id) == doc.nodeCount - 1;
             return {
-              Styles.padding: const CascadingPadding.only(top: 16, bottom: 8),
+              Styles.padding: CascadingPadding.only(
+                top: 16,
+                bottom: 8 + (isLastNode ? extraBottomPadding : 0),
+              ),
               Styles.textStyle: TextStyle(
                 color: colorScheme.onSurface,
                 fontSize: 24,
@@ -365,8 +379,13 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
         StyleRule(
           const BlockSelector("header2"),
           (doc, docNode) {
+            final isLastNode =
+                doc.getNodeIndexById(docNode.id) == doc.nodeCount - 1;
             return {
-              Styles.padding: const CascadingPadding.only(top: 12, bottom: 6),
+              Styles.padding: CascadingPadding.only(
+                top: 12,
+                bottom: 6 + (isLastNode ? extraBottomPadding : 0),
+              ),
               Styles.textStyle: TextStyle(
                 color: colorScheme.onSurface,
                 fontSize: 20,
@@ -380,8 +399,13 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
         StyleRule(
           const BlockSelector("header3"),
           (doc, docNode) {
+            final isLastNode =
+                doc.getNodeIndexById(docNode.id) == doc.nodeCount - 1;
             return {
-              Styles.padding: const CascadingPadding.only(top: 10, bottom: 4),
+              Styles.padding: CascadingPadding.only(
+                top: 10,
+                bottom: 4 + (isLastNode ? extraBottomPadding : 0),
+              ),
               Styles.textStyle: TextStyle(
                 color: colorScheme.onSurface,
                 fontSize: 17,
@@ -395,11 +419,13 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
         StyleRule(
           const BlockSelector("blockquote"),
           (doc, docNode) {
+            final isLastNode =
+                doc.getNodeIndexById(docNode.id) == doc.nodeCount - 1;
             return {
-              Styles.padding: const CascadingPadding.only(
+              Styles.padding: CascadingPadding.only(
                 left: 16,
                 top: 8,
-                bottom: 8,
+                bottom: 8 + (isLastNode ? extraBottomPadding : 0),
               ),
               Styles.textStyle: TextStyle(
                 color: colorScheme.onSurface.withValues(alpha: 0.7),
@@ -437,19 +463,21 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
       }
       builders.add(builder);
     }
-/* 
+
     if (widget.config.placeholder.isNotEmpty) {
       addIfMissing(
         HintComponentBuilder(
-          hint: widget.config.placeholder,
-          hintStyleBuilder: (context) => TextStyle(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+          widget.config.placeholder,
+          (context) => TextStyle(
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.5),
             fontSize: 14,
             height: 1.6,
           ),
         ),
       );
-    } */
+    }
 
     if (widget.config.enabledBlocks.contains(EditorBlockType.paragraph)) {
       addIfMissing(const ParagraphComponentBuilder());
@@ -471,18 +499,102 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
 
     return builders;
   }
-}
 
-bool _isDocumentEmpty(MutableDocument doc) {
-  if (doc.isEmpty) return true;
-  if (doc.nodeCount != 1) return false;
-  final node = doc.firstOrNull;
-  if (node == null) return true;
-  if (node is ParagraphNode) {
-    return node.text.toPlainText().trim().isEmpty;
+  double _calculateExtraBottomPadding({
+    required BuildContext context,
+    required MutableDocument document,
+    required ColorScheme colorScheme,
+    required double availableWidth,
+  }) {
+    final minHeight = widget.config.minHeight;
+    if (minHeight == null || minHeight <= 0) return 0;
+
+    final estimatedHeight = _estimateDocumentHeight(
+      context: context,
+      document: document,
+      colorScheme: colorScheme,
+      availableWidth: availableWidth,
+    );
+
+    return math.max(0, minHeight - estimatedHeight);
   }
-  if (node is TextNode) {
-    return node.text.toPlainText().trim().isEmpty;
+
+  double _estimateDocumentHeight({
+    required BuildContext context,
+    required MutableDocument document,
+    required ColorScheme colorScheme,
+    required double availableWidth,
+  }) {
+    // Approximation aligned with `_buildStylesheet` to keep a stable min height.
+    final textScaler = MediaQuery.textScalerOf(context);
+    final textDirection = Directionality.of(context);
+
+    double total = 0;
+
+    for (final node in document) {
+      final blockType = node.metadata[NodeMetadata.blockType] as Attribution?;
+
+      var paddingTop = 4.0;
+      var paddingBottom = 4.0;
+      var horizontalInset = 0.0;
+
+      TextStyle textStyle = TextStyle(
+        color: colorScheme.onSurface,
+        fontSize: 14,
+        height: 1.6,
+      );
+
+      if (blockType == header1Attribution) {
+        paddingTop = 16;
+        paddingBottom = 8;
+        textStyle = TextStyle(
+          color: colorScheme.onSurface,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          height: 1.3,
+        );
+      } else if (blockType == header2Attribution) {
+        paddingTop = 12;
+        paddingBottom = 6;
+        textStyle = TextStyle(
+          color: colorScheme.onSurface,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          height: 1.3,
+        );
+      } else if (blockType == header3Attribution) {
+        paddingTop = 10;
+        paddingBottom = 4;
+        textStyle = TextStyle(
+          color: colorScheme.onSurface,
+          fontSize: 17,
+          fontWeight: FontWeight.bold,
+          height: 1.3,
+        );
+      } else if (blockType == blockquoteAttribution) {
+        horizontalInset = 16;
+        paddingTop = 8;
+        paddingBottom = 8;
+        textStyle = TextStyle(
+          color: colorScheme.onSurface.withValues(alpha: 0.7),
+          fontSize: 14,
+          fontStyle: FontStyle.italic,
+          height: 1.5,
+        );
+      }
+
+      final plainText = (node is TextNode) ? node.text.toPlainText() : '';
+      final measureText = plainText.isEmpty ? ' ' : plainText;
+
+      final painter = TextPainter(
+        text: TextSpan(text: measureText, style: textStyle),
+        textDirection: textDirection,
+        textScaler: textScaler,
+      )..layout(maxWidth: math.max(0, availableWidth - horizontalInset));
+
+      total += paddingTop + painter.height + paddingBottom;
+    }
+
+    return total;
   }
-  return false;
 }
