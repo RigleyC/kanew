@@ -7,7 +7,7 @@ import '../../../auth/viewmodel/auth_controller.dart';
 import 'workspace_switcher.dart';
 import 'user_profile_tile.dart';
 
-/// Navegação adaptativa: Sidebar para desktop, BottomNav para mobile
+/// Navega??o adaptativa: Sidebar para desktop, BottomNav para mobile
 class AdaptiveNavigation extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
   final String workspaceSlug;
@@ -103,7 +103,7 @@ class _DesktopNavigation extends StatelessWidget {
       listenable: authController,
       builder: (context, _) {
         return UserProfileTile(
-          email: 'teste@kanew.com',
+          email: authController.userEmail ?? authController.currentEmail ?? 'usuario@kanew.app',
           onLogout: () async {
             await authController.logout();
             workspaceController.clear();
@@ -144,7 +144,7 @@ class _DesktopNavigation extends StatelessWidget {
             ),
             SidebarItem(
               icon: const Icon(Icons.settings_rounded),
-              label: 'Configurações',
+              label: 'Configura??es',
               selected: currentIndex == 2,
               onPress: () => navigateAndClose(2),
             ),
@@ -184,7 +184,7 @@ class _MobileNavigation extends StatelessWidget {
         ),
         NavigationDestination(
           icon: Icon(Icons.settings_rounded),
-          label: 'Configurações',
+          label: 'Configura??es',
         ),
       ],
     );

@@ -1,5 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
+import '../errors/http_exceptions.dart';
+
 /// Helper class for authentication-related utilities.
 ///
 /// Centralizes common authentication functions used across endpoints
@@ -12,7 +14,7 @@ class AuthHelper {
   static UuidValue getAuthenticatedUserId(Session session) {
     final authenticated = session.authenticated;
     if (authenticated == null) {
-      throw Exception('User not authenticated');
+      throw UnauthorizedException(message: 'User not authenticated');
     }
     // Parse the userIdentifier string to UuidValue
     return UuidValue.fromString(authenticated.userIdentifier);

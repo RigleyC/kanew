@@ -7,8 +7,7 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
 
 import '../../config/app_config.dart';
-import '../../features/auth/data/auth_repository.dart';
-import '../../features/auth/viewmodel/auth_controller.dart';
+import '../../features/auth/auth_injector.dart';
 import '../../features/board/data/board_repository.dart';
 import '../../features/board/data/list_repository.dart';
 import '../../features/board/data/card_repository.dart';
@@ -74,9 +73,7 @@ Future<void> setupDependencies() async {
   // REPOSITORIES
   // ============================================================
 
-  getIt.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(client: getIt<Client>()),
-  );
+  AuthInjector().register();
 
   getIt.registerLazySingleton<WorkspaceRepository>(
     () => WorkspaceRepository(client: getIt<Client>()),
@@ -93,13 +90,6 @@ Future<void> setupDependencies() async {
   // ============================================================
   // VIEWMODELS
   // ============================================================
-
-  getIt.registerLazySingleton<AuthController>(
-    () => AuthController(
-      repository: getIt<AuthRepository>(),
-      authManager: getIt<FlutterAuthSessionManager>(),
-    ),
-  );
 
   getIt.registerLazySingleton<WorkspaceController>(
     () => WorkspaceController(

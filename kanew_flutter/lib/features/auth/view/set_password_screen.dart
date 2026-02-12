@@ -60,7 +60,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     if (password != confirmPassword) {
       showKanewErrorToast(
         context,
-        title: 'As senhas não coincidem',
+        title: 'As senhas n?o coincidem',
       );
       return;
     }
@@ -130,9 +130,9 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                   padding: const EdgeInsets.all(32),
                   child: Form(
                     key: _formKey,
-                    child: ListenableBuilder(
-                      listenable: getIt<AuthController>(),
-                      builder: (context, _) {
+                    child: ValueListenableBuilder<AuthState>(
+                      valueListenable: getIt<AuthController>().store,
+                      builder: (context, _, __) {
                         final viewModel = getIt<AuthController>();
                         return Column(
                           mainAxisSize: MainAxisSize.min,
@@ -175,7 +175,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                                 controller: _passwordController,
                               ),
                               label: const Text('Senha'),
-                              hint: 'Mínimo 8 caracteres',
+                              hint: 'M?nimo 8 caracteres',
                               obscureText: true,
                               enabled: !viewModel.isLoading,
                             ),
@@ -231,3 +231,4 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     );
   }
 }
+

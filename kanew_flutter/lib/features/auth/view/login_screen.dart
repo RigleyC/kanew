@@ -73,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
       case AuthEmailNotVerifiedError():
         showKanewInfoToast(
           context,
-          title: 'Email não verificado. Código enviado!',
+          title: 'Email n?o verificado. C?digo enviado!',
         );
         developer.log(
           'Email not verified, navigating to verification',
@@ -114,9 +114,9 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showAccountNotFoundDialog(String email) {
     showKanewConfirmDialog(
       context: context,
-      title: 'Conta não encontrada',
+      title: 'Conta n?o encontrada',
       body:
-          'Não existe uma conta com o email "$email".\n\n'
+          'N?o existe uma conta com o email "$email".\n\n'
           'Deseja criar uma conta?',
       confirmText: 'Criar conta',
       onConfirm: () {
@@ -143,9 +143,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.all(32),
                   child: Form(
                     key: _formKey,
-                    child: ListenableBuilder(
-                      listenable: getIt<AuthController>(),
-                      builder: (context, _) {
+                    child: ValueListenableBuilder<AuthState>(
+                      valueListenable: getIt<AuthController>().store,
+                      builder: (context, _, __) {
                         final viewModel = getIt<AuthController>();
                         return Column(
                           mainAxisSize: MainAxisSize.min,
@@ -258,3 +258,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+

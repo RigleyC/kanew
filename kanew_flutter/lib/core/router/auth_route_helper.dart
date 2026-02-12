@@ -8,6 +8,19 @@ class AuthRouteHelper {
   static String signup({String? redirect}) =>
       _buildPath('/auth/signup', redirect: redirect);
 
+  static String resetPassword({
+    required String email,
+    required String requestId,
+  }) {
+    final params = <String, String>{
+      'email': email,
+      'requestId': requestId,
+      // Transitional compatibility with old query key.
+      'accountRequestId': requestId,
+    };
+    return Uri(path: '/auth/reset-password', queryParameters: params).toString();
+  }
+
   static String verification({
     required String email,
     required String accountRequestId,
