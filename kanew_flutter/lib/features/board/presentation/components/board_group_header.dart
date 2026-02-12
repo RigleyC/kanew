@@ -95,29 +95,45 @@ class BoardGroupHeader extends StatelessWidget {
       menuAnchor: Alignment.topRight,
       childAnchor: Alignment.bottomRight,
       offset: const Offset(0, 8),
-      width: 150,
-      anchor: const Icon(Icons.more_horiz_rounded),
-      contentPadding: const EdgeInsets.symmetric(vertical: 6),
-      contentBuilder: (close) => InkWell(
-        onTap: () async {
-          close();
-          await onDelete(listId);
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Row(
-            children: [
-              Icon(
-                Icons.delete_outline,
-                size: 16,
-                color: colorScheme.error,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Excluir',
-                style: TextStyle(color: colorScheme.error),
-              ),
-            ],
+      anchorBuilder: (context, controller) => IconButton(
+        onPressed: controller.toggle,
+        icon: const Icon(Icons.more_horiz_rounded),
+      ),
+      contentBuilder: (context, close) => Container(
+        width: 150,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colorScheme.outlineVariant),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: InkWell(
+          onTap: () async {
+            close();
+            await onDelete(listId);
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.delete_outline,
+                  size: 16,
+                  color: colorScheme.error,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Excluir',
+                  style: TextStyle(color: colorScheme.error),
+                ),
+              ],
+            ),
           ),
         ),
       ),

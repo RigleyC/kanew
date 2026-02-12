@@ -288,7 +288,23 @@ class _CardDetailPageState extends State<CardDetailPage> {
           canEdit: true,
         ),
       ),
-      SliverPadding(
+      if (_controller.checklists.isNotEmpty) ...[
+        SliverPadding(
+          padding: const EdgeInsets.only(top: 8),
+          sliver: ChecklistSection(
+            checklists: _controller.checklists,
+            checklistItems: _controller.checklistItems,
+            onAddItem: _controller.addItem,
+            onRenameChecklist: _controller.renameChecklist,
+            onDeleteChecklist: _controller.deleteChecklist,
+            onToggleItem: _controller.toggleItem,
+            onDeleteItem: _controller.deleteItem,
+            onRenameItem: _controller.renameItem,
+            onReorderItems: _controller.reorderItems,
+          ),
+        ),
+      ],
+      /*      SliverPadding(
         padding: padding.copyWith(top: 0),
         sliver: SliverList.list(
           children: [
@@ -306,7 +322,6 @@ class _CardDetailPageState extends State<CardDetailPage> {
                 onRenameItem: _controller.renameItem,
                 onReorderItems: _controller.reorderItems,
               ),
-              const SizedBox(height: 8),
             ],
             const SizedBox(height: 24),
 
@@ -347,7 +362,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
             ),
           ],
         ),
-      ),
+      ), */
     ];
   }
 

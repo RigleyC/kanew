@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kanew_flutter/core/widgets/editable_inline_text.dart';
 
 class AddChecklistItemInput extends StatefulWidget {
   final void Function(String title) onSubmit;
@@ -15,64 +16,65 @@ class AddChecklistItemInput extends StatefulWidget {
 }
 
 class _AddChecklistItemInputState extends State<AddChecklistItemInput> {
-  final _controller = TextEditingController();
-  final _focusNode = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final title = _controller.text.trim();
+  void _submit(String value) {
+    final title = value.trim();
     if (title.isNotEmpty) {
       widget.onSubmit(title);
-      _controller.clear();
+      return;
     }
+    widget.onCancel();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              decoration: const InputDecoration(
-                hintText: 'Adicionar um item',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                isDense: true,
-              ),
-              onSubmitted: (_) => _submit(),
+    return TapRegion(
+      onTapOutside: (_) => widget.onCancel(),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 6, 0, 6),
+        margin: const EdgeInsets.only(left: 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          spacing: 8,
+          children: [
+            Icon(
+              Icons.check_box_outline_blank_rounded,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-          ),
-          const SizedBox(width: 8),
-          FilledButton(
-            onPressed: _submit,
-            child: const Text('Adicionar'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: widget.onCancel,
-          ),
-        ],
+            Expanded(
+              child: EditableInlineText(
+                textStyle: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                editingTextStyle: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Adicionar um item',
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
+                onSave: _submit,
+                text: '',
+                initiallyEditing: true,
+                saveOnFocusLoss: false,
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              iconSize: 16,
+              icon: const Icon(Icons.close),
+              onPressed: widget.onCancel,
+            ),
+          ],
+        ),
       ),
     );
   }

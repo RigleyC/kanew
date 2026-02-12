@@ -40,29 +40,26 @@ class ChecklistSection extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...checklists.map((checklist) {
-          final items = checklistItems[checklist.id] ?? [];
-
-          return ChecklistCard(
-            checklist: checklist,
-            items: items,
-            onAddItem: (title) => onAddItem(checklist.id!, title),
-            onRenameChecklist: (title) =>
-                onRenameChecklist(checklist.id!, title),
-            onDelete: () => onDeleteChecklist(checklist.id!),
-            onToggleItem: (itemId, isChecked) =>
-                onToggleItem(checklist.id!, itemId, isChecked),
-            onDeleteItem: (itemId) => onDeleteItem(checklist.id!, itemId),
-            onRenameItem: (itemId, title) =>
-                onRenameItem(checklist.id!, itemId, title),
-            onReorderItems: (orderedItemIds) =>
-                onReorderItems(checklist.id!, orderedItemIds),
-          );
-        }),
-      ],
+    return SliverList.builder(
+      itemCount: checklists.length,
+      itemBuilder: (context, index) {
+        final checklist = checklists[index];
+        final items = checklistItems[checklist.id] ?? [];
+        return ChecklistCard(
+          checklist: checklist,
+          items: items,
+          onAddItem: (title) => onAddItem(checklist.id!, title),
+          onRenameChecklist: (title) => onRenameChecklist(checklist.id!, title),
+          onDelete: () => onDeleteChecklist(checklist.id!),
+          onToggleItem: (itemId, isChecked) =>
+              onToggleItem(checklist.id!, itemId, isChecked),
+          onDeleteItem: (itemId) => onDeleteItem(checklist.id!, itemId),
+          onRenameItem: (itemId, title) =>
+              onRenameItem(checklist.id!, itemId, title),
+          onReorderItems: (orderedItemIds) =>
+              onReorderItems(checklist.id!, orderedItemIds),
+        );
+      },
     );
   }
 }

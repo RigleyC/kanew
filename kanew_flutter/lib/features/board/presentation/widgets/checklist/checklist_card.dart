@@ -63,121 +63,137 @@ class _ChecklistCardState extends State<ChecklistCard> {
     final items = widget.items;
     final completedCount = items.where((i) => i.isChecked).length;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: EditableInlineText(
-                text: widget.checklist.title,
-                onSave: widget.onRenameChecklist,
-                textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-                editingTextStyle: Theme.of(context).textTheme.titleMedium
-                    ?.copyWith(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                decoration: const InputDecoration(
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: EditableInlineText(
+                  text: widget.checklist.title,
+                  onSave: widget.onRenameChecklist,
+                  textStyle: Theme.of(context).textTheme.titleLarge,
+                  editingTextStyle: Theme.of(context).textTheme.titleLarge,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
                 ),
               ),
-            ),
-            Row(
-              children: [
-                if (items.isNotEmpty)
-                  ChecklistProgressBadge(
-                    completedCount: completedCount,
-                    totalCount: items.length,
+              Row(
+                children: [
+                  if (items.isNotEmpty)
+                    ChecklistProgressBadge(
+                      completedCount: completedCount,
+                      totalCount: items.length,
+                    ),
+                  IconButton(
+                    hoverColor: Colors.transparent,
+                    onPressed: _isAddingItem
+                        ? null
+                        : () => setState(() => _isAddingItem = true),
+                    icon: const Icon(Icons.add_rounded),
                   ),
-                IconButton(
-                  onPressed: () => setState(() => _isAddingItem = true),
-                  icon: const Icon(Icons.add_rounded),
-                ),
-                KanewPopover(
-                  menuAnchor: Alignment.topRight,
-                  childAnchor: Alignment.bottomRight,
-                  offset: const Offset(0, 8),
-                  width: 150,
-                  anchor: const Icon(Icons.more_vert_rounded),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 6),
-                  contentBuilder: (close) => InkWell(
-                    onTap: () {
-                      close();
-                      _handleDelete();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete_outline,
-                            color: Theme.of(context).colorScheme.error,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Excluir',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
+                  //TODO Alinhar o popover pra abrir pra esquerda
+                  KanewPopover(
+                    childAnchor: Alignment.bottomLeft,
+                    menuAnchor: Alignment.topLeft,
+                    anchorBuilder: (context, controller) => IconButton(
+                      onPressed: controller.toggle,
+                      icon: const Icon(Icons.more_vert_rounded),
+                    ),
+
+                    contentBuilder: (context, close) => Container(
+                      width: 120,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
+                      child: InkWell(
+                        onTap: () {
+                          close();
+                          _handleDelete();
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          child: Row(
+                            spacing: 8,
+                            children: [
+                              Icon(
+                                Icons.delete_outline,
+                                color: Theme.of(context).colorScheme.error,
+                                size: 16,
+                              ),
+
+                              Text(
+                                'Excluir',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        ),
+                ],
+              ),
+            ],
+          ),
 
-        // Items
-        if (items.isNotEmpty)
-          ReorderableListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            buildDefaultDragHandles: false,
-            itemCount: items.length,
-            onReorder: _handleReorder,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return ChecklistItemTile(
-                key: ValueKey(item.id),
-                item: item,
-                onToggle: (isChecked) =>
-                    widget.onToggleItem(item.id!, isChecked),
-                onDelete: () => widget.onDeleteItem(item.id!),
-                onRename: (title) => widget.onRenameItem(item.id!, title),
-                dragHandle: ReorderableDragStartListener(
-                  index: index,
-                  child: const Icon(Icons.drag_indicator_rounded, size: 18),
-                ),
-              );
-            },
-          ),
-        if (_isAddingItem)
-          AddChecklistItemInput(
-            onSubmit: (title) {
-              widget.onAddItem(title);
-              setState(() => _isAddingItem = false);
-            },
-            onCancel: () => setState(() => _isAddingItem = false),
-          ),
-      ],
+          // Items
+          if (items.isNotEmpty)
+            ReorderableListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              buildDefaultDragHandles: false,
+              itemCount: items.length,
+              onReorder: _handleReorder,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return ChecklistItemTile(
+                  key: ValueKey(item.id),
+                  item: item,
+                  onToggle: (isChecked) =>
+                      widget.onToggleItem(item.id!, isChecked),
+                  onDelete: () => widget.onDeleteItem(item.id!),
+                  onRename: (title) => widget.onRenameItem(item.id!, title),
+                  dragHandle: ReorderableDragStartListener(
+                    index: index,
+                    child: const Icon(Icons.drag_indicator_rounded, size: 16),
+                  ),
+                );
+              },
+            ),
+          if (_isAddingItem)
+            AddChecklistItemInput(
+              onSubmit: (title) {
+                widget.onAddItem(title);
+                setState(() => _isAddingItem = false);
+              },
+              onCancel: () => setState(() => _isAddingItem = false),
+            ),
+        ],
+      ),
     );
   }
 }

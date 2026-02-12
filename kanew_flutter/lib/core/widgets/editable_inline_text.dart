@@ -10,6 +10,8 @@ class EditableInlineText extends StatefulWidget {
   final TextStyle? editingTextStyle;
   final InputDecoration? decoration;
   final bool autofocus;
+  final bool initiallyEditing;
+  final bool saveOnFocusLoss;
   final bool allowEmpty;
   final int maxLines;
   final TextAlign textAlign;
@@ -24,6 +26,8 @@ class EditableInlineText extends StatefulWidget {
     this.editingTextStyle,
     this.decoration,
     this.autofocus = true,
+    this.initiallyEditing = false,
+    this.saveOnFocusLoss = true,
     this.allowEmpty = false,
     this.maxLines = 1,
     this.textAlign = TextAlign.start,
@@ -36,15 +40,26 @@ class EditableInlineText extends StatefulWidget {
 }
 
 class _EditableInlineTextState extends State<EditableInlineText> {
-  bool _isEditing = false;
+  late bool _isEditing;
   late final TextEditingController _controller;
   final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
+    _isEditing = widget.initiallyEditing;
     _controller = TextEditingController(text: widget.text);
     _focusNode.addListener(_onFocusChange);
+    if (_isEditing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _focusNode.requestFocus();
+        _controller.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: _controller.text.length,
+        );
+      });
+    }
   }
 
   @override
@@ -65,7 +80,11 @@ class _EditableInlineTextState extends State<EditableInlineText> {
 
   void _onFocusChange() {
     if (!_focusNode.hasFocus && _isEditing) {
-      unawaited(_save());
+      if (widget.saveOnFocusLoss) {
+        unawaited(_save());
+      } else {
+        _cancelEditing();
+      }
     }
   }
 

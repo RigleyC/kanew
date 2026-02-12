@@ -33,11 +33,21 @@ class _ChecklistItemTileState extends State<ChecklistItemTile> {
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+        padding: const EdgeInsets.fromLTRB(0, 6, 12, 6),
         child: Row(
           children: [
             if (widget.dragHandle != null) ...[
-              widget.dragHandle!,
+              SizedBox(
+                width: 18,
+                child: AnimatedOpacity(
+                  opacity: _isHovering ? 1 : 0,
+                  duration: const Duration(milliseconds: 120),
+                  child: IgnorePointer(
+                    ignoring: !_isHovering,
+                    child: widget.dragHandle!,
+                  ),
+                ),
+              ),
               const SizedBox(width: 6),
             ],
             SizedBox(

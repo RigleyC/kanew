@@ -164,33 +164,49 @@ class _BoardHeaderState extends State<BoardHeader> {
       menuAnchor: Alignment.topRight,
       childAnchor: Alignment.bottomRight,
       offset: const Offset(0, 8),
-      width: 170,
-      contentPadding: const EdgeInsets.symmetric(vertical: 6),
-      anchor: Icon(
-        Icons.more_vert,
-        color: colorScheme.onSurface,
+      anchorBuilder: (context, controller) => IconButton(
+        onPressed: controller.toggle,
+        icon: Icon(
+          Icons.more_vert,
+          color: colorScheme.onSurface,
+        ),
       ),
-      contentBuilder: (close) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _actionItem(
-            label: 'Renomear',
-            icon: Icons.edit_outlined,
-            onTap: () {
-              close();
-              _startEditing();
-            },
-          ),
-          _actionItem(
-            label: 'Excluir',
-            icon: Icons.delete_outline,
-            color: colorScheme.error,
-            onTap: () {
-              close();
-              _showDeleteConfirmation();
-            },
-          ),
-        ],
+      contentBuilder: (context, close) => Container(
+        width: 170,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colorScheme.outlineVariant),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _actionItem(
+              label: 'Renomear',
+              icon: Icons.edit_outlined,
+              onTap: () {
+                close();
+                _startEditing();
+              },
+            ),
+            _actionItem(
+              label: 'Excluir',
+              icon: Icons.delete_outline,
+              color: colorScheme.error,
+              onTap: () {
+                close();
+                _showDeleteConfirmation();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
