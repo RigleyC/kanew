@@ -7,7 +7,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/ui/kanew_ui.dart';
 import '../../../core/router/auth_route_helper.dart';
-import '../viewmodel/auth_controller.dart';
+import '../presentation/controllers/auth_controller.dart';
+import '../presentation/states/auth_state.dart';
 
 /// Screen for starting the signup process.
 ///
@@ -231,4 +232,5 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 }
+
 

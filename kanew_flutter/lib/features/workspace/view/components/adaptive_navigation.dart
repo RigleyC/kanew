@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/widgets/sidebar/sidebar.dart';
 import '../../viewmodel/workspace_controller.dart';
-import '../../../auth/viewmodel/auth_controller.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 import 'workspace_switcher.dart';
 import 'user_profile_tile.dart';
 

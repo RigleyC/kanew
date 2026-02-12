@@ -7,7 +7,8 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/ui/kanew_ui.dart';
-import '../viewmodel/auth_controller.dart';
+import '../presentation/controllers/auth_controller.dart';
+import '../presentation/states/auth_state.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String email;
@@ -276,4 +277,5 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 }
+
 

@@ -9,7 +9,7 @@ import '../../../../core/router/auth_route_helper.dart';
 import '../../../../core/router/route_paths.dart';
 import '../controllers/accept_invite_controller.dart';
 import '../states/invite_state.dart';
-import '../../../auth/viewmodel/auth_controller.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../viewmodel/workspace_controller.dart';
 
 /// Public page for accepting workspace invites

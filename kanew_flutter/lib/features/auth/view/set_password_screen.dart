@@ -6,7 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/ui/kanew_ui.dart';
-import '../viewmodel/auth_controller.dart';
+import '../presentation/controllers/auth_controller.dart';
+import '../presentation/states/auth_state.dart';
 
 /// Screen for setting name and password after email verification.
 ///
@@ -231,4 +232,5 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     );
   }
 }
+
 
