@@ -57,7 +57,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         setState(() {
           _resetToken = state.token;
         });
-        showKanewSuccessToast(context, title: 'Código verificado!');
+        showKanewSuccessToast(context, title: 'C?digo verificado!');
         developer.log(
           'Password reset code verified',
           name: 'reset_password_screen',
@@ -66,7 +66,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       case AuthError():
         showKanewErrorToast(
           context,
-          title: 'Falha ao verificar código',
+          title: 'Falha ao verificar c?digo',
           description: state.message,
         );
         developer.log(
@@ -152,9 +152,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 padding: const EdgeInsets.all(32),
                 child: Form(
                   key: _formKey,
-                  child: ListenableBuilder(
-                    listenable: getIt<AuthController>(),
-                    builder: (context, _) {
+                  child: ValueListenableBuilder<AuthState>(
+                    valueListenable: getIt<AuthController>().store,
+                    builder: (context, _, __) {
                       final viewModel = getIt<AuthController>();
                       return Column(
                         mainAxisSize: MainAxisSize.min,
@@ -174,7 +174,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           const SizedBox(height: 8),
                           Text(
                             _resetToken == null
-                                ? 'Verifique o código do email'
+                                ? 'Verifique o c?digo do email'
                                 : 'Defina sua nova senha',
                             style: typography.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurface.withValues(
@@ -197,8 +197,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             control: FTextFieldControl.managed(
                               controller: _codeController,
                             ),
-                            label: const Text('Código de Verificação'),
-                            hint: 'Digite o código do email',
+                            label: const Text('C?digo de Verifica??o'),
+                            hint: 'Digite o c?digo do email',
                             enabled:
                                 _resetToken == null && !viewModel.isLoading,
                             keyboardType: TextInputType.text,
@@ -221,7 +221,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                           color: Colors.white,
                                         ),
                                       )
-                                    : const Text('Verificar Código'),
+                                    : const Text('Verificar C?digo'),
                               ),
                             ),
 
@@ -231,7 +231,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 controller: _passwordController,
                               ),
                               label: const Text('Nova Senha'),
-                              hint: 'Mínimo 8 caracteres',
+                              hint: 'M?nimo 8 caracteres',
                               obscureText: true,
                               enabled: !viewModel.isLoading,
                             ),
@@ -276,3 +276,4 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 }
+

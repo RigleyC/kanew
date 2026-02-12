@@ -3,6 +3,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/router/auth_route_helper.dart';
 import '../viewmodel/auth_controller.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -22,15 +23,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  /// Request reset - ViewModel cuida de toasts e navegação.
   Future<void> _handleResetRequest() async {
     if (!_formKey.currentState!.validate()) return;
 
     final email = _emailController.text.trim();
     if (email.isEmpty) return;
 
-    await getIt<AuthController>().startPasswordReset(email: email);
-    // ViewModel cuida do resto
+    final authController = getIt<AuthController>();
+    await authController.startPasswordReset(email: email);
+
+    if (!mounted) return;
+
+    final state = authController.state;
+    if (state is AuthPasswordResetCodeSent) {
+      context.go(
+        AuthRouteHelper.resetPassword(
+          email: state.email,
+          requestId: state.requestId.toString(),
+        ),
+      );
+    }
   }
 
   @override
@@ -49,14 +61,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 padding: const EdgeInsets.all(32),
                 child: Form(
                   key: _formKey,
-                  child: ListenableBuilder(
-                    listenable: getIt<AuthController>(),
-                    builder: (context, _) {
+                  child: ValueListenableBuilder<AuthState>(
+                    valueListenable: getIt<AuthController>().store,
+                    builder: (context, _, __) {
                       final viewModel = getIt<AuthController>();
                       return Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.lock_reset_rounded, size: 64),
+                          const Icon(Icons.lock_reset_rounded, size: 64),
                           const SizedBox(height: 16),
                           Text(
                             'Esqueceu a Senha',
@@ -68,14 +80,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           Text(
                             'Digite seu email para redefinir a senha',
                             style: typography.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.6,
-                              ),
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 32),
-
                           FTextField(
                             control: FTextFieldControl.managed(
                               controller: _emailController,
@@ -86,13 +95,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             enabled: !viewModel.isLoading,
                           ),
                           const SizedBox(height: 24),
-
                           SizedBox(
                             width: double.infinity,
                             child: FButton(
-                              onPress: viewModel.isLoading
-                                  ? null
-                                  : _handleResetRequest,
+                              onPress: viewModel.isLoading ? null : _handleResetRequest,
                               child: viewModel.isLoading
                                   ? const SizedBox(
                                       width: 20,
@@ -102,14 +108,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                         color: Colors.white,
                                       ),
                                     )
-                                  : const Text('Enviar Código'),
+                                  : const Text('Enviar Codigo'),
                             ),
                           ),
                           const SizedBox(height: 16),
-
                           FButton(
                             style: FButtonStyle.ghost(),
-                            onPress: () => context.pop(), // Voltar ao login
+                            onPress: () => context.pop(),
                             child: const Text('Voltar ao Login'),
                           ),
                         ],

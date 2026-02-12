@@ -51,7 +51,7 @@ class _SignupScreenState extends State<SignupScreen> {
       case AuthNeedsVerification():
         showKanewSuccessToast(
           context,
-          title: 'Código de verificação enviado',
+          title: 'C?digo de verifica??o enviado',
           description: 'Verifique o console do servidor.',
         );
         developer.log(
@@ -116,9 +116,9 @@ class _SignupScreenState extends State<SignupScreen> {
                   padding: const EdgeInsets.all(32),
                   child: Form(
                     key: _formKey,
-                    child: ListenableBuilder(
-                      listenable: getIt<AuthController>(),
-                      builder: (context, _) {
+                    child: ValueListenableBuilder<AuthState>(
+                      valueListenable: getIt<AuthController>().store,
+                      builder: (context, _, __) {
                         final viewModel = getIt<AuthController>();
                         return Column(
                           mainAxisSize: MainAxisSize.min,
@@ -160,7 +160,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Você definirá sua senha após verificar o email',
+                              'Voc? definir? sua senha ap?s verificar o email',
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: colorScheme.onSurface.withValues(
@@ -195,7 +195,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Já tem uma conta?',
+                                  'J? tem uma conta?',
                                   style: Theme.of(context).textTheme.bodyMedium
                                       ?.copyWith(
                                         color: colorScheme.onSurface.withValues(
@@ -231,3 +231,4 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 }
+

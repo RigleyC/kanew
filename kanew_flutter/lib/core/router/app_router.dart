@@ -242,6 +242,7 @@ final appRouter = GoRouter(
         final requestId =
             extras?['requestId'] ??
             state.uri.queryParameters['requestId'] ??
+            state.uri.queryParameters['accountRequestId'] ??
             '';
         return ResetPasswordScreen(email: email, accountRequestId: requestId);
       },

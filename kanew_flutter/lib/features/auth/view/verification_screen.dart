@@ -55,7 +55,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
     if (_codeController.text.length < 6) {
       showKanewErrorToast(
         context,
-        title: 'O código deve ter pelo menos 6 caracteres',
+        title: 'O c?digo deve ter pelo menos 6 caracteres',
       );
       return;
     }
@@ -72,7 +72,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
     switch (state) {
       case AuthCodeVerified():
-        showKanewSuccessToast(context, title: 'Código verificado!');
+        showKanewSuccessToast(context, title: 'C?digo verificado!');
         developer.log(
           'Code verified, navigating to set password',
           name: 'verification_screen',
@@ -90,7 +90,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
       case AuthError():
         showKanewErrorToast(
           context,
-          title: 'Falha na verificação',
+          title: 'Falha na verifica??o',
           description: state.message,
         );
         developer.log(
@@ -119,7 +119,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
         setState(() {
           _accountRequestId = state.accountRequestId;
         });
-        showKanewSuccessToast(context, title: 'Novo código enviado!');
+        showKanewSuccessToast(context, title: 'Novo c?digo enviado!');
         developer.log(
           'Verification code resent - newRequestId: ${state.accountRequestId}',
           name: 'verification_screen',
@@ -128,7 +128,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
       case AuthError():
         showKanewErrorToast(
           context,
-          title: 'Falha ao reenviar código',
+          title: 'Falha ao reenviar c?digo',
           description: state.message,
         );
         developer.log(
@@ -162,9 +162,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   padding: const EdgeInsets.all(32),
                   child: Form(
                     key: _formKey,
-                    child: ListenableBuilder(
-                      listenable: getIt<AuthController>(),
-                      builder: (context, _) {
+                    child: ValueListenableBuilder<AuthState>(
+                      valueListenable: getIt<AuthController>().store,
+                      builder: (context, _, __) {
                         final viewModel = getIt<AuthController>();
                         return Column(
                           mainAxisSize: MainAxisSize.min,
@@ -176,14 +176,14 @@ class _VerificationScreenState extends State<VerificationScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Verificação',
+                              'Verifica??o',
                               style: typography.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Digite o código enviado para:',
+                              'Digite o c?digo enviado para:',
                               style: typography.bodySmall?.copyWith(
                                 color: colorScheme.onSurface.withValues(
                                   alpha: 0.6,
@@ -206,8 +206,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                               control: FTextFieldControl.managed(
                                 controller: _codeController,
                               ),
-                              label: const Text('Código de Verificação'),
-                              hint: 'Digite o código do console do servidor',
+                              label: const Text('C?digo de Verifica??o'),
+                              hint: 'Digite o c?digo do console do servidor',
                               enabled: !viewModel.isLoading,
                               keyboardType: TextInputType.text,
                             ),
@@ -228,7 +228,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                           color: Colors.white,
                                         ),
                                       )
-                                    : const Text('Verificar Código'),
+                                    : const Text('Verificar C?digo'),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -237,7 +237,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Não recebeu?',
+                                  'N?o recebeu?',
                                   style: typography.bodySmall?.copyWith(
                                     color: colorScheme.onSurface.withValues(
                                       alpha: 0.5,
@@ -249,7 +249,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                   onPress: viewModel.isLoading
                                       ? null
                                       : _handleResendCode,
-                                  child: const Text('Reenviar código'),
+                                  child: const Text('Reenviar c?digo'),
                                 ),
                               ],
                             ),
@@ -274,3 +274,4 @@ class _VerificationScreenState extends State<VerificationScreen> {
     );
   }
 }
+
