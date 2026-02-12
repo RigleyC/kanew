@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:kanew_client/kanew_client.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/ui/kanew_ui.dart';
 import '../../../../core/widgets/background/dot_background.dart';
 import '../../../../core/widgets/reconnecting_toast.dart';
 import '../../data/board_stream_service.dart';
@@ -65,9 +66,7 @@ class _BoardViewPageState extends State<BoardViewPage> {
         if (_controller.boardDeleted) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             context.pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Board foi deletado')),
-            );
+            showKanewInfoToast(context, title: 'Board foi deletado');
           });
         }
 

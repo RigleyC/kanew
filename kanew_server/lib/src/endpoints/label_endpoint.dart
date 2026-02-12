@@ -29,7 +29,9 @@ class LabelEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to read labels for this board');
+      throw Exception(
+        'User does not have permission to read labels for this board',
+      );
     }
 
     return await LabelDef.db.find(
@@ -178,15 +180,18 @@ class LabelEndpoint extends Endpoint {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
     final card = await Card.db.findById(session, cardId);
-    if (card == null || card.deletedAt != null) throw Exception('Card not found');
+    if (card == null || card.deletedAt != null)
+      throw Exception('Card not found');
 
     final label = await LabelDef.db.findById(session, labelId);
-    if (label == null || label.deletedAt != null) throw Exception('Label not found');
+    if (label == null || label.deletedAt != null)
+      throw Exception('Label not found');
 
     final board = await Board.db.findById(session, card.boardId);
     if (board == null) throw Exception('Board not found');
 
-    if (label.boardId != board.id) throw Exception('Label does not belong to this board');
+    if (label.boardId != board.id)
+      throw Exception('Label does not belong to this board');
 
     final hasPermission = await PermissionService.hasPermission(
       session,
@@ -218,8 +223,8 @@ class LabelEndpoint extends Endpoint {
       session,
       cardId: cardId,
       actorId: numericUserId,
-      type: ActivityType.update,
-      details: 'Added label "${label.name}"',
+      type: ActivityType.labelAdded,
+      details: 'adicionou a etiqueta "${label.name}"',
     );
 
     final updatedLabels = await _getCardLabelsSync(session, cardId);
@@ -271,8 +276,8 @@ class LabelEndpoint extends Endpoint {
         session,
         cardId: cardId,
         actorId: numericUserId,
-        type: ActivityType.update,
-        details: 'Removed label "${label.name}"',
+        type: ActivityType.labelRemoved,
+        details: 'removeu a etiqueta "${label.name}"',
       );
     }
 
@@ -295,7 +300,8 @@ class LabelEndpoint extends Endpoint {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
     final card = await Card.db.findById(session, cardId);
-    if (card == null || card.deletedAt != null) throw Exception('Card not found');
+    if (card == null || card.deletedAt != null)
+      throw Exception('Card not found');
 
     final board = await Board.db.findById(session, card.boardId);
     if (board == null) throw Exception('Board not found');
@@ -355,7 +361,10 @@ class LabelEndpoint extends Endpoint {
   }
 
   /// Helper to get card labels synchronously (used for broadcasts)
-  Future<List<LabelDef>> _getCardLabelsSync(Session session, UuidValue cardId) async {
+  Future<List<LabelDef>> _getCardLabelsSync(
+    Session session,
+    UuidValue cardId,
+  ) async {
     final relations = await CardLabel.db.find(
       session,
       where: (cl) => cl.cardId.equals(cardId),

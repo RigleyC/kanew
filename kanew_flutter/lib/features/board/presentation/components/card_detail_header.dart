@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kanew_client/kanew_client.dart';
 import '../../../../core/router/route_paths.dart';
-import '../../../../core/widgets/sidebar/sidebar.dart';
 import '../../../../core/di/injection.dart';
 import '../../../workspace/viewmodel/workspace_controller.dart';
 
@@ -10,7 +9,6 @@ class CardDetailHeader extends StatelessWidget {
   final String workspaceSlug;
   final String boardSlug;
   final String listName;
-  final bool isMobile;
   final VoidCallback onClose;
 
   const CardDetailHeader({
@@ -18,7 +16,6 @@ class CardDetailHeader extends StatelessWidget {
     required this.workspaceSlug,
     required this.boardSlug,
     required this.listName,
-    required this.isMobile,
     required this.onClose,
   });
 
@@ -38,12 +35,6 @@ class CardDetailHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          if (isMobile)
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: SidebarTrigger(),
-            ),
-
           // Breadcrumb
           Expanded(
             child: SingleChildScrollView(

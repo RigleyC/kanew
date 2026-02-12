@@ -18,6 +18,8 @@ values:
   - labelDeleted
   # Card label events
   - cardLabelsUpdated
+  # Checklist events
+  - checklistItemsReordered
   # Board events
   - boardUpdated
   - boardDeleted

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart' hide Card;
+import 'package:intl/intl.dart';
 import 'package:kanew_client/kanew_client.dart';
 import 'package:kanew_flutter/core/widgets/checklist_progress_badge.dart';
 import 'package:kanew_flutter/features/board/presentation/components/label_chip.dart';
@@ -35,7 +36,9 @@ class KanbanCard extends StatelessWidget {
           spacing: 4,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: priority != CardPriority.none
+                  ? MainAxisAlignment.spaceBetween
+                  : MainAxisAlignment.end,
               children: [
                 if (priority != CardPriority.none)
                   PriorityChip(priority: priority),
@@ -50,6 +53,7 @@ class KanbanCard extends StatelessWidget {
               card.title,
               style: Theme.of(context).textTheme.titleMedium,
             ),
+
             if (card.descriptionDocument != null)
               Text(
                 card.descriptionDocument!,
@@ -70,8 +74,10 @@ class KanbanCard extends StatelessWidget {
                     )
                     .toList(),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
             ],
+            if (card.dueDate != null)
+              Text(DateFormat('dd MMM ', 'pt-br').format(card.dueDate!)),
             // Badges for counts
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

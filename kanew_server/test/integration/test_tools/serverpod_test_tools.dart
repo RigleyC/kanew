@@ -1325,7 +1325,9 @@ class _CardEndpoint {
     String? description,
     _i12.CardPriority? priority,
     DateTime? dueDate,
-    bool? isCompleted,
+    bool? clearDueDate,
+    _i2.UuidValue? assigneeMemberId,
+    bool? clearAssignee,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1344,7 +1346,44 @@ class _CardEndpoint {
             'description': description,
             'priority': priority,
             'dueDate': dueDate,
-            'isCompleted': isCompleted,
+            'clearDueDate': clearDueDate,
+            'assigneeMemberId': assigneeMemberId,
+            'clearAssignee': clearAssignee,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i10.Card>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i10.Card> updateAssignee(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i2.UuidValue cardId,
+    _i2.UuidValue? assigneeMemberId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'card',
+            method: 'updateAssignee',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'card',
+          methodName: 'updateAssignee',
+          parameters: _i1.testObjectToJson({
+            'cardId': cardId,
+            'assigneeMemberId': assigneeMemberId,
           }),
           serializationManager: _serializationManager,
         );
@@ -1426,37 +1465,6 @@ class _CardEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<void>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _i3.Future<_i10.Card> toggleComplete(
-    _i1.TestSessionBuilder sessionBuilder,
-    _i2.UuidValue cardId,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'card',
-            method: 'toggleComplete',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'card',
-          methodName: 'toggleComplete',
-          parameters: _i1.testObjectToJson({'cardId': cardId}),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i10.Card>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2036,6 +2044,41 @@ class _ChecklistEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i16.ChecklistItem>> reorderItems(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i2.UuidValue checklistId,
+    List<_i2.UuidValue> orderedItemIds,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'checklist',
+            method: 'reorderItems',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'checklist',
+          methodName: 'reorderItems',
+          parameters: _i1.testObjectToJson({
+            'checklistId': checklistId,
+            'orderedItemIds': orderedItemIds,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i16.ChecklistItem>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

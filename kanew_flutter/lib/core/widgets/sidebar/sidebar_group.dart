@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+/* import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 
 import 'sidebar_data.dart';
 
@@ -23,40 +24,16 @@ class SidebarGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCollapsed = SidebarData.isCollapsedOf(context);
-    final colorScheme = Theme.of(context).colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Group label (only when expanded)
-          if (label != null && !isCollapsed)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 16, 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    label!.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.7,
-                      ),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  if (action != null) action!,
-                ],
-              ),
-            ),
-
-          // Children
-          ...children,
-        ],
-      ),
+    return FSidebarGroup(
+      label: label != null && !isCollapsed
+          ? Text(
+              label!.toUpperCase(),
+            )
+          : null,
+      action: label != null && !isCollapsed ? action : null,
+      children: children,
     );
   }
 }
+ */

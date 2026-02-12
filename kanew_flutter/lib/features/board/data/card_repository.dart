@@ -182,7 +182,7 @@ class CardRepository {
     String? description,
     CardPriority? priority,
     DateTime? dueDate,
-    bool? isCompleted,
+    bool? clearDueDate,
   }) async {
     developer.log(
       'CardRepository.updateCard($cardId)',
@@ -195,7 +195,7 @@ class CardRepository {
         description: description,
         priority: priority,
         dueDate: dueDate,
-        isCompleted: isCompleted,
+        clearDueDate: clearDueDate,
       );
       developer.log(
         'CardRepository.updateCard success: ${card.title}',
@@ -212,6 +212,35 @@ class CardRepository {
       return Left(
         ServerFailure(
           'Erro ao atualizar card',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
+  }
+
+  Future<Either<Failure, Card>> updateAssignee(
+    UuidValue cardId,
+    UuidValue? assigneeMemberId,
+  ) async {
+    developer.log(
+      'CardRepository.updateAssignee($cardId, $assigneeMemberId)',
+      name: 'card_repository',
+    );
+
+    try {
+      final card = await _client.card.updateAssignee(cardId, assigneeMemberId);
+      return Right(card);
+    } catch (e, s) {
+      developer.log(
+        'CardRepository.updateAssignee error: $e',
+        name: 'card_repository',
+        error: e,
+        stackTrace: s,
+      );
+      return Left(
+        ServerFailure(
+          'Erro ao atribuir membro ao card',
           originalError: e,
           stackTrace: s,
         ),
@@ -279,36 +308,6 @@ class CardRepository {
       );
       return Left(
         ServerFailure('Erro ao excluir card', originalError: e, stackTrace: s),
-      );
-    }
-  }
-
-  /// Toggles card completion status
-  Future<Either<Failure, Card>> toggleComplete(UuidValue cardId) async {
-    developer.log(
-      'CardRepository.toggleComplete($cardId)',
-      name: 'card_repository',
-    );
-    try {
-      final card = await _client.card.toggleComplete(cardId);
-      developer.log(
-        'CardRepository.toggleComplete success: ${card.isCompleted}',
-        name: 'card_repository',
-      );
-      return Right(card);
-    } catch (e, s) {
-      developer.log(
-        'CardRepository.toggleComplete error: $e',
-        name: 'card_repository',
-        error: e,
-        stackTrace: s,
-      );
-      return Left(
-        ServerFailure(
-          'Erro ao alterar status do card',
-          originalError: e,
-          stackTrace: s,
-        ),
       );
     }
   }

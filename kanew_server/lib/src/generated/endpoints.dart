@@ -924,8 +924,18 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<DateTime?>(),
               nullable: true,
             ),
-            'isCompleted': _i1.ParameterDescription(
-              name: 'isCompleted',
+            'clearDueDate': _i1.ParameterDescription(
+              name: 'clearDueDate',
+              type: _i1.getType<bool?>(),
+              nullable: true,
+            ),
+            'assigneeMemberId': _i1.ParameterDescription(
+              name: 'assigneeMemberId',
+              type: _i1.getType<_i1.UuidValue?>(),
+              nullable: true,
+            ),
+            'clearAssignee': _i1.ParameterDescription(
+              name: 'clearAssignee',
               type: _i1.getType<bool?>(),
               nullable: true,
             ),
@@ -941,7 +951,33 @@ class Endpoints extends _i1.EndpointDispatch {
                 description: params['description'],
                 priority: params['priority'],
                 dueDate: params['dueDate'],
-                isCompleted: params['isCompleted'],
+                clearDueDate: params['clearDueDate'],
+                assigneeMemberId: params['assigneeMemberId'],
+                clearAssignee: params['clearAssignee'],
+              ),
+        ),
+        'updateAssignee': _i1.MethodConnector(
+          name: 'updateAssignee',
+          params: {
+            'cardId': _i1.ParameterDescription(
+              name: 'cardId',
+              type: _i1.getType<_i1.UuidValue>(),
+              nullable: false,
+            ),
+            'assigneeMemberId': _i1.ParameterDescription(
+              name: 'assigneeMemberId',
+              type: _i1.getType<_i1.UuidValue?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['card'] as _i8.CardEndpoint).updateAssignee(
+                session,
+                params['cardId'],
+                params['assigneeMemberId'],
               ),
         ),
         'moveCard': _i1.MethodConnector(
@@ -1000,24 +1036,6 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async => (endpoints['card'] as _i8.CardEndpoint).deleteCard(
-                session,
-                params['cardId'],
-              ),
-        ),
-        'toggleComplete': _i1.MethodConnector(
-          name: 'toggleComplete',
-          params: {
-            'cardId': _i1.ParameterDescription(
-              name: 'cardId',
-              type: _i1.getType<_i1.UuidValue>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['card'] as _i8.CardEndpoint).toggleComplete(
                 session,
                 params['cardId'],
               ),
@@ -1402,6 +1420,31 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['checklist'] as _i10.ChecklistEndpoint).deleteItem(
                     session,
                     params['itemId'],
+                  ),
+        ),
+        'reorderItems': _i1.MethodConnector(
+          name: 'reorderItems',
+          params: {
+            'checklistId': _i1.ParameterDescription(
+              name: 'checklistId',
+              type: _i1.getType<_i1.UuidValue>(),
+              nullable: false,
+            ),
+            'orderedItemIds': _i1.ParameterDescription(
+              name: 'orderedItemIds',
+              type: _i1.getType<List<_i1.UuidValue>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['checklist'] as _i10.ChecklistEndpoint)
+                  .reorderItems(
+                    session,
+                    params['checklistId'],
+                    params['orderedItemIds'],
                   ),
         ),
       },

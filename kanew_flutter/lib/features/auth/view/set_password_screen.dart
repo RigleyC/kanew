@@ -5,6 +5,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/ui/kanew_ui.dart';
 import '../viewmodel/auth_controller.dart';
 
 /// Screen for setting name and password after email verification.
@@ -49,21 +50,17 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     final confirmPassword = _confirmPasswordController.text;
 
     if (password.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('A senha deve ter pelo menos 8 caracteres'),
-          backgroundColor: Colors.red,
-        ),
+      showKanewErrorToast(
+        context,
+        title: 'A senha deve ter pelo menos 8 caracteres',
       );
       return;
     }
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('As senhas não coincidem'),
-          backgroundColor: Colors.red,
-        ),
+      showKanewErrorToast(
+        context,
+        title: 'As senhas não coincidem',
       );
       return;
     }
@@ -80,11 +77,9 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
 
     switch (state) {
       case AuthAuthenticated():
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Conta criada com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
+        showKanewSuccessToast(
+          context,
+          title: 'Conta criada com sucesso!',
         );
         developer.log(
           'Signup completed, navigating to home',
@@ -99,11 +94,10 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
         }
 
       case AuthError():
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message),
-            backgroundColor: Colors.red,
-          ),
+        showKanewErrorToast(
+          context,
+          title: 'Falha ao concluir cadastro',
+          description: state.message,
         );
         developer.log(
           'Failed to complete signup',

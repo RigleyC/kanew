@@ -5,6 +5,7 @@ import '../services/lexorank_service.dart';
 import '../services/auth_helper.dart';
 import '../services/activity_service.dart';
 import '../services/board_broadcast_service.dart';
+import '../services/user_service.dart';
 
 /// Endpoint for managing cards within a list
 class CardEndpoint extends Endpoint {
@@ -312,14 +313,14 @@ class CardEndpoint extends Endpoint {
     final lastRank = existingCards.isNotEmpty ? existingCards.first.rank : null;
     final newRank = LexoRankService.generateRankAfter(lastRank);
 
-    final card = Card(      listId: listId,
+    final card = Card(
+      listId: listId,
       boardId: cardList.boardId,
       title: title,
       descriptionDocument: description,
       priority: priority,
       rank: newRank,
       dueDate: dueDate,
-      isCompleted: false,
       createdAt: DateTime.now(),
       createdBy: numericUserId,
     );
@@ -336,7 +337,7 @@ class CardEndpoint extends Endpoint {
       cardId: created.id!,
       actorId: numericUserId,
       type: ActivityType.create,
-      details: 'Created card',
+      details: 'criou o card "${created.title}"',
     );
 
     session.log('[CardEndpoint] Created card "${created.title}"');
@@ -350,7 +351,7 @@ class CardEndpoint extends Endpoint {
       attachmentCount: 0,
       commentCount: 0,
     );
-    
+
     BoardBroadcastService.cardCreated(
       session,
       boardId: created.boardId,
@@ -410,14 +411,14 @@ class CardEndpoint extends Endpoint {
     final lastCardRank = lastRank.isNotEmpty ? lastRank.first.rank : null;
     final newRank = LexoRankService.generateRankAfter(lastCardRank);
 
-    final card = Card(      listId: listId,
+    final card = Card(
+      listId: listId,
       boardId: cardList.boardId,
       title: title,
       descriptionDocument: description,
       priority: priority,
       rank: newRank,
       dueDate: dueDate,
-      isCompleted: false,
       createdAt: DateTime.now(),
       createdBy: numericUserId,
     );
@@ -433,7 +434,7 @@ class CardEndpoint extends Endpoint {
       cardId: created.id!,
       actorId: numericUserId,
       type: ActivityType.create,
-      details: 'Created card',
+      details: 'criou o card "${created.title}"',
     );
 
     final cardDetail = CardDetail(
@@ -461,7 +462,9 @@ class CardEndpoint extends Endpoint {
     String? description,
     CardPriority? priority,
     DateTime? dueDate,
-    bool? isCompleted,
+    bool? clearDueDate,
+    UuidValue? assigneeMemberId,
+    bool? clearAssignee,
   }) async {
     final numericUserId = AuthHelper.getAuthenticatedUserId(session);
 
@@ -486,12 +489,32 @@ class CardEndpoint extends Endpoint {
       throw Exception('User does not have permission to modify this board');
     }
 
+    final effectiveDueDate = (clearDueDate ?? false)
+        ? null
+        : (dueDate ?? card.dueDate);
+
+    UuidValue? nextAssigneeMemberId = card.assigneeMemberId;
+    if (clearAssignee == true) {
+      nextAssigneeMemberId = null;
+    } else if (assigneeMemberId != null) {
+      final assignee = await WorkspaceMember.db.findById(
+        session,
+        assigneeMemberId,
+      );
+      if (assignee == null ||
+          assignee.deletedAt != null ||
+          assignee.workspaceId != board.workspaceId) {
+        throw Exception('Assignee inválido');
+      }
+      nextAssigneeMemberId = assigneeMemberId;
+    }
+
     final updated = card.copyWith(
       title: title ?? card.title,
       descriptionDocument: description ?? card.descriptionDocument,
       priority: priority ?? card.priority,
-      dueDate: dueDate ?? card.dueDate,
-      isCompleted: isCompleted ?? card.isCompleted,
+      dueDate: effectiveDueDate,
+      assigneeMemberId: nextAssigneeMemberId,
       updatedAt: DateTime.now(),
     );
 
@@ -499,14 +522,71 @@ class CardEndpoint extends Endpoint {
 
     session.log('[CardEndpoint] Updated card "${result.title}"');
 
-    // Log activity
-    await ActivityService.log(
-      session,
-      cardId: cardId,
-      actorId: numericUserId,
-      type: ActivityType.update,
-      details: 'Updated card details',
-    );
+    final changes = <String>[];
+    var activityType = ActivityType.update;
+
+    if (card.title != result.title) {
+      changes.add('alterou o título');
+    }
+
+    if (card.descriptionDocument != result.descriptionDocument) {
+      // Avoid leaking the whole content into the log
+      changes.add('alterou a descrição');
+    }
+
+    if (card.priority != result.priority) {
+      changes.add('alterou a prioridade');
+    }
+
+    if (card.dueDate != result.dueDate) {
+      if (result.dueDate == null) {
+        changes.add('removeu a data de vencimento');
+      } else if (card.dueDate == null) {
+        changes.add('definiu a data de vencimento');
+      } else {
+        changes.add('alterou a data de vencimento');
+      }
+    }
+
+    if (card.assigneeMemberId != result.assigneeMemberId) {
+      activityType = ActivityType.assigneeChanged;
+      if (result.assigneeMemberId == null) {
+        final previousName = await _getMemberDisplayName(
+          session,
+          card.assigneeMemberId,
+        );
+        changes.add('removeu o responsável $previousName');
+      } else if (card.assigneeMemberId == null) {
+        final assigneeName = await _getMemberDisplayName(
+          session,
+          result.assigneeMemberId,
+        );
+        changes.add('atribuiu $assigneeName como responsável');
+      } else {
+        final previousName = await _getMemberDisplayName(
+          session,
+          card.assigneeMemberId,
+        );
+        final assigneeName = await _getMemberDisplayName(
+          session,
+          result.assigneeMemberId,
+        );
+        changes.add(
+          'alterou o responsável de $previousName para $assigneeName',
+        );
+      }
+    }
+
+    // Avoid noisy timeline entries when the request causes no material change.
+    if (changes.isNotEmpty) {
+      await ActivityService.log(
+        session,
+        cardId: cardId,
+        actorId: numericUserId,
+        type: activityType,
+        details: changes.join(', '),
+      );
+    }
 
     // Broadcast card updated event
     BoardBroadcastService.cardUpdated(
@@ -519,6 +599,40 @@ class CardEndpoint extends Endpoint {
     );
 
     return result;
+  }
+
+  /// Sets or clears the card assignee (single).
+  /// Requires: board.update permission
+  Future<Card> updateAssignee(
+    Session session,
+    UuidValue cardId,
+    UuidValue? assigneeMemberId,
+  ) async {
+    return updateCard(
+      session,
+      cardId,
+      assigneeMemberId: assigneeMemberId,
+      clearAssignee: assigneeMemberId == null,
+    );
+  }
+
+  Future<String> _getMemberDisplayName(
+    Session session,
+    UuidValue? memberId,
+  ) async {
+    if (memberId == null) return 'usuário';
+
+    final member = await WorkspaceMember.db.findById(session, memberId);
+    if (member == null || member.deletedAt != null) return 'usuário';
+
+    final user = await UserService.getUserInfo(session, member.authUserId);
+    final displayName = user['displayName']?.trim();
+    if (displayName != null && displayName.isNotEmpty) return displayName;
+
+    final email = user['email']?.trim();
+    if (email != null && email.isNotEmpty) return email;
+
+    return 'usuário';
   }
 
   /// Moves a card to a different list and/or reorders within the list
@@ -543,6 +657,7 @@ class CardEndpoint extends Endpoint {
     if (targetList == null || targetList.deletedAt != null) {
       throw Exception('Target list not found');
     }
+    final sourceList = await CardList.db.findById(session, card.listId);
 
     final board = await Board.db.findById(session, card.boardId);
     if (board == null || board.deletedAt != null) {
@@ -592,7 +707,8 @@ class CardEndpoint extends Endpoint {
       cardId: cardId,
       actorId: numericUserId,
       type: ActivityType.move,
-      details: 'Moved card to another list',
+      details:
+          'moveu o card "${result.title}" da lista "${sourceList?.title ?? card.listId}" para "${targetList.title}"',
     );
 
     // Broadcast card moved event
@@ -656,7 +772,7 @@ class CardEndpoint extends Endpoint {
       cardId: cardId,
       actorId: numericUserId,
       type: ActivityType.delete,
-      details: 'Deleted card',
+      details: 'removeu o card "${card.title}"',
     );
 
     // Broadcast card deleted event
@@ -667,60 +783,6 @@ class CardEndpoint extends Endpoint {
       cardId: cardId,
       actorId: numericUserId,
     );
-  }
-
-  /// Toggles card completion status
-  /// Requires: board.update permission
-  Future<Card> toggleComplete(
-    Session session,
-    UuidValue cardId,
-  ) async {
-    final numericUserId = AuthHelper.getAuthenticatedUserId(session);
-
-    final card = await Card.db.findById(session, cardId);
-    if (card == null || card.deletedAt != null) {
-      throw Exception('Card not found');
-    }
-
-    final board = await Board.db.findById(session, card.boardId);
-    if (board == null || board.deletedAt != null) {
-      throw Exception('Board not found');
-    }
-
-    final hasPermission = await PermissionService.hasPermission(
-      session,
-      userId: numericUserId,
-      workspaceId: board.workspaceId,
-      permissionSlug: 'board.update',
-    );
-
-    if (!hasPermission) {
-      throw Exception('User does not have permission to modify this board');
-    }
-
-    final updated = card.copyWith(
-      isCompleted: !card.isCompleted,
-      updatedAt: DateTime.now(),
-    );
-
-    final result = await Card.db.updateRow(session, updated);
-
-    session.log(
-      '[CardEndpoint] Card "${result.title}" marked as ${result.isCompleted ? 'completed' : 'incomplete'}',
-    );
-
-    // Log activity
-    await ActivityService.log(
-      session,
-      cardId: cardId,
-      actorId: numericUserId,
-      type: ActivityType.update,
-      details: result.isCompleted
-          ? 'Completed card'
-          : 'Marked card as incomplete',
-    );
-
-    return result;
   }
 
   /// Gets complete card details including all related data
@@ -915,7 +977,10 @@ class CardEndpoint extends Endpoint {
   }
 
   /// Helper method to get labels attached to a card
-  Future<List<LabelDef>> _getCardLabels(Session session, UuidValue cardId) async {
+  Future<List<LabelDef>> _getCardLabels(
+    Session session,
+    UuidValue cardId,
+  ) async {
     // Get card_label join records
     final cardLabelLinks = await CardLabel.db.find(
       session,
@@ -969,8 +1034,10 @@ class CardEndpoint extends Endpoint {
       cardIds: cardIds,
       includeDeletedAtFilter: true,
     );
-    final checklistCountFuture =
-        _getChecklistItemCountsByCardId(session, cardIds: cardIds);
+    final checklistCountFuture = _getChecklistItemCountsByCardId(
+      session,
+      cardIds: cardIds,
+    );
     final labelsFuture = _getLabelsByCardId(session, cardIds: cardIds);
 
     final attachmentCountByCardId = await attachmentCountFuture;
@@ -1009,8 +1076,9 @@ class CardEndpoint extends Endpoint {
 
     // Build safe query with quoted UUID strings
     final ids = cardIds.map((id) => "'$id'").join(',');
-    final deletedAtClause =
-        includeDeletedAtFilter ? ' AND "deletedAt" IS NULL' : '';
+    final deletedAtClause = includeDeletedAtFilter
+        ? ' AND "deletedAt" IS NULL'
+        : '';
 
     final rows = await session.db.unsafeQuery(
       'SELECT "cardId", COUNT(*) '

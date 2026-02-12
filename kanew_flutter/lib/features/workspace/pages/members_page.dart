@@ -3,7 +3,7 @@ import 'package:forui/forui.dart';
 import 'package:kanew_client/kanew_client.dart' hide Card;
 
 import '../../../core/di/injection.dart';
-import '../../../core/widgets/sidebar/sidebar.dart';
+import '../../../core/ui/kanew_ui.dart';
 import '../../../core/widgets/base/button.dart';
 import '../../../core/widgets/member/permission_matrix.dart';
 import '../presentation/controllers/members_controller.dart';
@@ -44,8 +44,6 @@ class _MembersPageState extends State<MembersPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final provider = SidebarProvider.maybeOf(context);
-    final isMobile = provider?.isMobile ?? false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,11 +57,6 @@ class _MembersPageState extends State<MembersPage> {
           ),
           child: Row(
             children: [
-              if (isMobile)
-                Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: SidebarTrigger(),
-                ),
               Text(
                 'Membros',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -140,11 +133,13 @@ class _MembersPageState extends State<MembersPage> {
                       return MemberListTile(
                         memberWithUser: memberWithUser,
                         canEdit: !isOwner,
-                        onRemove: () => _confirmRemoveMember(
-                          context,
-                          memberWithUser.member.id!,
-                          memberWithUser.userName,
-                        ),
+                        onRemove: () async {
+                          await _confirmRemoveMember(
+                            context,
+                            memberWithUser.member.id!,
+                            memberWithUser.userName,
+                          );
+                        },
                         onChangeRole: (newRole) => _changeMemberRole(
                           memberWithUser.member.id!,
                           newRole,
@@ -279,58 +274,43 @@ class _MembersPageState extends State<MembersPage> {
     );
   }
 
-  void _confirmRemoveMember(
+  Future<void> _confirmRemoveMember(
     BuildContext parentContext,
     UuidValue memberId,
     String userName,
-  ) {
-    showDialog(
+  ) async {
+    await showKanewConfirmDialog(
       context: parentContext,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Remover Membro'),
-        content: Text('Tem certeza que deseja remover $userName do workspace?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.of(dialogContext).pop();
-              final messenger = ScaffoldMessenger.of(parentContext);
-              final success = await _controller.removeMember(memberId);
-              if (!mounted) return;
-
-              messenger.showSnackBar(
-                SnackBar(
-                  content: Text(
-                    success
-                        ? 'Membro removido com sucesso'
-                        : 'Erro ao remover membro',
-                  ),
-                ),
-              );
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Remover'),
-          ),
-        ],
-      ),
+      title: 'Remover Membro',
+      body: 'Tem certeza que deseja remover $userName do workspace?',
+      confirmText: 'Remover',
+      destructive: true,
+      onConfirm: () async {
+        final success = await _controller.removeMember(memberId);
+        if (!mounted || !parentContext.mounted) return;
+        if (success) {
+          showKanewSuccessToast(
+            parentContext,
+            title: 'Membro removido com sucesso',
+          );
+        } else {
+          showKanewErrorToast(
+            parentContext,
+            title: 'Erro ao remover membro',
+          );
+        }
+      },
     );
   }
 
   Future<void> _changeMemberRole(UuidValue memberId, MemberRole newRole) async {
     final success = await _controller.updateMemberRole(memberId, newRole);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success
-                ? 'Papel atualizado com sucesso'
-                : 'Erro ao atualizar papel',
-          ),
-        ),
-      );
+      if (success) {
+        showKanewSuccessToast(context, title: 'Papel atualizado com sucesso');
+      } else {
+        showKanewErrorToast(context, title: 'Erro ao atualizar papel');
+      }
     }
   }
 
@@ -341,7 +321,7 @@ class _MembersPageState extends State<MembersPage> {
     final permissions = await _controller.getMemberPermissions(memberId);
     if (permissions == null || !mounted) return;
 
-    showDialog(
+    await showDialog(
       context: context,
       builder: (context) => _PermissionsDialog(
         memberId: memberId,
@@ -371,13 +351,11 @@ class _MembersPageState extends State<MembersPage> {
   Future<void> _revokeInvite(UuidValue inviteId) async {
     final success = await _controller.revokeInvite(inviteId);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? 'Convite revogado' : 'Erro ao revogar convite',
-          ),
-        ),
-      );
+      if (success) {
+        showKanewSuccessToast(context, title: 'Convite revogado');
+      } else {
+        showKanewErrorToast(context, title: 'Erro ao revogar convite');
+      }
     }
   }
 }
@@ -484,19 +462,23 @@ class _PermissionsDialogState extends State<_PermissionsDialog> {
       if (mounted) {
         if (success) {
           Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Permissões atualizadas com sucesso')),
+          showKanewSuccessToast(
+            context,
+            title: 'Permissões atualizadas com sucesso',
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Erro ao salvar permissões')),
+          showKanewErrorToast(
+            context,
+            title: 'Erro ao salvar permissões',
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao salvar permissões: $e')),
+        showKanewErrorToast(
+          context,
+          title: 'Erro ao salvar permissões',
+          description: '$e',
         );
       }
     } finally {

@@ -13,7 +13,9 @@ class ChecklistRepository {
   ChecklistRepository({Client? client}) : _client = client ?? getIt<Client>();
 
   /// Gets all checklists for a card
-  Future<Either<Failure, List<Checklist>>> getChecklists(UuidValue cardId) async {
+  Future<Either<Failure, List<Checklist>>> getChecklists(
+    UuidValue cardId,
+  ) async {
     developer.log(
       'ChecklistRepository.getChecklists($cardId)',
       name: 'checklist_repository',
@@ -43,7 +45,9 @@ class ChecklistRepository {
   }
 
   /// Gets items for a checklist
-  Future<Either<Failure, List<ChecklistItem>>> getItems(UuidValue checklistId) async {
+  Future<Either<Failure, List<ChecklistItem>>> getItems(
+    UuidValue checklistId,
+  ) async {
     developer.log(
       'ChecklistRepository.getItems($checklistId)',
       name: 'checklist_repository',
@@ -187,6 +191,28 @@ class ChecklistRepository {
       return Left(
         ServerFailure(
           'Erro ao excluir item',
+          originalError: e,
+          stackTrace: s,
+        ),
+      );
+    }
+  }
+
+  /// Reorders checklist items (full ordered item ids list).
+  Future<Either<Failure, List<ChecklistItem>>> reorderItems(
+    UuidValue checklistId,
+    List<UuidValue> orderedItemIds,
+  ) async {
+    try {
+      final items = await _client.checklist.reorderItems(
+        checklistId,
+        orderedItemIds,
+      );
+      return Right(items);
+    } catch (e, s) {
+      return Left(
+        ServerFailure(
+          'Erro ao reordenar itens',
           originalError: e,
           stackTrace: s,
         ),

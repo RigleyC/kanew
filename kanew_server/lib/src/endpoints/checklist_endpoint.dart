@@ -4,6 +4,7 @@ import '../services/permission_service.dart';
 import '../services/lexorank_service.dart';
 import '../services/auth_helper.dart';
 import '../services/activity_service.dart';
+import '../services/board_broadcast_service.dart';
 
 /// Endpoint for managing checklists within a card
 class ChecklistEndpoint extends Endpoint {
@@ -163,7 +164,7 @@ class ChecklistEndpoint extends Endpoint {
       cardId: cardId,
       actorId: userId,
       type: ActivityType.update,
-      details: 'Created checklist "${created.title}"',
+      details: 'adicionou a checklist "${created.title}"',
     );
 
     return created;
@@ -204,6 +205,7 @@ class ChecklistEndpoint extends Endpoint {
       throw Exception('User does not have permission to modify this checklist');
     }
 
+    final previousTitle = checklist.title;
     final updated = checklist.copyWith(
       title: title,
       updatedAt: DateTime.now(),
@@ -217,7 +219,8 @@ class ChecklistEndpoint extends Endpoint {
       cardId: result.cardId,
       actorId: userId,
       type: ActivityType.update,
-      details: 'Renamed checklist to "${result.title}"',
+      details:
+          'alterou a checklist de "${previousTitle}" para "${result.title}"',
     );
 
     return result;
@@ -269,7 +272,7 @@ class ChecklistEndpoint extends Endpoint {
       cardId: checklist.cardId,
       actorId: userId,
       type: ActivityType.update,
-      details: 'Deleted checklist "${checklist.title}"',
+      details: 'removeu a checklist "${checklist.title}"',
     );
   }
 
@@ -334,7 +337,7 @@ class ChecklistEndpoint extends Endpoint {
       actorId: userId,
       type: ActivityType.update,
       details:
-          'Added item "${created.title}" to checklist "${checklist.title}"',
+          'adicionou o item "${created.title}" na checklist "${checklist.title}"',
     );
 
     return created;
@@ -381,6 +384,8 @@ class ChecklistEndpoint extends Endpoint {
       throw Exception('User does not have permission to modify this item');
     }
 
+    final previousTitle = item.title;
+    final previousChecked = item.isChecked;
     final updated = item.copyWith(
       title: title ?? item.title,
       isChecked: isChecked ?? item.isChecked,
@@ -389,11 +394,13 @@ class ChecklistEndpoint extends Endpoint {
     final result = await ChecklistItem.db.updateRow(session, updated);
 
     // Log activity
-    String action = 'Updated';
-    if (isChecked != null) {
-      action = isChecked ? 'Completed' : 'Uncompleted';
-    } else if (title != null) {
-      action = 'Renamed';
+    String details = 'alterou o item "${result.title}"';
+    if (isChecked != null && previousChecked != result.isChecked) {
+      details = result.isChecked
+          ? 'marcou o item "${result.title}" como concluído'
+          : 'desmarcou o item "${result.title}"';
+    } else if (title != null && previousTitle != result.title) {
+      details = 'alterou o item de "${previousTitle}" para "${result.title}"';
     }
 
     await ActivityService.log(
@@ -401,8 +408,7 @@ class ChecklistEndpoint extends Endpoint {
       cardId: checklist.cardId,
       actorId: userId,
       type: ActivityType.update,
-      details:
-          '$action item "${result.title}" in checklist "${checklist.title}"',
+      details: '$details na checklist "${checklist.title}"',
     );
 
     return result;
@@ -460,7 +466,100 @@ class ChecklistEndpoint extends Endpoint {
       actorId: userId,
       type: ActivityType.update,
       details:
-          'Deleted item "${item.title}" from checklist "${checklist.title}"',
+          'removeu o item "${item.title}" da checklist "${checklist.title}"',
     );
+  }
+
+  /// Reorders checklist items.
+  /// Receives all active item IDs in desired order and recalculates ranks.
+  /// Requires: board.update permission
+  Future<List<ChecklistItem>> reorderItems(
+    Session session,
+    UuidValue checklistId,
+    List<UuidValue> orderedItemIds,
+  ) async {
+    final userId = AuthHelper.getAuthenticatedUserId(session);
+
+    final checklist = await Checklist.db.findById(session, checklistId);
+    if (checklist == null || checklist.deletedAt != null) {
+      throw Exception('Checklist not found');
+    }
+
+    final card = await Card.db.findById(session, checklist.cardId);
+    if (card == null || card.deletedAt != null) {
+      throw Exception('Card not found');
+    }
+
+    final board = await Board.db.findById(session, card.boardId);
+    if (board == null || board.deletedAt != null) {
+      throw Exception('Board not found');
+    }
+
+    final hasPermission = await PermissionService.hasPermission(
+      session,
+      userId: userId,
+      workspaceId: board.workspaceId,
+      permissionSlug: 'board.update',
+    );
+
+    if (!hasPermission) {
+      throw Exception('User does not have permission to modify this checklist');
+    }
+
+    final activeItems = await ChecklistItem.db.find(
+      session,
+      where: (i) =>
+          i.checklistId.equals(checklistId) & i.deletedAt.equals(null),
+    );
+
+    if (orderedItemIds.length != activeItems.length) {
+      throw Exception('Invalid item ordering payload');
+    }
+
+    final uniqueOrderedIds = orderedItemIds.toSet();
+    if (uniqueOrderedIds.length != orderedItemIds.length) {
+      throw Exception('Duplicate item IDs in reorder payload');
+    }
+
+    final existingIds = activeItems.map((i) => i.id!).toSet();
+    if (!existingIds.containsAll(uniqueOrderedIds) ||
+        !uniqueOrderedIds.containsAll(existingIds)) {
+      throw Exception('Invalid item IDs for this checklist');
+    }
+
+    final itemsById = {for (final item in activeItems) item.id!: item};
+    final updatedItems = <ChecklistItem>[];
+    String? previousRank;
+
+    for (final itemId in orderedItemIds) {
+      final item = itemsById[itemId];
+      if (item == null) {
+        continue;
+      }
+
+      final newRank = LexoRankService.generateRankAfter(previousRank);
+      final updated = item.copyWith(rank: newRank);
+      final result = await ChecklistItem.db.updateRow(session, updated);
+      updatedItems.add(result);
+      previousRank = newRank;
+    }
+
+    await ActivityService.log(
+      session,
+      cardId: checklist.cardId,
+      actorId: userId,
+      type: ActivityType.update,
+      details: 'reordenou os itens da checklist "${checklist.title}"',
+    );
+
+    BoardBroadcastService.checklistItemsReordered(
+      session,
+      boardId: board.id!,
+      checklistId: checklistId,
+      actorId: userId,
+      orderedItemIds: orderedItemIds,
+    );
+
+    return updatedItems;
   }
 }

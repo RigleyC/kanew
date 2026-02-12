@@ -23,6 +23,11 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay>
   String _lastQuery = '';
   bool _lastIsOpen = false;
   int _lastSelectedIndex = 0;
+  bool _didJustOpen = false;
+  bool _didQueryChange = false;
+  bool _shouldRender = false;
+  List<SlashMenuItem> _displayItems = const [];
+  int _displaySelectedIndex = 0;
 
   @override
   void initState() {
@@ -36,21 +41,34 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay>
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
     );
 
     _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeOut,
+        reverseCurve: Curves.easeIn,
       ),
     );
+
+    // Keep local snapshot in sync so that the first navigation update doesn't
+    // look like a fresh "open" and restart the animation.
+    _lastIsOpen = widget.plugin.isOpen;
+    _lastQuery = widget.plugin.query;
+    _lastSelectedIndex = widget.plugin.selectedIndex;
+    _displayItems = widget.plugin.filteredItems;
+    _displaySelectedIndex = widget.plugin.selectedIndex;
 
     widget.plugin.addListener(_onPluginChange);
 
     // Iniciar animação se já estiver aberto (caso raro no init, mas possível)
     if (widget.plugin.isOpen) {
-      _animationController.forward();
+      _animationController.forward(from: 0.0);
+      _shouldRender = true;
     }
+
+    _animationController.addStatusListener(_onAnimationStatusChanged);
   }
 
   @override
@@ -66,8 +84,19 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay>
   void dispose() {
     widget.plugin.removeListener(_onPluginChange);
     _scrollController.dispose();
+    _animationController.removeStatusListener(_onAnimationStatusChanged);
     _animationController.dispose();
     super.dispose();
+  }
+
+  void _onAnimationStatusChanged(AnimationStatus status) {
+    if (!mounted) return;
+
+    if (status == AnimationStatus.dismissed && !widget.plugin.isOpen) {
+      setState(() {
+        _shouldRender = false;
+      });
+    }
   }
 
   void _onPluginChange() {
@@ -85,11 +114,19 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay>
 
     final isOpening = plugin.isOpen && !wasOpen;
     final isClosing = !plugin.isOpen && wasOpen;
+    _didJustOpen = isOpening;
+    _didQueryChange = plugin.query != wasQuery;
 
     if (isOpening) {
+      _shouldRender = true;
       _animationController.forward(from: 0.0);
     } else if (isClosing) {
       _animationController.reverse();
+    }
+
+    if (plugin.isOpen) {
+      _displayItems = plugin.filteredItems;
+      _displaySelectedIndex = plugin.selectedIndex;
     }
 
     final needsRebuild =
@@ -104,12 +141,18 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay>
 
     if (plugin.isOpen) {
       WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _ensureSelectedVisible(),
+        (_) => _ensureSelectedVisible(
+          didJustOpen: _didJustOpen,
+          didQueryChange: _didQueryChange,
+        ),
       );
     }
   }
 
-  void _ensureSelectedVisible() {
+  void _ensureSelectedVisible({
+    required bool didJustOpen,
+    required bool didQueryChange,
+  }) {
     if (!mounted || !_scrollController.hasClients) return;
 
     final plugin = widget.plugin;
@@ -117,9 +160,9 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay>
     if (!plugin.isOpen || items.isEmpty) return;
 
     final selectedIndex = plugin.selectedIndex.clamp(0, items.length - 1);
-    final itemHeight = 56.0;
+    const itemHeight = 32.0;
 
-    if (!_lastIsOpen && plugin.isOpen || _lastQuery != plugin.query) {
+    if (didJustOpen || didQueryChange) {
       _scrollController.jumpTo(0);
       return;
     }
@@ -153,11 +196,12 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay>
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.plugin.isOpen) {
+    if (!_shouldRender) {
       return const SizedBox.shrink();
     }
 
-    final items = widget.plugin.filteredItems;
+    final plugin = widget.plugin;
+    final items = plugin.isOpen ? plugin.filteredItems : _displayItems;
 
     return AnimatedBuilder(
       animation: _animationController,
@@ -177,9 +221,7 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay>
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Theme.of(context).highlightColor
-                ),
+                border: Border.all(color: Theme.of(context).highlightColor),
                 boxShadow: const [
                   BoxShadow(
                     color: Color.fromRGBO(0, 0, 0, 0.15),
@@ -197,15 +239,21 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay>
                 ),
               ),
             )
-          : _buildMenuList(context, items),
+          : _buildMenuList(context, items, isInteractive: plugin.isOpen),
     );
   }
 
-  Widget _buildMenuList(BuildContext context, List<SlashMenuItem> items) {
-    final selectedIndex = widget.plugin.selectedIndex.clamp(
-      0,
-      items.length - 1,
-    );
+  Widget _buildMenuList(
+    BuildContext context,
+    List<SlashMenuItem> items, {
+    required bool isInteractive,
+  }) {
+    final selectedIndex =
+        (isInteractive ? widget.plugin.selectedIndex : _displaySelectedIndex)
+            .clamp(
+              0,
+              items.length - 1,
+            );
 
     return Container(
       constraints: const BoxConstraints(
@@ -239,7 +287,9 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay>
           final isSelected = index == selectedIndex;
 
           return InkWell(
-            onTap: () => widget.plugin.executeSelected(item),
+            onTap: isInteractive
+                ? () => widget.plugin.executeSelected(item)
+                : null,
             hoverColor: Colors.transparent,
             child: Container(
               decoration: BoxDecoration(
@@ -257,15 +307,9 @@ class _SlashMenuOverlayState extends State<SlashMenuOverlay>
                     size: 14,
                     color: Theme.of(context).iconTheme.color,
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        item.title,
-                        style: Theme.of(context).textTheme.labelMedium,
-                      ),
-                    ],
+                  Text(
+                    item.title,
+                    style: Theme.of(context).textTheme.labelMedium,
                   ),
                 ],
               ),

@@ -5,9 +5,9 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/ui/kanew_ui.dart';
 import '../../../core/router/auth_route_helper.dart';
 import '../viewmodel/auth_controller.dart';
-
 
 /// Screen for user authentication.
 ///
@@ -71,18 +71,18 @@ class _LoginScreenState extends State<LoginScreen> {
         _showAccountNotFoundDialog(email);
 
       case AuthEmailNotVerifiedError():
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Email não verificado. Código enviado!'),
-            backgroundColor: Colors.orange,
-          ),
+        showKanewInfoToast(
+          context,
+          title: 'Email não verificado. Código enviado!',
         );
         developer.log(
           'Email not verified, navigating to verification',
           name: 'login_screen',
         );
         if (mounted && state.accountRequestId != null) {
-          final redirect = AuthRouteHelper.getRedirect(GoRouterState.of(context));
+          final redirect = AuthRouteHelper.getRedirect(
+            GoRouterState.of(context),
+          );
           context.go(
             AuthRouteHelper.verification(
               email: email,
@@ -93,11 +93,10 @@ class _LoginScreenState extends State<LoginScreen> {
         }
 
       case AuthError():
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message),
-            backgroundColor: Colors.red,
-          ),
+        showKanewErrorToast(
+          context,
+          title: 'Falha no login',
+          description: state.message,
         );
         developer.log(
           'Login failed',
@@ -113,29 +112,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// Shows dialog for account not found.
   void _showAccountNotFoundDialog(String email) {
-    showDialog(
+    showKanewConfirmDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Conta não encontrada'),
-        content: Text(
+      title: 'Conta não encontrada',
+      body:
           'Não existe uma conta com o email "$email".\n\n'
           'Deseja criar uma conta?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              final redirect = AuthRouteHelper.getRedirect(GoRouterState.of(this.context));
-              context.go(AuthRouteHelper.signup(redirect: redirect));
-            },
-            child: const Text('Criar conta'),
-          ),
-        ],
-      ),
+      confirmText: 'Criar conta',
+      onConfirm: () {
+        final redirect = AuthRouteHelper.getRedirect(GoRouterState.of(context));
+        context.go(AuthRouteHelper.signup(redirect: redirect));
+      },
     );
   }
 

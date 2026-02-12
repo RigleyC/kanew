@@ -6,6 +6,9 @@ values:
   - delete
   - move
   - comment
+  - labelAdded
+  - labelRemoved
+  - assigneeChanged
   - archive
   - restore
   - attachmentAdded

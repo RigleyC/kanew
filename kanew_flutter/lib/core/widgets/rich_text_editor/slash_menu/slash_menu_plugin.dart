@@ -9,14 +9,15 @@ class SlashMenuItem {
   final IconData icon;
   final List<String> keywords;
   final void Function(Editor editor, DocumentNode node) onSelected;
-  
+
   // ✅ Pre-computar lowercase para performance
   late final String _titleLower = title.toLowerCase();
   late final String _subtitleLower = subtitle.toLowerCase();
-  late final List<String> _keywordsLower = 
-    keywords.map((k) => k.toLowerCase()).toList(growable: false);
+  late final List<String> _keywordsLower = keywords
+      .map((k) => k.toLowerCase())
+      .toList(growable: false);
 
-   SlashMenuItem({
+  SlashMenuItem({
     required this.id,
     required this.title,
     required this.subtitle,
@@ -41,7 +42,7 @@ class SlashMenuPlugin extends ChangeNotifier {
   String _lastFilterQuery = '';
   List<SlashMenuItem> _filteredItemsCache = const [];
   bool _hasFilterCache = false;
-  
+
   // ✅ Filtro otimizado
   List<SlashMenuItem> get filteredItems {
     final q = _query.toLowerCase();
@@ -50,17 +51,19 @@ class SlashMenuPlugin extends ChangeNotifier {
     }
 
     _lastFilterQuery = q;
-    
+
     if (q.isEmpty) {
       _filteredItemsCache = items;
     } else {
-      _filteredItemsCache = items.where((item) {
-        // ✅ Usa campos pre-computados
-        return item._titleLower.contains(q) ||
-               item._subtitleLower.contains(q) ||
-               item._keywordsLower.any((k) => k.contains(q));
-      }).toList(growable: false);
-      
+      _filteredItemsCache = items
+          .where((item) {
+            // ✅ Usa campos pre-computados
+            return item._titleLower.contains(q) ||
+                item._subtitleLower.contains(q) ||
+                item._keywordsLower.any((k) => k.contains(q));
+          })
+          .toList(growable: false);
+
       // ✅ Ordenar por relevância
       _filteredItemsCache.sort((a, b) {
         final aStarts = a._titleLower.startsWith(q);
@@ -70,7 +73,7 @@ class SlashMenuPlugin extends ChangeNotifier {
         return 0;
       });
     }
-    
+
     _hasFilterCache = true;
     return _filteredItemsCache;
   }
@@ -190,6 +193,9 @@ class SlashMenuPlugin extends ChangeNotifier {
       _query = queryText;
       _filteredItemsCache = const [];
       _hasFilterCache = false;
+      if (_selectedIndex != 0) {
+        _selectedIndex = 0;
+      }
       didChange = true;
     }
     if (!_isOpen) {
@@ -250,7 +256,8 @@ class SlashMenuPlugin extends ChangeNotifier {
     if (keyEvent.logicalKey == LogicalKeyboardKey.enter) {
       final items = filteredItems;
       if (items.isNotEmpty) {
-        executeSelected(items[_selectedIndex]);
+        final safeIndex = _selectedIndex.clamp(0, items.length - 1);
+        executeSelected(items[safeIndex]);
         return ExecutionInstruction.haltExecution;
       }
     }
@@ -315,7 +322,11 @@ class SlashMenuPlugin extends ChangeNotifier {
     });
   }
 
-  void _convertToHeader(Editor editor, DocumentNode node, Attribution blockType) {
+  void _convertToHeader(
+    Editor editor,
+    DocumentNode node,
+    Attribution blockType,
+  ) {
     editor.execute([
       ChangeParagraphBlockTypeRequest(
         nodeId: node.id,

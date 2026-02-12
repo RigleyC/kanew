@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'dart:async';
+import 'dart:convert';
 import 'package:kanew_client/kanew_client.dart';
 import '../../../../core/services/file_picker_service.dart';
 import '../../data/card_repository.dart';
@@ -7,6 +9,8 @@ import '../../data/comment_repository.dart';
 import '../../data/activity_repository.dart';
 import '../../data/label_repository.dart';
 import '../../data/attachment_repository.dart';
+import '../../data/board_stream_service.dart';
+import '../../../workspace/domain/repositories/member_repository.dart';
 import '../store/board_store.dart';
 
 class CardDetailPageController extends ChangeNotifier {
@@ -18,6 +22,8 @@ class CardDetailPageController extends ChangeNotifier {
   final AttachmentRepository _attachmentRepo;
   final FilePickerService _filePicker;
   final BoardStore _boardStore;
+  final MemberRepository _memberRepo;
+  final BoardStreamService _streamService;
 
   Card? _card;
   CardList? _list;
@@ -27,14 +33,22 @@ class CardDetailPageController extends ChangeNotifier {
   List<CardActivity> _activities = [];
   List<LabelDef> _labels = []; // Labels attached to this card
   List<Attachment> _attachments = [];
+  List<MemberWithUser> _membersWithUser = [];
 
   bool _isLoading = false;
   bool _isUploading = false;
   bool _isDisposed = false;
+  bool _streamStarted = false;
   String? _error;
+  StreamSubscription<BoardEvent>? _eventSubscription;
 
   @override
   void dispose() {
+    _eventSubscription?.cancel();
+    if (_streamStarted) {
+      unawaited(_streamService.release());
+      _streamStarted = false;
+    }
     _isDisposed = true;
     super.dispose();
   }
@@ -52,6 +66,8 @@ class CardDetailPageController extends ChangeNotifier {
     required AttachmentRepository attachmentRepo,
     required FilePickerService filePicker,
     required BoardStore boardStore,
+    required MemberRepository memberRepo,
+    required BoardStreamService streamService,
   }) : _repository = repository,
        _checklistRepo = checklistRepo,
        _commentRepo = commentRepo,
@@ -59,7 +75,9 @@ class CardDetailPageController extends ChangeNotifier {
        _labelRepo = labelRepo,
        _attachmentRepo = attachmentRepo,
        _filePicker = filePicker,
-       _boardStore = boardStore;
+       _boardStore = boardStore,
+       _memberRepo = memberRepo,
+       _streamService = streamService;
 
   // Getters - delegate to BoardStore for shared context
   Card? get selectedCard => _card;
@@ -73,6 +91,7 @@ class CardDetailPageController extends ChangeNotifier {
   List<Attachment> get attachments => _attachments;
   List<CardList> get boardLists => _boardStore.lists;
   List<WorkspaceMember> get members => _boardStore.members;
+  List<MemberWithUser> get membersWithUser => _membersWithUser;
   Board? get board => _boardStore.board;
   Workspace? get workspace => _boardStore.workspace;
   bool get isLoading => _isLoading;
@@ -113,14 +132,56 @@ class CardDetailPageController extends ChangeNotifier {
 
           // Cache CardDetail in BoardStore
           _boardStore.cacheCardDetail(detail);
+
+          _startStreaming(detail.card.boardId);
         } else {
           _error = 'Card não encontrado';
         }
       },
     );
 
+    final workspaceId = _boardStore.workspace?.id;
+    if (workspaceId != null) {
+      final membersResult = await _memberRepo.getMembers(workspaceId);
+      membersResult.fold(
+        (_) {},
+        (members) => _membersWithUser = members,
+      );
+    }
+
     _isLoading = false;
     _safeNotify();
+  }
+
+  Future<void> updateAssignee(UuidValue? assigneeMemberId) async {
+    if (_card == null || _card?.id == null) return;
+
+    final previous = _card!.assigneeMemberId;
+
+    // Optimistic update
+    _card = _card!.copyWith(assigneeMemberId: assigneeMemberId);
+    _boardStore.updateCard(_card!);
+    _safeNotify();
+
+    final result = await _repository.updateAssignee(
+      _card!.id!,
+      assigneeMemberId,
+    );
+
+    result.fold(
+      (f) {
+        _card = _card!.copyWith(assigneeMemberId: previous);
+        _boardStore.updateCard(_card!);
+        _error = f.message;
+        _safeNotify();
+      },
+      (card) {
+        _card = card;
+        _boardStore.updateCard(card);
+        _loadActivities(card.id!);
+        _safeNotify();
+      },
+    );
   }
 
   Future<void> _loadActivities(UuidValue cardId) async {
@@ -183,6 +244,31 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
 
+  Future<void> renameChecklist(UuidValue checklistId, String title) async {
+    final trimmed = title.trim();
+    if (trimmed.isEmpty) return;
+
+    final index = _checklists.indexWhere((c) => c.id == checklistId);
+    if (index == -1) return;
+
+    final previous = _checklists[index];
+    _checklists[index] = previous.copyWith(title: trimmed);
+    _safeNotify();
+
+    final result = await _checklistRepo.updateChecklist(checklistId, trimmed);
+    result.fold(
+      (f) {
+        _checklists[index] = previous;
+        _error = f.message;
+        _safeNotify();
+      },
+      (updated) {
+        _checklists[index] = updated;
+        _safeNotify();
+      },
+    );
+  }
+
   Future<void> addItem(UuidValue checklistId, String title) async {
     final result = await _checklistRepo.addItem(checklistId, title);
     result.fold(
@@ -196,7 +282,11 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
 
-  Future<void> toggleItem(UuidValue checklistId, UuidValue itemId, bool isChecked) async {
+  Future<void> toggleItem(
+    UuidValue checklistId,
+    UuidValue itemId,
+    bool isChecked,
+  ) async {
     // Optimistic update
     final items = _checklistItems[checklistId];
     if (items == null) return;
@@ -248,6 +338,140 @@ class CardDetailPageController extends ChangeNotifier {
     );
   }
 
+  Future<void> renameItem(
+    UuidValue checklistId,
+    UuidValue itemId,
+    String title,
+  ) async {
+    final trimmed = title.trim();
+    if (trimmed.isEmpty) return;
+
+    final items = _checklistItems[checklistId];
+    if (items == null) return;
+
+    final index = items.indexWhere((i) => i.id == itemId);
+    if (index == -1) return;
+
+    final previous = items[index];
+    items[index] = previous.copyWith(title: trimmed);
+    _safeNotify();
+
+    final result = await _checklistRepo.updateItem(itemId, title: trimmed);
+    result.fold(
+      (f) {
+        items[index] = previous;
+        _error = f.message;
+        _safeNotify();
+      },
+      (updated) {
+        items[index] = updated;
+        _safeNotify();
+      },
+    );
+  }
+
+  Future<void> reorderItems(
+    UuidValue checklistId,
+    List<UuidValue> orderedItemIds,
+  ) async {
+    final items = _checklistItems[checklistId];
+    if (items == null || items.isEmpty) return;
+
+    final originalItems = List<ChecklistItem>.from(items);
+    final itemById = {for (final item in items) item.id!: item};
+    final reordered = <ChecklistItem>[];
+    for (final id in orderedItemIds) {
+      final item = itemById[id];
+      if (item != null) {
+        reordered.add(item);
+      }
+    }
+
+    if (reordered.length != items.length) return;
+
+    _checklistItems[checklistId] = reordered;
+    _safeNotify();
+
+    final result = await _checklistRepo.reorderItems(
+      checklistId,
+      orderedItemIds,
+    );
+    result.fold(
+      (f) {
+        _checklistItems[checklistId] = originalItems;
+        _error = f.message;
+        _safeNotify();
+      },
+      (serverItems) {
+        _checklistItems[checklistId] = serverItems;
+        _safeNotify();
+      },
+    );
+  }
+
+  Future<void> _startStreaming(UuidValue boardId) async {
+    if (_streamStarted) return;
+    _streamStarted = true;
+
+    try {
+      await _streamService.connect(boardId);
+      _eventSubscription = _streamService.events.listen(_handleBoardEvent);
+    } catch (_) {
+      // Realtime is best-effort; keep detail page functional without it.
+    }
+  }
+
+  void _handleBoardEvent(BoardEvent event) {
+    if (event.eventType != BoardEventType.checklistItemsReordered &&
+        event.eventType != BoardEventType.boardUpdated) {
+      return;
+    }
+
+    final payloadRaw = event.payload;
+    if (payloadRaw == null) return;
+
+    try {
+      final payload = jsonDecode(payloadRaw) as Map<String, dynamic>;
+      final payloadEvent = payload['event'] as String?;
+      if (event.eventType == BoardEventType.boardUpdated &&
+          payloadEvent != 'checklistItemsReordered') {
+        return;
+      }
+      final checklistId = _parseUuid(payload['checklistId']);
+      final orderedItemIds = _parseUuidList(payload['orderedItemIds']);
+      if (checklistId == null || orderedItemIds.isEmpty) return;
+
+      final items = _checklistItems[checklistId];
+      if (items == null || items.isEmpty) return;
+
+      final itemById = {for (final item in items) item.id!: item};
+      final reordered = <ChecklistItem>[];
+      for (final id in orderedItemIds) {
+        final item = itemById[id];
+        if (item != null) {
+          reordered.add(item);
+        }
+      }
+
+      if (reordered.length != items.length) return;
+      _checklistItems[checklistId] = reordered;
+      _safeNotify();
+    } catch (_) {
+      // Ignore malformed realtime payloads.
+    }
+  }
+
+  UuidValue? _parseUuid(Object? value) {
+    if (value is UuidValue) return value;
+    if (value is String) return UuidValue.fromString(value);
+    return null;
+  }
+
+  List<UuidValue> _parseUuidList(Object? value) {
+    if (value is! List) return const [];
+    return value.map(_parseUuid).whereType<UuidValue>().toList();
+  }
+
   Future<void> attachLabel(UuidValue labelId) async {
     if (_card == null) return;
 
@@ -266,7 +490,9 @@ class CardDetailPageController extends ChangeNotifier {
         _error = f.message;
         _safeNotify();
       },
-      (_) => _loadActivities(_card!.id!), // Reload activity to show label added
+      (_) => unawaited(
+        _loadActivities(_card!.id!),
+      ), // Reload activity to show label added
     );
   }
 
@@ -285,8 +511,9 @@ class CardDetailPageController extends ChangeNotifier {
         _error = f.message;
         _safeNotify();
       },
-      (_) =>
-          _loadActivities(_card!.id!), // Reload activity to show label removed
+      (_) => unawaited(
+        _loadActivities(_card!.id!),
+      ), // Reload activity to show label removed
     );
   }
 
@@ -345,7 +572,7 @@ class CardDetailPageController extends ChangeNotifier {
       (attachment) {
         _attachments.insert(0, attachment);
         _lastUploadResult = true;
-        _loadActivities(_card!.id!);
+        unawaited(_loadActivities(_card!.id!));
         _safeNotify();
         return true;
       },
@@ -367,7 +594,7 @@ class CardDetailPageController extends ChangeNotifier {
         _error = f.message;
         _safeNotify();
       },
-      (_) => _loadActivities(_card!.id!),
+      (_) => unawaited(_loadActivities(_card!.id!)),
     );
   }
 
@@ -375,6 +602,7 @@ class CardDetailPageController extends ChangeNotifier {
     String? title,
     String? description,
     DateTime? dueDate,
+    bool? clearDueDate,
     CardPriority? priority,
   }) async {
     if (_card == null || _card?.id == null) return null;
@@ -384,6 +612,7 @@ class CardDetailPageController extends ChangeNotifier {
       title: title,
       description: description,
       dueDate: dueDate,
+      clearDueDate: clearDueDate,
       priority: priority,
     );
 

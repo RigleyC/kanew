@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import '../../../../core/ui/kanew_ui.dart';
 
 class SidebarPopover extends StatefulWidget {
   final Widget anchor;
   final Widget Function(VoidCallback close) contentBuilder;
   final Offset? offset;
+  final double? width;
 
   const SidebarPopover({
     super.key,
     required this.anchor,
     required this.contentBuilder,
     this.offset,
+    this.width,
   });
 
   @override
@@ -17,36 +20,15 @@ class SidebarPopover extends StatefulWidget {
 }
 
 class _SidebarPopoverState extends State<SidebarPopover> {
-  final MenuController _controller = MenuController();
-
-  void _toggle() {
-    if (_controller.isOpen) {
-      _controller.close();
-    } else {
-      _controller.open();
-    }
-  }
-
-  void _close() {
-    _controller.close();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MenuAnchor(
-      style: MenuStyle(
-        backgroundColor: WidgetStateProperty.all(Colors.red),
-        elevation: WidgetStateProperty.all(4),
-      ),
-      controller: _controller,
-      alignmentOffset: widget.offset ?? const Offset(-280, 8),
-      menuChildren: [
-        widget.contentBuilder(_close),
-      ],
-      child: GestureDetector(
-        onTap: _toggle,
-        child: widget.anchor,
-      ),
+    return KanewPopover(
+      menuAnchor: Alignment.topRight,
+      childAnchor: Alignment.bottomRight,
+      offset: widget.offset ?? const Offset(0, 8),
+      width: widget.width,
+      anchor: widget.anchor,
+      contentBuilder: widget.contentBuilder,
     );
   }
 }

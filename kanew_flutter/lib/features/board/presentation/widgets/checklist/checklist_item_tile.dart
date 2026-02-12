@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:kanew_client/kanew_client.dart';
+import '../../../../../core/widgets/editable_inline_text.dart';
 
 class ChecklistItemTile extends StatefulWidget {
   final ChecklistItem item;
   final void Function(bool isChecked) onToggle;
   final VoidCallback onDelete;
+  final Future<void> Function(String title) onRename;
+  final Widget? dragHandle;
 
   const ChecklistItemTile({
     super.key,
     required this.item,
     required this.onToggle,
     required this.onDelete,
+    required this.onRename,
+    this.dragHandle,
   });
 
   @override
@@ -31,6 +36,10 @@ class _ChecklistItemTileState extends State<ChecklistItemTile> {
         padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
         child: Row(
           children: [
+            if (widget.dragHandle != null) ...[
+              widget.dragHandle!,
+              const SizedBox(width: 6),
+            ],
             SizedBox(
               height: 24,
               width: 24,
@@ -46,15 +55,28 @@ class _ChecklistItemTileState extends State<ChecklistItemTile> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                widget.item.title,
-                style: TextStyle(
+              child: EditableInlineText(
+                text: widget.item.title,
+                onSave: widget.onRename,
+                textStyle: TextStyle(
+                  fontSize: 14,
                   decoration: widget.item.isChecked
                       ? TextDecoration.lineThrough
                       : null,
                   color: widget.item.isChecked
                       ? colorScheme.onSurfaceVariant
                       : colorScheme.onSurface,
+                ),
+                editingTextStyle: TextStyle(
+                  fontSize: 14,
+                  color: colorScheme.onSurface,
+                ),
+                decoration: const InputDecoration(
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                 ),
               ),
             ),

@@ -30,12 +30,15 @@ class BoardStreamService {
   bool _isConnecting = false;
   bool _authInvalid = false;
   int _reconnectAttempts = 0;
+  int _consumerCount = 0;
 
   BoardStreamService({required Client client}) : _client = client;
 
   Stream<BoardEvent> get events => _eventController.stream;
 
   StreamStatus get status => _status;
+
+  UuidValue? get currentBoardId => _currentBoardId;
 
   void _debugLog(String message) {
     if (!kDebugMode) return;
@@ -45,6 +48,11 @@ class BoardStreamService {
   /// Connects to board stream with auto-reconnect
   Future<void> connect(UuidValue boardId) async {
     if (_disposed) return;
+    _consumerCount++;
+
+    if (_status == StreamStatus.connected && _currentBoardId == boardId) {
+      return;
+    }
 
     _authInvalid = false;
     _reconnectAttempts = 0;
@@ -52,6 +60,28 @@ class BoardStreamService {
     _updateStatus(StreamStatus.connecting);
 
     await _startListening();
+  }
+
+  /// Releases one consumer of this shared stream.
+  /// When no consumers remain, the underlying connection is closed.
+  Future<void> release() async {
+    if (_consumerCount > 0) {
+      _consumerCount--;
+    }
+
+    if (_consumerCount > 0) {
+      return;
+    }
+
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+    await _subscription?.cancel();
+    _subscription = null;
+    _currentBoardId = null;
+    _authInvalid = false;
+    _isConnecting = false;
+    _reconnectAttempts = 0;
+    _updateStatus(StreamStatus.disconnected);
   }
 
   Future<void> _startListening() async {

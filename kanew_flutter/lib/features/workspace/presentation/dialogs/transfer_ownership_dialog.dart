@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kanew_client/kanew_client.dart' hide Card;
+import '../../../../core/ui/kanew_ui.dart';
 import '../../../../core/widgets/member/member_avatar.dart';
 import '../../../../core/widgets/member/member_role_badge.dart';
 
@@ -157,27 +158,23 @@ class _TransferOwnershipDialogState extends State<TransferOwnershipDialog> {
       if (mounted) {
         if (success) {
           Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Propriedade transferida com sucesso!'),
-            ),
+          showKanewSuccessToast(
+            context,
+            title: 'Propriedade transferida com sucesso!',
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Erro ao transferir propriedade'),
-              backgroundColor: Colors.red,
-            ),
+          showKanewErrorToast(
+            context,
+            title: 'Erro ao transferir propriedade',
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro: $e'),
-            backgroundColor: Colors.red,
-          ),
+        showKanewErrorToast(
+          context,
+          title: 'Erro ao transferir propriedade',
+          description: '$e',
         );
       }
     } finally {

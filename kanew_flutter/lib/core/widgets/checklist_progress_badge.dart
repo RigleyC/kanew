@@ -19,7 +19,7 @@ class ChecklistProgressBadge extends StatelessWidget {
     final progress = totalCount > 0 ? completedCount / totalCount : 0.0;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
 
       child: Row(
         spacing: 6,
@@ -36,7 +36,7 @@ class ChecklistProgressBadge extends StatelessWidget {
                   value: value,
                   strokeWidth: 2.5,
                   valueColor: AlwaysStoppedAnimation(
-                    progressColor ?? Color(0xFF4EA7FC),
+                    progressColor ?? const Color(0xFF4EA7FC),
                   ),
                 );
               },

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/widgets/sidebar/sidebar.dart';
+import '../../auth/viewmodel/auth_controller.dart';
 import '../viewmodel/workspace_controller.dart';
 import 'components/adaptive_navigation.dart';
 
@@ -22,6 +23,9 @@ class WorkspaceShell extends StatefulWidget {
 }
 
 class _WorkspaceShellState extends State<WorkspaceShell> {
+  final WorkspaceController _workspaceController = getIt<WorkspaceController>();
+  final AuthController _authController = getIt<AuthController>();
+
   @override
   void initState() {
     super.initState();
@@ -39,12 +43,10 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
   }
 
   Future<void> _initialize() async {
-    final viewModel = getIt<WorkspaceController>();
-
-    await viewModel.init();
+    await _workspaceController.init();
 
     if (widget.workspaceSlug.isNotEmpty) {
-      await viewModel.setCurrentWorkspaceBySlug(widget.workspaceSlug);
+      await _workspaceController.setCurrentWorkspaceBySlug(widget.workspaceSlug);
     }
   }
 
@@ -63,6 +65,8 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
               bottomNavigationBar: AdaptiveNavigation(
                 navigationShell: widget.navigationShell,
                 workspaceSlug: widget.workspaceSlug,
+                workspaceController: _workspaceController,
+                authController: _authController,
               ),
             );
           }
@@ -73,6 +77,8 @@ class _WorkspaceShellState extends State<WorkspaceShell> {
                 AdaptiveNavigation(
                   navigationShell: widget.navigationShell,
                   workspaceSlug: widget.workspaceSlug,
+                  workspaceController: _workspaceController,
+                  authController: _authController,
                 ),
                 Expanded(
                   child: widget.navigationShell,

@@ -1,5 +1,4 @@
 import 'package:serverpod/serverpod.dart';
-import '../generated/protocol.dart';
 
 /// Service for retrieving user information from Serverpod 3.x auth tables.
 /// 

@@ -19,6 +19,7 @@ class BoardViewPageController extends ChangeNotifier {
   String? _error;
   bool _boardDeleted = false;
   StreamSubscription<BoardEvent>? _eventSubscription;
+  bool _streamConnected = false;
 
   BoardViewPageController({
     required BoardRepository boardRepo,
@@ -26,18 +27,21 @@ class BoardViewPageController extends ChangeNotifier {
     required CardRepository cardRepo,
     required BoardStore boardStore,
     required BoardStreamService streamService,
-  })  : _boardRepo = boardRepo,
-        _listRepo = listRepo,
-        _cardRepo = cardRepo,
-        _boardStore = boardStore,
-        _streamService = streamService {
+  }) : _boardRepo = boardRepo,
+       _listRepo = listRepo,
+       _cardRepo = cardRepo,
+       _boardStore = boardStore,
+       _streamService = streamService {
     _boardStore.addListener(notifyListeners);
   }
 
   @override
   void dispose() {
     _eventSubscription?.cancel();
-    _streamService.dispose();
+    if (_streamConnected) {
+      unawaited(_streamService.release());
+      _streamConnected = false;
+    }
     _boardStore.removeListener(notifyListeners);
     super.dispose();
   }
@@ -53,7 +57,8 @@ class BoardViewPageController extends ChangeNotifier {
   Listenable get boardDataListenable => _boardStore;
 
   /// Exposes stream status for UI (reconnecting toast)
-  ValueListenable<StreamStatus> get streamStatus => _streamService.statusNotifier;
+  ValueListenable<StreamStatus> get streamStatus =>
+      _streamService.statusNotifier;
 
   List<CardSummary> getCardsForList(UuidValue listId) {
     return _boardStore.getCardsForList(listId);
@@ -109,12 +114,14 @@ class BoardViewPageController extends ChangeNotifier {
   }
 
   Future<void> _startStreaming() async {
-    if (board == null) return;
+    if (board == null || _streamConnected) return;
 
     try {
       await _streamService.connect(board!.id!);
+      _streamConnected = true;
 
       // Subscribe to events
+      await _eventSubscription?.cancel();
       _eventSubscription = _streamService.events.listen(_handleEvent);
 
       _debugLog('Streaming started for board ${board!.id}');
@@ -124,6 +131,20 @@ class BoardViewPageController extends ChangeNotifier {
   }
 
   void _handleEvent(BoardEvent event) {
+    // Ignore synthetic boardUpdated events used only as backwards-compatible
+    // transport for checklist item reorder.
+    if (event.eventType == BoardEventType.boardUpdated &&
+        event.payload != null) {
+      try {
+        final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
+        if (payload['event'] == 'checklistItemsReordered') {
+          return;
+        }
+      } catch (_) {
+        // Keep default flow for malformed payloads.
+      }
+    }
+
     _debugLog('Handling event: ${event.eventType}');
 
     switch (event.eventType) {
@@ -162,6 +183,8 @@ class BoardViewPageController extends ChangeNotifier {
         break;
       case BoardEventType.cardLabelsUpdated:
         _handleCardLabelsUpdated(event);
+        break;
+      case BoardEventType.checklistItemsReordered:
         break;
       case BoardEventType.boardUpdated:
         _handleBoardUpdated(event);
@@ -325,7 +348,9 @@ class BoardViewPageController extends ChangeNotifier {
       final payload = jsonDecode(event.payload!) as Map<String, dynamic>;
       final labelsData = payload['labels'] as List?;
       if (labelsData == null) return;
-      final labels = labelsData.map((l) => LabelDef.fromJson(l as Map<String, dynamic>)).toList();
+      final labels = labelsData
+          .map((l) => LabelDef.fromJson(l as Map<String, dynamic>))
+          .toList();
       _boardStore.updateCardLabels(event.cardId!, labels);
     } catch (e) {
       _debugLog('Error handling cardLabelsUpdated: $e');
@@ -405,6 +430,32 @@ class BoardViewPageController extends ChangeNotifier {
       (_) {
         _boardStore.removeList(listId);
         return true;
+      },
+    );
+  }
+
+  Future<CardList?> updateListTitle(UuidValue listId, String title) async {
+    final trimmed = title.trim();
+    if (trimmed.isEmpty) return null;
+
+    final currentIndex = lists.indexWhere((l) => l.id == listId);
+    if (currentIndex == -1) return null;
+
+    final previous = lists[currentIndex];
+    final optimistic = previous.copyWith(title: trimmed);
+    _boardStore.updateList(optimistic);
+
+    final result = await _listRepo.updateList(listId, trimmed);
+    return result.fold(
+      (f) {
+        _boardStore.updateList(previous);
+        _error = f.message;
+        notifyListeners();
+        return null;
+      },
+      (updated) {
+        _boardStore.updateList(updated);
+        return updated;
       },
     );
   }

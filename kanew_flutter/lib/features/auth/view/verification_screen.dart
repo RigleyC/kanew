@@ -7,6 +7,7 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../core/router/auth_route_helper.dart';
+import '../../../core/ui/kanew_ui.dart';
 import '../viewmodel/auth_controller.dart';
 
 /// Screen for entering email verification code.
@@ -52,11 +53,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
   /// Handles verification code submission.
   Future<void> _handleVerifyCode() async {
     if (_codeController.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('O código deve ter pelo menos 6 caracteres'),
-          backgroundColor: Colors.red,
-        ),
+      showKanewErrorToast(
+        context,
+        title: 'O código deve ter pelo menos 6 caracteres',
       );
       return;
     }
@@ -73,12 +72,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
     switch (state) {
       case AuthCodeVerified():
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Código verificado!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showKanewSuccessToast(context, title: 'Código verificado!');
         developer.log(
           'Code verified, navigating to set password',
           name: 'verification_screen',
@@ -94,11 +88,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
         }
 
       case AuthError():
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message),
-            backgroundColor: Colors.red,
-          ),
+        showKanewErrorToast(
+          context,
+          title: 'Falha na verificação',
+          description: state.message,
         );
         developer.log(
           'Verification failed',
@@ -126,23 +119,17 @@ class _VerificationScreenState extends State<VerificationScreen> {
         setState(() {
           _accountRequestId = state.accountRequestId;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Novo código enviado!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showKanewSuccessToast(context, title: 'Novo código enviado!');
         developer.log(
           'Verification code resent - newRequestId: ${state.accountRequestId}',
           name: 'verification_screen',
         );
 
       case AuthError():
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message),
-            backgroundColor: Colors.red,
-          ),
+        showKanewErrorToast(
+          context,
+          title: 'Falha ao reenviar código',
+          description: state.message,
         );
         developer.log(
           'Failed to resend code',

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/ui/kanew_ui.dart';
 import '../viewmodel/auth_controller.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -56,23 +57,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         setState(() {
           _resetToken = state.token;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Código verificado!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showKanewSuccessToast(context, title: 'Código verificado!');
         developer.log(
           'Password reset code verified',
           name: 'reset_password_screen',
         );
 
       case AuthError():
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message),
-            backgroundColor: Colors.red,
-          ),
+        showKanewErrorToast(
+          context,
+          title: 'Falha ao verificar código',
+          description: state.message,
         );
         developer.log(
           'Password reset code verification failed',
@@ -92,11 +87,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     final password = _passwordController.text;
     if (password.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('A senha deve ter pelo menos 8 caracteres'),
-          backgroundColor: Colors.red,
-        ),
+      showKanewErrorToast(
+        context,
+        title: 'A senha deve ter pelo menos 8 caracteres',
       );
       return;
     }
@@ -113,11 +106,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     switch (state) {
       case AuthInitial():
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Senha redefinida com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
+        showKanewSuccessToast(
+          context,
+          title: 'Senha redefinida com sucesso!',
         );
         developer.log(
           'Password reset completed, navigating to login',
@@ -128,11 +119,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         }
 
       case AuthError():
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message),
-            backgroundColor: Colors.red,
-          ),
+        showKanewErrorToast(
+          context,
+          title: 'Falha ao redefinir senha',
+          description: state.message,
         );
         developer.log(
           'Password reset failed',

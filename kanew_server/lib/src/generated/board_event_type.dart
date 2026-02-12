@@ -27,6 +27,7 @@ enum BoardEventType implements _i1.SerializableModel {
   labelUpdated,
   labelDeleted,
   cardLabelsUpdated,
+  checklistItemsReordered,
   boardUpdated,
   boardDeleted;
 
@@ -60,6 +61,8 @@ enum BoardEventType implements _i1.SerializableModel {
         return BoardEventType.labelDeleted;
       case 'cardLabelsUpdated':
         return BoardEventType.cardLabelsUpdated;
+      case 'checklistItemsReordered':
+        return BoardEventType.checklistItemsReordered;
       case 'boardUpdated':
         return BoardEventType.boardUpdated;
       case 'boardDeleted':

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kanew_client/kanew_client.dart';
+import '../../../../../core/ui/kanew_ui.dart';
 import '../../../../../core/utils/ui_helpers.dart';
+import '../../../../../core/widgets/editable_inline_text.dart';
 import '../../../../../core/widgets/checklist_progress_badge.dart';
 import 'add_checklist_item_input.dart';
 import 'checklist_item_tile.dart';
@@ -9,18 +11,24 @@ class ChecklistCard extends StatefulWidget {
   final Checklist checklist;
   final List<ChecklistItem> items;
   final void Function(String title) onAddItem;
+  final Future<void> Function(String title) onRenameChecklist;
   final VoidCallback onDelete;
   final void Function(UuidValue itemId, bool isChecked) onToggleItem;
   final void Function(UuidValue itemId) onDeleteItem;
+  final Future<void> Function(UuidValue itemId, String title) onRenameItem;
+  final void Function(List<UuidValue> orderedItemIds) onReorderItems;
 
   const ChecklistCard({
     super.key,
     required this.checklist,
     required this.items,
     required this.onAddItem,
+    required this.onRenameChecklist,
     required this.onDelete,
     required this.onToggleItem,
     required this.onDeleteItem,
+    required this.onRenameItem,
+    required this.onReorderItems,
   });
 
   @override
@@ -29,7 +37,6 @@ class ChecklistCard extends StatefulWidget {
 
 class _ChecklistCardState extends State<ChecklistCard> {
   bool _isAddingItem = false;
-  final MenuController _menuController = MenuController();
 
   void _handleDelete() {
     showConfirmDialog(
@@ -38,6 +45,17 @@ class _ChecklistCardState extends State<ChecklistCard> {
       confirmText: 'Excluir',
       onConfirm: widget.onDelete,
     );
+  }
+
+  void _handleReorder(int oldIndex, int newIndex) {
+    final reordered = List<ChecklistItem>.from(widget.items);
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+
+    final moved = reordered.removeAt(oldIndex);
+    reordered.insert(newIndex, moved);
+    widget.onReorderItems(reordered.map((item) => item.id!).toList());
   }
 
   @override
@@ -52,9 +70,28 @@ class _ChecklistCardState extends State<ChecklistCard> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              widget.checklist.title,
-              style: Theme.of(context).textTheme.titleMedium,
+            Expanded(
+              child: EditableInlineText(
+                text: widget.checklist.title,
+                onSave: widget.onRenameChecklist,
+                textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+                editingTextStyle: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                decoration: const InputDecoration(
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
+              ),
             ),
             Row(
               children: [
@@ -67,35 +104,41 @@ class _ChecklistCardState extends State<ChecklistCard> {
                   onPressed: () => setState(() => _isAddingItem = true),
                   icon: const Icon(Icons.add_rounded),
                 ),
-                MenuAnchor(
-                  controller: _menuController,
-                  menuChildren: [
-                    MenuItemButton(
-                      onPressed: _handleDelete,
-                      leadingIcon: Icon(
-                        Icons.delete_outline,
-                        color: Theme.of(context).colorScheme.error,
+                KanewPopover(
+                  menuAnchor: Alignment.topRight,
+                  childAnchor: Alignment.bottomRight,
+                  offset: const Offset(0, 8),
+                  width: 150,
+                  anchor: const Icon(Icons.more_vert_rounded),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 6),
+                  contentBuilder: (close) => InkWell(
+                    onTap: () {
+                      close();
+                      _handleDelete();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
                       ),
-                      child: Text(
-                        'Excluir',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            color: Theme.of(context).colorScheme.error,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Excluir',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                  builder: (context, controller, child) {
-                    return IconButton(
-                      onPressed: () {
-                        if (controller.isOpen) {
-                          controller.close();
-                        } else {
-                          controller.open();
-                        }
-                      },
-                      icon: const Icon(Icons.more_vert_rounded),
-                    );
-                  },
+                  ),
                 ),
               ],
             ),
@@ -103,13 +146,29 @@ class _ChecklistCardState extends State<ChecklistCard> {
         ),
 
         // Items
-        ...items.map(
-          (item) => ChecklistItemTile(
-            item: item,
-            onToggle: (isChecked) => widget.onToggleItem(item.id!, isChecked),
-            onDelete: () => widget.onDeleteItem(item.id!),
+        if (items.isNotEmpty)
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            itemCount: items.length,
+            onReorder: _handleReorder,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return ChecklistItemTile(
+                key: ValueKey(item.id),
+                item: item,
+                onToggle: (isChecked) =>
+                    widget.onToggleItem(item.id!, isChecked),
+                onDelete: () => widget.onDeleteItem(item.id!),
+                onRename: (title) => widget.onRenameItem(item.id!, title),
+                dragHandle: ReorderableDragStartListener(
+                  index: index,
+                  child: const Icon(Icons.drag_indicator_rounded, size: 18),
+                ),
+              );
+            },
           ),
-        ),
         if (_isAddingItem)
           AddChecklistItemInput(
             onSubmit: (title) {

@@ -144,7 +144,11 @@ class _KanbanBoardState extends State<KanbanBoard> {
       );
     }
 
-    _adapter.handleMoveCard(UuidValue.fromString(groupId), toIndex, widget.controller);
+    _adapter.handleMoveCard(
+      UuidValue.fromString(groupId),
+      toIndex,
+      widget.controller,
+    );
   }
 
   void _onMoveGroupItemToGroup(
@@ -160,7 +164,11 @@ class _KanbanBoardState extends State<KanbanBoard> {
       );
     }
 
-    _adapter.handleMoveCard(UuidValue.fromString(toGroupId), toIndex, widget.controller);
+    _adapter.handleMoveCard(
+      UuidValue.fromString(toGroupId),
+      toIndex,
+      widget.controller,
+    );
   }
 
   @override
@@ -178,7 +186,7 @@ class _KanbanBoardState extends State<KanbanBoard> {
             child: AppFlowyBoard(
               controller: _boardController,
               boardScrollController: _scrollController,
-              groupConstraints: const BoxConstraints.tightFor(width: 300),
+              groupConstraints: const BoxConstraints.tightFor(width: 320),
               config: AppFlowyBoardConfig(
                 groupBackgroundColor: Theme.of(context).canvasColor,
                 stretchGroupHeight: false,
@@ -189,6 +197,8 @@ class _KanbanBoardState extends State<KanbanBoard> {
                 groupData: groupData,
                 lists: widget.controller.lists,
                 onDelete: (listId) => widget.controller.deleteList(listId),
+                onRename: (listId, title) =>
+                    widget.controller.updateListTitle(listId, title),
                 onAddCard: (listId, title) => widget.onAddCard(listId, title),
               ),
 
@@ -198,7 +208,6 @@ class _KanbanBoardState extends State<KanbanBoard> {
                 }
                 final cardItem = groupItem;
                 return AppFlowyGroupCard(
-                  decoration: BoxDecoration(color: Colors.transparent),
                   key: ObjectKey(cardItem),
                   child: KanbanCard(
                     cardSummary: cardItem.cardSummary,

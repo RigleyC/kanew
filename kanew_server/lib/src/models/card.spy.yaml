@@ -17,11 +17,13 @@ fields:
   
   # Detalhes
   dueDate: DateTime?
-  isCompleted: bool
   
   createdAt: DateTime
   createdBy: UuidValue
   updatedAt: DateTime? # Conforme plan.md
+
+  # Assignee (single)
+  assigneeMemberId: UuidValue?, relation(parent=workspace_member)
   
   # Soft Delete
   deletedAt: DateTime?

@@ -82,9 +82,9 @@ Future<void> setupDependencies() async {
     () => WorkspaceRepository(client: getIt<Client>()),
   );
 
-getIt.registerLazySingleton<MemberRepository>(
-      () => MemberRepositoryImpl(client: getIt<Client>()),
-    );
+  getIt.registerLazySingleton<MemberRepository>(
+    () => MemberRepositoryImpl(client: getIt<Client>()),
+  );
 
   getIt.registerLazySingleton<BoardRepository>(
     () => BoardRepository(client: getIt<Client>()),
@@ -176,8 +176,8 @@ getIt.registerLazySingleton<MemberRepository>(
     () => BoardsPageController(repository: getIt<BoardRepository>()),
   );
 
-  // Register BoardStreamService as Factory (new instance per board)
-  getIt.registerFactory<BoardStreamService>(
+  // Register BoardStreamService as shared singleton
+  getIt.registerLazySingleton<BoardStreamService>(
     () => BoardStreamService(client: getIt<Client>()),
   );
 
@@ -201,6 +201,8 @@ getIt.registerLazySingleton<MemberRepository>(
       attachmentRepo: getIt<AttachmentRepository>(),
       filePicker: getIt<FilePickerService>(),
       boardStore: getIt<BoardStore>(),
+      memberRepo: getIt<MemberRepository>(),
+      streamService: getIt<BoardStreamService>(),
     ),
   );
 

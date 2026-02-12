@@ -1,4 +1,4 @@
-/// Widget de calendário customizado baseado no FCalendar da forui
+/// Widget de calendário customizado do Kanew.
 library;
 
 export 'kanew_calendar.dart';

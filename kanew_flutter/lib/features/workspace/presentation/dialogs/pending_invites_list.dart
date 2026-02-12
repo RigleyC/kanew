@@ -4,6 +4,7 @@ import 'package:kanew_client/kanew_client.dart' hide Card;
 import 'package:intl/intl.dart';
 import '../../../../config/app_config.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/ui/kanew_ui.dart';
 
 class PendingInvitesList extends StatelessWidget {
   final List<WorkspaceInvite> invites;
@@ -103,8 +104,9 @@ class _InviteTile extends StatelessWidget {
             tooltip: 'Copiar link',
             onPressed: () {
               Clipboard.setData(ClipboardData(text: inviteLink));
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Link copiado!')),
+              showKanewInfoToast(
+                context,
+                title: 'Link copiado!',
               );
             },
           ),
@@ -119,30 +121,16 @@ class _InviteTile extends StatelessWidget {
   }
 
   void _confirmRevoke(BuildContext context) {
-    showDialog(
+    showKanewConfirmDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Revogar Convite'),
-        content: const Text(
+      title: 'Revogar Convite',
+      body:
           'Tem certeza que deseja revogar este convite? Esta acao nao pode ser desfeita.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              onRevoke();
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-            child: const Text('Revogar'),
-          ),
-        ],
-      ),
+      confirmText: 'Revogar',
+      destructive: true,
+      onConfirm: () {
+        onRevoke();
+      },
     );
   }
 }

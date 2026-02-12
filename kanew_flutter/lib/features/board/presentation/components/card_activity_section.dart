@@ -220,6 +220,12 @@ class _ActivityItem extends StatelessWidget {
         return Icons.restore;
       case ActivityType.comment:
         return Icons.comment_outlined;
+      case ActivityType.labelAdded:
+        return Icons.label_outline;
+      case ActivityType.labelRemoved:
+        return Icons.label_off_outlined;
+      case ActivityType.assigneeChanged:
+        return Icons.person_outline;
       case ActivityType.attachmentAdded:
         return Icons.attach_file;
       case ActivityType.attachmentDeleted:
@@ -243,6 +249,12 @@ class _ActivityItem extends StatelessWidget {
         return 'restaurou este cartão';
       case ActivityType.comment:
         return 'comentou';
+      case ActivityType.labelAdded:
+        return activity.details ?? 'adicionou uma etiqueta';
+      case ActivityType.labelRemoved:
+        return activity.details ?? 'removeu uma etiqueta';
+      case ActivityType.assigneeChanged:
+        return activity.details ?? 'alterou o responsável';
       case ActivityType.attachmentAdded:
         return activity.details ?? 'adicionou um anexo';
       case ActivityType.attachmentDeleted:

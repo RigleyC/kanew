@@ -15,7 +15,7 @@ class LabelChip extends StatelessWidget {
     required this.colorHex,
     this.onTap,
     this.showDelete = false,
-    this.onDelete, 
+    this.onDelete,
   });
 
   @override
@@ -23,7 +23,7 @@ class LabelChip extends StatelessWidget {
     final labelColor = LabelColors.parseHex(colorHex);
 
     return RawChip(
-      labelPadding: EdgeInsets.only(left: 4, right: 8),
+      labelPadding: const EdgeInsets.only(left: 2, right: 4),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(100)),
       ),

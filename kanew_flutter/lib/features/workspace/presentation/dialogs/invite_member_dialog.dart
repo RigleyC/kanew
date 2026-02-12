@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:kanew_client/kanew_client.dart' hide Card;
 import '../../../../config/app_config.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/ui/kanew_ui.dart';
 import '../../../../core/widgets/member/permission_matrix.dart';
 
 class InviteMemberDialog extends StatefulWidget {
@@ -10,7 +11,8 @@ class InviteMemberDialog extends StatefulWidget {
   final Future<WorkspaceInvite?> Function(
     List<UuidValue> permissionIds,
     String? email,
-  ) onCreateInvite;
+  )
+  onCreateInvite;
 
   const InviteMemberDialog({
     super.key,
@@ -87,7 +89,9 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
                               'Nenhuma permissao disponivel encontrada.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -107,7 +111,9 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -127,8 +133,9 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
                         tooltip: 'Copiar link',
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: _inviteLink!));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Link copiado!')),
+                          showKanewInfoToast(
+                            context,
+                            title: 'Link copiado!',
                           );
                         },
                       ),
@@ -154,7 +161,9 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Text(
-                            _inviteLink == null ? 'Criar Convite' : 'Criar Outro',
+                            _inviteLink == null
+                                ? 'Criar Convite'
+                                : 'Criar Outro',
                           ),
                   ),
                 ],
@@ -168,8 +177,9 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
 
   Future<void> _handleCreate() async {
     if (_selectedPermissionIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione ao menos uma permissao')),
+      showKanewInfoToast(
+        context,
+        title: 'Selecione ao menos uma permissao',
       );
       return;
     }
@@ -189,14 +199,17 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
           _isLoading = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Convite criado com sucesso!')),
+        showKanewSuccessToast(
+          context,
+          title: 'Convite criado com sucesso!',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao criar convite: $e')),
+        showKanewErrorToast(
+          context,
+          title: 'Erro ao criar convite',
+          description: '$e',
         );
       }
     } finally {

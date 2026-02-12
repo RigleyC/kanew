@@ -18,6 +18,9 @@ enum ActivityType implements _i1.SerializableModel {
   delete,
   move,
   comment,
+  labelAdded,
+  labelRemoved,
+  assigneeChanged,
   archive,
   restore,
   attachmentAdded,
@@ -35,6 +38,12 @@ enum ActivityType implements _i1.SerializableModel {
         return ActivityType.move;
       case 'comment':
         return ActivityType.comment;
+      case 'labelAdded':
+        return ActivityType.labelAdded;
+      case 'labelRemoved':
+        return ActivityType.labelRemoved;
+      case 'assigneeChanged':
+        return ActivityType.assigneeChanged;
       case 'archive':
         return ActivityType.archive;
       case 'restore':

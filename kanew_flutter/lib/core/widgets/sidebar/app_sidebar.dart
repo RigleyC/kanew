@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 
 import 'sidebar_data.dart';
 import 'sidebar_provider.dart';
@@ -44,20 +45,6 @@ class AppSidebar extends StatelessWidget {
 
     final currentWidth = isCollapsed ? collapsedWidth : expandedWidth;
 
-    // Mobile: offcanvas drawer
-    if (isMobile) {
-      return _MobileDrawer(
-        isOpen: isOpen,
-        width: expandedWidth,
-        onClose: () => provider?.setOpen(false),
-        child: SidebarData(
-          isCollapsed: false,
-          width: expandedWidth,
-          child: _buildSidebarContent(context, colorScheme),
-        ),
-      );
-    }
-
     // Desktop: animated sidebar
     return SidebarData(
       isCollapsed: isCollapsed,
@@ -72,44 +59,40 @@ class AppSidebar extends StatelessWidget {
   }
 
   Widget _buildSidebarContent(BuildContext context, ColorScheme colorScheme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          right: BorderSide(
-            color: colorScheme.outlineVariant,
-            width: 1,
+    final data = SidebarData.maybeOf(context);
+    final width = data?.width ?? expandedWidth;
+
+    return FSidebar(
+      style: (base) => FSidebarStyle(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          border: Border(
+            right: BorderSide(color: colorScheme.outlineVariant, width: 1),
           ),
         ),
+        constraints: BoxConstraints.tightFor(width: width),
+        groupStyle: base.groupStyle,
+        backgroundFilter: base.backgroundFilter,
+        headerPadding: const EdgeInsets.all(12),
+        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        footerPadding: const EdgeInsets.all(12),
       ),
-      child: Column(
-        children: [
-          // Header
-          if (header != null)
-            _SidebarSection(
-              padding: const EdgeInsets.all(12),
+      header: header != null
+          ? _SidebarSection(
+              padding: EdgeInsets.zero,
               hasBorder: true,
               child: header!,
-            ),
-
-          // Content
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              children: children,
-            ),
-          ),
-
-          // Footer
-          if (footer != null)
-            _SidebarSection(
-              padding: const EdgeInsets.all(12),
+            )
+          : null,
+      footer: footer != null
+          ? _SidebarSection(
+              padding: EdgeInsets.zero,
               hasBorder: true,
               isTop: true,
               child: footer!,
-            ),
-        ],
-      ),
+            )
+          : null,
+      children: children,
     );
   }
 }

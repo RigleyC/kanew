@@ -80,26 +80,23 @@ class KanbnButton extends StatelessWidget {
 
     return Opacity(
       opacity: (disabled || isLoading) ? 0.7 : 1.0,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: (disabled || isLoading) ? null : onPressed,
-          borderRadius: BorderRadius.circular(6),
-          overlayColor: WidgetStateProperty.all(
-            contentColor.withValues(alpha: 0.1),
+      child: InkWell(
+        onTap: (disabled || isLoading) ? null : onPressed,
+        borderRadius: BorderRadius.circular(6),
+        overlayColor: WidgetStateProperty.all(
+          contentColor.withValues(alpha: 0.1),
+        ),
+        child: Container(
+          width: fullWidth ? double.infinity : null,
+          padding: _getPadding(),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(6),
+            border: borderColor != null
+                ? Border.all(color: borderColor, width: 1)
+                : null,
           ),
-          child: Container(
-            width: fullWidth ? double.infinity : null,
-            padding: _getPadding(),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(6),
-              border: borderColor != null
-                  ? Border.all(color: borderColor, width: 1)
-                  : null,
-            ),
-            child: _buildContent(theme, contentColor),
-          ),
+          child: _buildContent(theme, contentColor),
         ),
       ),
     );

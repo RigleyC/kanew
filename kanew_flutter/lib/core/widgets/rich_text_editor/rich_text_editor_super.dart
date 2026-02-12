@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:follow_the_leader/follow_the_leader.dart';
 import 'package:super_editor/super_editor.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'package:super_editor_clipboard/super_editor_clipboard.dart';
@@ -12,8 +11,7 @@ import 'converters/super_editor_document_converter.dart';
 import 'converters/document_converter_base.dart';
 import 'rich_text_editor_config.dart';
 import 'rich_text_editor_controller_generic.dart';
-import 'slash_menu/slash_menu_plugin.dart';
-import 'slash_menu/slash_menu_overlay.dart';
+import 'slash_menu/slash_menu_super_editor_plugin.dart';
 
 /// Widget de rich text editor usando Super Editor
 /// Não tem conhecimento do domínio (Card, Board, etc)
@@ -37,9 +35,9 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
   late final RichTextEditorController<EditorState> _controller;
   late final DocumentConverter<EditorState> _converter;
   late final ScrollController _scrollController;
+  late final FocusNode _focusNode;
   final SelectionLayerLinks _selectionLinks = SelectionLayerLinks();
-  OverlayEntry? _slashMenuOverlayEntry;
-  SlashMenuPlugin? _slashMenuPlugin;
+  SlashMenuSuperEditorPlugin? _slashMenuPlugin;
 
   @override
   void initState() {
@@ -56,59 +54,36 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
 
     _controller.initialize(widget.initialContent);
     _scrollController = ScrollController();
+    _focusNode = FocusNode();
+    _focusNode.addListener(_onFocusChange);
 
     // Initialize Slash Menu Plugin only if enabled
     if (widget.config.enableSlashCommands && !widget.config.readOnly) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_controller.editorState != null && mounted) {
-          setState(() {
-            _slashMenuPlugin = SlashMenuPlugin(
-              editor: _controller.editorState!.editor,
-            );
-          });
-
-          _slashMenuPlugin?.addListener(_onSlashMenuStateChange);
-          _controller.editorState!.composer.selectionNotifier.addListener(
-            _onSelectionChange,
-          );
-        }
-      });
-    }
-  }
-
-  void _onSelectionChange() {
-    _slashMenuPlugin?.checkForTrigger(
-      _controller.editorState?.composer.selection,
-    );
-  }
-
-  void _onSlashMenuStateChange() {
-    final plugin = _slashMenuPlugin;
-    if (plugin == null) return;
-
-    if (plugin.isOpen) {
-      _showSlashMenuOverlay();
-    } else {
-      _hideSlashMenuOverlay();
+      _slashMenuPlugin = SlashMenuSuperEditorPlugin(
+        selectionLayerLinks: _selectionLinks,
+      );
     }
   }
 
   @override
   void dispose() {
-    _hideSlashMenuOverlay();
-    if (_controller.editorState != null) {
-      _controller.editorState!.composer.selectionNotifier.removeListener(
-        _onSelectionChange,
-      );
-    }
-    _slashMenuPlugin?.removeListener(_onSlashMenuStateChange);
     _slashMenuPlugin?.dispose();
 
     // Salvar antes de sair
     unawaited(_controller.saveNowBestEffort());
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (_focusNode.hasFocus) return;
+
+    // When the editor loses focus, force an immediate save so that clicking away
+    // doesn't leave pending changes unsaved.
+    unawaited(_controller.saveNow());
   }
 
   @override
@@ -132,8 +107,12 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
 
         return SuperEditor(
           scrollController: _scrollController,
+          focusNode: _focusNode,
           editor: editorState.editor,
           selectionLayerLinks: _selectionLinks,
+          plugins: {
+            if (_slashMenuPlugin != null) _slashMenuPlugin!,
+          },
           stylesheet: _buildStylesheet(
             colorScheme,
             extraBottomPadding: extraBottomPadding,
@@ -157,11 +136,6 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
           ],
           // Enable keyboard shortcuts (Cmd+B, etc) and markdown input handlers
           keyboardActions: [
-            if (_slashMenuPlugin != null)
-              ({
-                required SuperEditorContext editContext,
-                required KeyEvent keyEvent,
-              }) => _slashMenuPlugin!.onKeyEvent(editContext, keyEvent),
             _copyRichTextWhenAvailable,
             _pasteRichTextWhenAvailable,
             ...defaultKeyboardActions,
@@ -285,49 +259,6 @@ class _RichTextEditorSuperState extends State<RichTextEditorSuper> {
     );
 
     return completer.future;
-  }
-
-  void _showSlashMenuOverlay() {
-    if (_slashMenuOverlayEntry != null) {
-      _slashMenuOverlayEntry!.markNeedsBuild();
-      return;
-    }
-
-    final overlay = Overlay.of(context, rootOverlay: true);
-    _slashMenuOverlayEntry = OverlayEntry(
-      builder: (overlayContext) {
-        final plugin = _slashMenuPlugin;
-        if (plugin == null || !plugin.isOpen) {
-          return const SizedBox.shrink();
-        }
-
-        return IgnorePointer(
-          ignoring: false,
-          child: Material(
-            type: MaterialType.transparency,
-            child: Stack(
-              children: [
-                Follower.withOffset(
-                  link: _selectionLinks.caretLink,
-                  leaderAnchor: Alignment.bottomLeft,
-                  followerAnchor: Alignment.topLeft,
-                  offset: const Offset(0, 8),
-                  showWhenUnlinked: false,
-                  child: SlashMenuOverlay(plugin: plugin),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    overlay.insert(_slashMenuOverlayEntry!);
-  }
-
-  void _hideSlashMenuOverlay() {
-    _slashMenuOverlayEntry?.remove();
-    _slashMenuOverlayEntry = null;
   }
 
   Stylesheet _buildStylesheet(

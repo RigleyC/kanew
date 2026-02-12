@@ -24,10 +24,10 @@ abstract class Card
     required this.priority,
     required this.rank,
     this.dueDate,
-    required this.isCompleted,
     required this.createdAt,
     required this.createdBy,
     this.updatedAt,
+    this.assigneeMemberId,
     this.deletedAt,
     this.deletedBy,
   });
@@ -41,10 +41,10 @@ abstract class Card
     required _i2.CardPriority priority,
     required String rank,
     DateTime? dueDate,
-    required bool isCompleted,
     required DateTime createdAt,
     required _i1.UuidValue createdBy,
     DateTime? updatedAt,
+    _i1.UuidValue? assigneeMemberId,
     DateTime? deletedAt,
     _i1.UuidValue? deletedBy,
   }) = _CardImpl;
@@ -67,7 +67,6 @@ abstract class Card
       dueDate: jsonSerialization['dueDate'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['dueDate']),
-      isCompleted: jsonSerialization['isCompleted'] as bool,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -77,6 +76,11 @@ abstract class Card
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
+      assigneeMemberId: jsonSerialization['assigneeMemberId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(
+              jsonSerialization['assigneeMemberId'],
+            ),
       deletedAt: jsonSerialization['deletedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['deletedAt']),
@@ -107,13 +111,13 @@ abstract class Card
 
   DateTime? dueDate;
 
-  bool isCompleted;
-
   DateTime createdAt;
 
   _i1.UuidValue createdBy;
 
   DateTime? updatedAt;
+
+  _i1.UuidValue? assigneeMemberId;
 
   DateTime? deletedAt;
 
@@ -134,10 +138,10 @@ abstract class Card
     _i2.CardPriority? priority,
     String? rank,
     DateTime? dueDate,
-    bool? isCompleted,
     DateTime? createdAt,
     _i1.UuidValue? createdBy,
     DateTime? updatedAt,
+    _i1.UuidValue? assigneeMemberId,
     DateTime? deletedAt,
     _i1.UuidValue? deletedBy,
   });
@@ -154,10 +158,11 @@ abstract class Card
       'priority': priority.toJson(),
       'rank': rank,
       if (dueDate != null) 'dueDate': dueDate?.toJson(),
-      'isCompleted': isCompleted,
       'createdAt': createdAt.toJson(),
       'createdBy': createdBy.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
+      if (assigneeMemberId != null)
+        'assigneeMemberId': assigneeMemberId?.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
       if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
@@ -176,10 +181,11 @@ abstract class Card
       'priority': priority.toJson(),
       'rank': rank,
       if (dueDate != null) 'dueDate': dueDate?.toJson(),
-      'isCompleted': isCompleted,
       'createdAt': createdAt.toJson(),
       'createdBy': createdBy.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
+      if (assigneeMemberId != null)
+        'assigneeMemberId': assigneeMemberId?.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
       if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
@@ -227,10 +233,10 @@ class _CardImpl extends Card {
     required _i2.CardPriority priority,
     required String rank,
     DateTime? dueDate,
-    required bool isCompleted,
     required DateTime createdAt,
     required _i1.UuidValue createdBy,
     DateTime? updatedAt,
+    _i1.UuidValue? assigneeMemberId,
     DateTime? deletedAt,
     _i1.UuidValue? deletedBy,
   }) : super._(
@@ -242,10 +248,10 @@ class _CardImpl extends Card {
          priority: priority,
          rank: rank,
          dueDate: dueDate,
-         isCompleted: isCompleted,
          createdAt: createdAt,
          createdBy: createdBy,
          updatedAt: updatedAt,
+         assigneeMemberId: assigneeMemberId,
          deletedAt: deletedAt,
          deletedBy: deletedBy,
        );
@@ -263,10 +269,10 @@ class _CardImpl extends Card {
     _i2.CardPriority? priority,
     String? rank,
     Object? dueDate = _Undefined,
-    bool? isCompleted,
     DateTime? createdAt,
     _i1.UuidValue? createdBy,
     Object? updatedAt = _Undefined,
+    Object? assigneeMemberId = _Undefined,
     Object? deletedAt = _Undefined,
     Object? deletedBy = _Undefined,
   }) {
@@ -281,10 +287,12 @@ class _CardImpl extends Card {
       priority: priority ?? this.priority,
       rank: rank ?? this.rank,
       dueDate: dueDate is DateTime? ? dueDate : this.dueDate,
-      isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,
       updatedAt: updatedAt is DateTime? ? updatedAt : this.updatedAt,
+      assigneeMemberId: assigneeMemberId is _i1.UuidValue?
+          ? assigneeMemberId
+          : this.assigneeMemberId,
       deletedAt: deletedAt is DateTime? ? deletedAt : this.deletedAt,
       deletedBy: deletedBy is _i1.UuidValue? ? deletedBy : this.deletedBy,
     );
@@ -335,11 +343,6 @@ class CardUpdateTable extends _i1.UpdateTable<CardTable> {
         value,
       );
 
-  _i1.ColumnValue<bool, bool> isCompleted(bool value) => _i1.ColumnValue(
-    table.isCompleted,
-    value,
-  );
-
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
         table.createdAt,
@@ -358,6 +361,13 @@ class CardUpdateTable extends _i1.UpdateTable<CardTable> {
         table.updatedAt,
         value,
       );
+
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> assigneeMemberId(
+    _i1.UuidValue? value,
+  ) => _i1.ColumnValue(
+    table.assigneeMemberId,
+    value,
+  );
 
   _i1.ColumnValue<DateTime, DateTime> deletedAt(DateTime? value) =>
       _i1.ColumnValue(
@@ -405,10 +415,6 @@ class CardTable extends _i1.Table<_i1.UuidValue?> {
       'dueDate',
       this,
     );
-    isCompleted = _i1.ColumnBool(
-      'isCompleted',
-      this,
-    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -419,6 +425,10 @@ class CardTable extends _i1.Table<_i1.UuidValue?> {
     );
     updatedAt = _i1.ColumnDateTime(
       'updatedAt',
+      this,
+    );
+    assigneeMemberId = _i1.ColumnUuid(
+      'assigneeMemberId',
       this,
     );
     deletedAt = _i1.ColumnDateTime(
@@ -447,13 +457,13 @@ class CardTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDateTime dueDate;
 
-  late final _i1.ColumnBool isCompleted;
-
   late final _i1.ColumnDateTime createdAt;
 
   late final _i1.ColumnUuid createdBy;
 
   late final _i1.ColumnDateTime updatedAt;
+
+  late final _i1.ColumnUuid assigneeMemberId;
 
   late final _i1.ColumnDateTime deletedAt;
 
@@ -469,10 +479,10 @@ class CardTable extends _i1.Table<_i1.UuidValue?> {
     priority,
     rank,
     dueDate,
-    isCompleted,
     createdAt,
     createdBy,
     updatedAt,
+    assigneeMemberId,
     deletedAt,
     deletedBy,
   ];

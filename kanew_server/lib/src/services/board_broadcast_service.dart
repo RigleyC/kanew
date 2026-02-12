@@ -332,4 +332,29 @@ class BoardBroadcastService {
       ),
     );
   }
+
+  static void checklistItemsReordered(
+    Session session, {
+    required UuidValue boardId,
+    required UuidValue checklistId,
+    required UuidValue actorId,
+    required List<UuidValue> orderedItemIds,
+  }) {
+    broadcast(
+      session,
+      event: BoardEvent(
+        // Use boardUpdated for backwards compatibility with clients that
+        // don't know checklistItemsReordered yet.
+        eventType: BoardEventType.boardUpdated,
+        boardId: boardId,
+        actorId: actorId,
+        payload: jsonEncode({
+          'event': 'checklistItemsReordered',
+          'checklistId': checklistId.toString(),
+          'orderedItemIds': orderedItemIds.map((id) => id.toString()).toList(),
+        }),
+        timestamp: DateTime.now(),
+      ),
+    );
+  }
 }

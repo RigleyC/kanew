@@ -1,40 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:kanew_flutter/core/ui/kanew_ui.dart';
 
 /// Shows a dialog to add a new list
 Future<void> showAddListDialog(
   BuildContext context,
   Future<void> Function(String title) onCreateList,
 ) async {
-  final textController = TextEditingController();
-
-  final result = await showDialog<String>(
+  final result = await showKanewTextPromptDialog(
     context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Nova Lista'),
-      content: TextField(
-        controller: textController,
-        autofocus: true,
-        decoration: const InputDecoration(
-          labelText: 'Nome da lista',
-          hintText: 'Ex: A Fazer, Em Progresso...',
-        ),
-        textInputAction: TextInputAction.done,
-        onSubmitted: (value) => Navigator.of(context).pop(value),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(textController.text),
-          child: const Text('Criar'),
-        ),
-      ],
-    ),
+    title: 'Nova Lista',
+    labelText: 'Nome da lista',
+    hintText: 'Ex: A Fazer, Em Progresso...',
+    confirmText: 'Criar',
   );
 
-  if (result != null && result.trim().isNotEmpty) {
-    await onCreateList(result.trim());
+  if (result != null && result.isNotEmpty) {
+    await onCreateList(result);
   }
 }

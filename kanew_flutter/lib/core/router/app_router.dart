@@ -337,9 +337,11 @@ final appRouter = GoRouter(
                         final boardSlug =
                             state.pathParameters['boardSlug'] ?? '';
                         final extra = state.extra;
-                        final boardId = extra is Map ? extra['boardId'] as UuidValue? : null;
+                        final boardId = extra is Map
+                            ? extra['boardId'] as UuidValue?
+                            : null;
                         return NoTransitionPage(
-                          key: state.pageKey,
+                          key: ValueKey('board:$workspaceSlug:$boardSlug'),
                           child: BoardViewPage(
                             workspaceSlug: workspaceSlug,
                             boardSlug: boardSlug,
@@ -361,7 +363,9 @@ final appRouter = GoRouter(
                             final cardUuid =
                                 state.pathParameters['cardUuid'] ?? '';
                             return NoTransitionPage(
-                              key: state.pageKey,
+                              key: ValueKey(
+                                'card:$workspaceSlug:$boardSlug:$cardUuid',
+                              ),
                               child: CardDetailPage(
                                 workspaceSlug: workspaceSlug,
                                 boardSlug: boardSlug,

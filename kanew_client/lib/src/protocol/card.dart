@@ -23,10 +23,10 @@ abstract class Card implements _i1.SerializableModel {
     required this.priority,
     required this.rank,
     this.dueDate,
-    required this.isCompleted,
     required this.createdAt,
     required this.createdBy,
     this.updatedAt,
+    this.assigneeMemberId,
     this.deletedAt,
     this.deletedBy,
   });
@@ -40,10 +40,10 @@ abstract class Card implements _i1.SerializableModel {
     required _i2.CardPriority priority,
     required String rank,
     DateTime? dueDate,
-    required bool isCompleted,
     required DateTime createdAt,
     required _i1.UuidValue createdBy,
     DateTime? updatedAt,
+    _i1.UuidValue? assigneeMemberId,
     DateTime? deletedAt,
     _i1.UuidValue? deletedBy,
   }) = _CardImpl;
@@ -66,7 +66,6 @@ abstract class Card implements _i1.SerializableModel {
       dueDate: jsonSerialization['dueDate'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['dueDate']),
-      isCompleted: jsonSerialization['isCompleted'] as bool,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -76,6 +75,11 @@ abstract class Card implements _i1.SerializableModel {
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
+      assigneeMemberId: jsonSerialization['assigneeMemberId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(
+              jsonSerialization['assigneeMemberId'],
+            ),
       deletedAt: jsonSerialization['deletedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['deletedAt']),
@@ -104,13 +108,13 @@ abstract class Card implements _i1.SerializableModel {
 
   DateTime? dueDate;
 
-  bool isCompleted;
-
   DateTime createdAt;
 
   _i1.UuidValue createdBy;
 
   DateTime? updatedAt;
+
+  _i1.UuidValue? assigneeMemberId;
 
   DateTime? deletedAt;
 
@@ -128,10 +132,10 @@ abstract class Card implements _i1.SerializableModel {
     _i2.CardPriority? priority,
     String? rank,
     DateTime? dueDate,
-    bool? isCompleted,
     DateTime? createdAt,
     _i1.UuidValue? createdBy,
     DateTime? updatedAt,
+    _i1.UuidValue? assigneeMemberId,
     DateTime? deletedAt,
     _i1.UuidValue? deletedBy,
   });
@@ -148,10 +152,11 @@ abstract class Card implements _i1.SerializableModel {
       'priority': priority.toJson(),
       'rank': rank,
       if (dueDate != null) 'dueDate': dueDate?.toJson(),
-      'isCompleted': isCompleted,
       'createdAt': createdAt.toJson(),
       'createdBy': createdBy.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
+      if (assigneeMemberId != null)
+        'assigneeMemberId': assigneeMemberId?.toJson(),
       if (deletedAt != null) 'deletedAt': deletedAt?.toJson(),
       if (deletedBy != null) 'deletedBy': deletedBy?.toJson(),
     };
@@ -175,10 +180,10 @@ class _CardImpl extends Card {
     required _i2.CardPriority priority,
     required String rank,
     DateTime? dueDate,
-    required bool isCompleted,
     required DateTime createdAt,
     required _i1.UuidValue createdBy,
     DateTime? updatedAt,
+    _i1.UuidValue? assigneeMemberId,
     DateTime? deletedAt,
     _i1.UuidValue? deletedBy,
   }) : super._(
@@ -190,10 +195,10 @@ class _CardImpl extends Card {
          priority: priority,
          rank: rank,
          dueDate: dueDate,
-         isCompleted: isCompleted,
          createdAt: createdAt,
          createdBy: createdBy,
          updatedAt: updatedAt,
+         assigneeMemberId: assigneeMemberId,
          deletedAt: deletedAt,
          deletedBy: deletedBy,
        );
@@ -211,10 +216,10 @@ class _CardImpl extends Card {
     _i2.CardPriority? priority,
     String? rank,
     Object? dueDate = _Undefined,
-    bool? isCompleted,
     DateTime? createdAt,
     _i1.UuidValue? createdBy,
     Object? updatedAt = _Undefined,
+    Object? assigneeMemberId = _Undefined,
     Object? deletedAt = _Undefined,
     Object? deletedBy = _Undefined,
   }) {
@@ -229,10 +234,12 @@ class _CardImpl extends Card {
       priority: priority ?? this.priority,
       rank: rank ?? this.rank,
       dueDate: dueDate is DateTime? ? dueDate : this.dueDate,
-      isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,
       updatedAt: updatedAt is DateTime? ? updatedAt : this.updatedAt,
+      assigneeMemberId: assigneeMemberId is _i1.UuidValue?
+          ? assigneeMemberId
+          : this.assigneeMemberId,
       deletedAt: deletedAt is DateTime? ? deletedAt : this.deletedAt,
       deletedBy: deletedBy is _i1.UuidValue? ? deletedBy : this.deletedBy,
     );

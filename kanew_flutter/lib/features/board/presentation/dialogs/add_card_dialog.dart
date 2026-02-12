@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kanew_client/kanew_client.dart';
+import 'package:kanew_flutter/core/ui/kanew_ui.dart';
 
 /// Shows a dialog to add a new card
 Future<void> showAddCardDialog(
@@ -7,36 +8,15 @@ Future<void> showAddCardDialog(
   UuidValue listId,
   Future<void> Function(UuidValue listId, String title) onAddCard,
 ) async {
-  final textController = TextEditingController();
-
-  final result = await showDialog<String>(
+  final result = await showKanewTextPromptDialog(
     context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Novo Card'),
-      content: TextField(
-        controller: textController,
-        autofocus: true,
-        decoration: const InputDecoration(
-          labelText: 'Título do card',
-          hintText: 'Ex: Implementar feature X',
-        ),
-        textInputAction: TextInputAction.done,
-        onSubmitted: (value) => Navigator.of(context).pop(value),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(textController.text),
-          child: const Text('Criar'),
-        ),
-      ],
-    ),
+    title: 'Novo Card',
+    labelText: 'Título do card',
+    hintText: 'Ex: Implementar feature X',
+    confirmText: 'Criar',
   );
 
-  if (result != null && result.trim().isNotEmpty) {
+  if (result != null && result.isNotEmpty) {
     await onAddCard(listId, result);
   }
 }

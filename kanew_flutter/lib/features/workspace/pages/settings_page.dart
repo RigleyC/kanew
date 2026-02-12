@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/widgets/sidebar/sidebar.dart';
-
 /// Settings page - configurações do workspace
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -9,8 +7,6 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final provider = SidebarProvider.maybeOf(context);
-    final isMobile = provider?.isMobile ?? false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -25,11 +21,6 @@ class SettingsPage extends StatelessWidget {
           ),
           child: Row(
             children: [
-              if (isMobile)
-                Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: SidebarTrigger(),
-                ),
               Text(
                 'Configurações',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(

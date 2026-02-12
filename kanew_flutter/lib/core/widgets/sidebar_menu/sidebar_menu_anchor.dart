@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../ui/kanew_ui.dart';
 import 'sidebar_menu_item.dart';
 
 class SidebarMenuAnchor extends StatefulWidget {
@@ -20,54 +21,61 @@ class SidebarMenuAnchor extends StatefulWidget {
 }
 
 class _SidebarMenuAnchorState extends State<SidebarMenuAnchor> {
-  final MenuController _controller = MenuController();
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return MenuAnchor(
-      alignmentOffset: widget.alignmentOffset ?? const Offset(-200, 8),
-      consumeOutsideTap: true,
-      menuChildren: [
-        SizedBox(
-          width: widget.menuWidth,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: widget.items
-                .map((item) => _buildMenuItem(item, theme))
-                .toList(),
-          ),
-        ),
-      ],
-      builder: (context, controller, child) {
-        return GestureDetector(
-          onTap: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
-            }
-          },
-          child: widget.trigger,
-        );
-      },
+    return KanewPopover(
+      menuAnchor: Alignment.topRight,
+      childAnchor: Alignment.bottomRight,
+      offset: widget.alignmentOffset ?? const Offset(0, 8),
+      width: widget.menuWidth,
+      contentPadding: const EdgeInsets.symmetric(vertical: 6),
+      anchor: widget.trigger,
+      contentBuilder: (close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: widget.items
+            .map((item) => _buildMenuItem(item, theme, close))
+            .toList(),
+      ),
     );
   }
 
-  Widget _buildMenuItem(SidebarMenuItem item, ThemeData theme) {
-    return MenuItemButton(
-      onPressed: () {
+  Widget _buildMenuItem(
+    SidebarMenuItem item,
+    ThemeData theme,
+    VoidCallback close,
+  ) {
+    return InkWell(
+      onTap: () {
         item.onTap();
-        _controller.close();
+        close();
       },
-      leadingIcon: item.leading,
-      trailingIcon: item.trailing,
-      child: DefaultTextStyle(
-        style: TextStyle(
-          color: item.isDestructive ? theme.colorScheme.error : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              child: item.leading ?? const SizedBox.shrink(),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: DefaultTextStyle(
+                style: TextStyle(
+                  color: item.isDestructive
+                      ? theme.colorScheme.error
+                      : theme.colorScheme.onSurface,
+                ),
+                child: item.title,
+              ),
+            ),
+            if (item.trailing != null) ...[
+              const SizedBox(width: 8),
+              item.trailing!,
+            ],
+          ],
         ),
-        child: item.title,
       ),
     );
   }

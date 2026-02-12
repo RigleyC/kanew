@@ -606,7 +606,9 @@ class EndpointCard extends _i2.EndpointRef {
     String? description,
     _i12.CardPriority? priority,
     DateTime? dueDate,
-    bool? isCompleted,
+    bool? clearDueDate,
+    _i2.UuidValue? assigneeMemberId,
+    bool? clearAssignee,
   }) => caller.callServerEndpoint<_i10.Card>(
     'card',
     'updateCard',
@@ -616,7 +618,23 @@ class EndpointCard extends _i2.EndpointRef {
       'description': description,
       'priority': priority,
       'dueDate': dueDate,
-      'isCompleted': isCompleted,
+      'clearDueDate': clearDueDate,
+      'assigneeMemberId': assigneeMemberId,
+      'clearAssignee': clearAssignee,
+    },
+  );
+
+  /// Sets or clears the card assignee (single).
+  /// Requires: board.update permission
+  _i3.Future<_i10.Card> updateAssignee(
+    _i2.UuidValue cardId,
+    _i2.UuidValue? assigneeMemberId,
+  ) => caller.callServerEndpoint<_i10.Card>(
+    'card',
+    'updateAssignee',
+    {
+      'cardId': cardId,
+      'assigneeMemberId': assigneeMemberId,
     },
   );
 
@@ -646,15 +664,6 @@ class EndpointCard extends _i2.EndpointRef {
       caller.callServerEndpoint<void>(
         'card',
         'deleteCard',
-        {'cardId': cardId},
-      );
-
-  /// Toggles card completion status
-  /// Requires: board.update permission
-  _i3.Future<_i10.Card> toggleComplete(_i2.UuidValue cardId) =>
-      caller.callServerEndpoint<_i10.Card>(
-        'card',
-        'toggleComplete',
         {'cardId': cardId},
       );
 
@@ -872,6 +881,21 @@ class EndpointChecklist extends _i2.EndpointRef {
         'deleteItem',
         {'itemId': itemId},
       );
+
+  /// Reorders checklist items.
+  /// Receives all active item IDs in desired order and recalculates ranks.
+  /// Requires: board.update permission
+  _i3.Future<List<_i16.ChecklistItem>> reorderItems(
+    _i2.UuidValue checklistId,
+    List<_i2.UuidValue> orderedItemIds,
+  ) => caller.callServerEndpoint<List<_i16.ChecklistItem>>(
+    'checklist',
+    'reorderItems',
+    {
+      'checklistId': checklistId,
+      'orderedItemIds': orderedItemIds,
+    },
+  );
 }
 
 /// {@category Endpoint}

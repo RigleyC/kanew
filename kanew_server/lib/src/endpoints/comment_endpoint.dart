@@ -88,7 +88,7 @@ class CommentEndpoint extends Endpoint {
       cardId: cardId,
       actorId: numericUserId,
       type: ActivityType.comment,
-      details: 'Commented on card',
+      details: 'adicionou um comentário',
     );
 
     return created;

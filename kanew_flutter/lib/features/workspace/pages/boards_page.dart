@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:kanew_client/kanew_client.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/ui/kanew_ui.dart';
 import '../../../core/router/route_paths.dart';
-import '../../../core/widgets/sidebar/sidebar.dart';
 import '../../../core/widgets/base/button.dart';
 import '../../board/presentation/controllers/boards_page_controller.dart';
 
@@ -44,16 +44,10 @@ class _BoardsPageState extends State<BoardsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = SidebarProvider.maybeOf(context);
-    final isMobile = provider?.isMobile ?? false;
-
     return ListenableBuilder(
       listenable: _controller,
       builder: (context, _) {
         return Scaffold(
-          appBar: AppBar(
-            leading: isMobile ? const SidebarTrigger() : null,
-          ),
           body: Column(
             children: [
               Padding(
@@ -176,57 +170,17 @@ class _BoardsPageState extends State<BoardsPage> {
     BuildContext context,
     BoardsPageController controller,
   ) async {
-    final titleController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    final result = await showDialog<bool>(
+    final title = await showKanewTextPromptDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Novo Board'),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            controller: titleController,
-            decoration: const InputDecoration(
-              labelText: 'Nome do board',
-              hintText: 'Ex: Marketing Q1, Desenvolvimento, etc.',
-            ),
-            autofocus: true,
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'O nome do board e obrigatorio';
-              }
-              return null;
-            },
-            onFieldSubmitted: (_) {
-              if (formKey.currentState?.validate() ?? false) {
-                Navigator.of(context).pop(true);
-              }
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (formKey.currentState?.validate() ?? false) {
-                Navigator.of(context).pop(true);
-              }
-            },
-            child: const Text('Criar'),
-          ),
-        ],
-      ),
+      title: 'Novo Board',
+      labelText: 'Nome do board',
+      hintText: 'Ex: Marketing Q1, Desenvolvimento, etc.',
+      confirmText: 'Criar',
     );
 
-    if (result == true && titleController.text.trim().isNotEmpty) {
-      await controller.createBoard(titleController.text.trim());
+    if (title != null && title.isNotEmpty) {
+      await controller.createBoard(title);
     }
-
-    titleController.dispose();
   }
 }
 

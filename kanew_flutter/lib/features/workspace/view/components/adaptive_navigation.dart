@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/sidebar/sidebar.dart';
-import '../../../auth/viewmodel/auth_controller.dart';
 import '../../viewmodel/workspace_controller.dart';
+import '../../../auth/viewmodel/auth_controller.dart';
 import 'workspace_switcher.dart';
 import 'user_profile_tile.dart';
 
@@ -12,11 +11,15 @@ import 'user_profile_tile.dart';
 class AdaptiveNavigation extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
   final String workspaceSlug;
+  final WorkspaceController workspaceController;
+  final AuthController authController;
 
   const AdaptiveNavigation({
     super.key,
     required this.navigationShell,
     required this.workspaceSlug,
+    required this.workspaceController,
+    required this.authController,
   });
 
   @override
@@ -27,11 +30,12 @@ class AdaptiveNavigation extends StatelessWidget {
     return isMobile
         ? _MobileNavigation(
             navigationShell: navigationShell,
-            workspaceSlug: workspaceSlug,
           )
         : _DesktopNavigation(
             navigationShell: navigationShell,
             workspaceSlug: workspaceSlug,
+            workspaceController: workspaceController,
+            authController: authController,
           );
   }
 }
@@ -43,28 +47,31 @@ class AdaptiveNavigation extends StatelessWidget {
 class _DesktopNavigation extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
   final String workspaceSlug;
+  final WorkspaceController workspaceController;
+  final AuthController authController;
 
   const _DesktopNavigation({
     required this.navigationShell,
     required this.workspaceSlug,
+    required this.workspaceController,
+    required this.authController,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: getIt<WorkspaceController>(),
+      listenable: workspaceController,
       builder: (context, _) {
-        final workspaceVM = getIt<WorkspaceController>();
         return AppSidebar(
-          header: _buildHeader(context, workspaceVM),
-          footer: _buildFooter(context, workspaceVM),
+          header: _buildHeader(context),
+          footer: _buildFooter(context),
           children: _buildSidebarItems(context),
         );
       },
     );
   }
 
-  Widget _buildHeader(BuildContext context, WorkspaceController workspaceVM) {
+  Widget _buildHeader(BuildContext context) {
     final provider = SidebarProvider.maybeOf(context);
     final isCollapsed = provider?.isCollapsed ?? false;
 
@@ -91,18 +98,15 @@ class _DesktopNavigation extends StatelessWidget {
     );
   }
 
-  Widget _buildFooter(
-    BuildContext context,
-    WorkspaceController workspaceVM,
-  ) {
+  Widget _buildFooter(BuildContext context) {
     return ListenableBuilder(
-      listenable: getIt<AuthController>(),
+      listenable: authController,
       builder: (context, _) {
-        final authViewModel = getIt<AuthController>();
         return UserProfileTile(
+          email: 'teste@kanew.com',
           onLogout: () async {
-            await authViewModel.logout();
-            workspaceVM.clear();
+            await authController.logout();
+            workspaceController.clear();
           },
         );
       },
@@ -122,27 +126,30 @@ class _DesktopNavigation extends StatelessWidget {
     }
 
     return [
-      SidebarGroup(
-        children: [
-          SidebarItem(
-            icon: const Icon(Icons.dashboard_rounded),
-            label: 'Boards',
-            selected: currentIndex == 0,
-            onPress: () => navigateAndClose(0),
-          ),
-          SidebarItem(
-            icon: const Icon(Icons.people_rounded),
-            label: 'Membros',
-            selected: currentIndex == 1,
-            onPress: () => navigateAndClose(1),
-          ),
-          SidebarItem(
-            icon: const Icon(Icons.settings_rounded),
-            label: 'Configurações',
-            selected: currentIndex == 2,
-            onPress: () => navigateAndClose(2),
-          ),
-        ],
+      Padding(
+        padding: EdgeInsets.all(8),
+        child: Column(
+          children: [
+            SidebarItem(
+              icon: const Icon(Icons.dashboard_rounded),
+              label: 'Boards',
+              selected: currentIndex == 0,
+              onPress: () => navigateAndClose(0),
+            ),
+            SidebarItem(
+              icon: const Icon(Icons.people_rounded),
+              label: 'Membros',
+              selected: currentIndex == 1,
+              onPress: () => navigateAndClose(1),
+            ),
+            SidebarItem(
+              icon: const Icon(Icons.settings_rounded),
+              label: 'Configurações',
+              selected: currentIndex == 2,
+              onPress: () => navigateAndClose(2),
+            ),
+          ],
+        ),
       ),
     ];
   }
@@ -154,11 +161,9 @@ class _DesktopNavigation extends StatelessWidget {
 
 class _MobileNavigation extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
-  final String workspaceSlug;
 
   const _MobileNavigation({
     required this.navigationShell,
-    required this.workspaceSlug,
   });
 
   @override

@@ -1,12 +1,15 @@
 import 'package:appflowy_board/appflowy_board.dart';
 import 'package:flutter/material.dart';
 import 'package:kanew_client/kanew_client.dart';
+import 'package:kanew_flutter/core/ui/kanew_ui.dart';
+import 'package:kanew_flutter/core/widgets/editable_inline_text.dart';
 import 'package:kanew_flutter/features/board/presentation/dialogs/add_card_dialog.dart';
 
 class BoardGroupHeader extends StatelessWidget {
   final AppFlowyGroupData groupData;
   final List<CardList> lists;
   final Future<void> Function(UuidValue listId) onDelete;
+  final Future<void> Function(UuidValue listId, String title) onRename;
   final Future<void> Function(UuidValue listId, String title) onAddCard;
 
   const BoardGroupHeader({
@@ -14,13 +17,14 @@ class BoardGroupHeader extends StatelessWidget {
     required this.groupData,
     required this.lists,
     required this.onDelete,
+    required this.onRename,
     required this.onAddCard,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final listId = groupData.id;
+    final listId = UuidValue.fromString(groupData.id);
     final cardList = lists.where((l) => l.id == listId).firstOrNull;
     final title = cardList?.title ?? groupData.headerData.groupName;
 
@@ -30,11 +34,31 @@ class BoardGroupHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
+            mainAxisSize: MainAxisSize.min,
             spacing: 12,
             children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium,
+              SizedBox(
+                width: 170,
+                child: EditableInlineText(
+                  text: title,
+                  onSave: (value) => onRename(listId, value),
+                  textStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  editingTextStyle: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
+                ),
               ),
               Text(
                 '${groupData.items.length}',
@@ -48,13 +72,13 @@ class BoardGroupHeader extends StatelessWidget {
                 onPressed: () async {
                   await showAddCardDialog(
                     context,
-                    UuidValue.fromString(groupData.id),
+                    listId,
                     onAddCard,
                   );
                 },
                 icon: const Icon(Icons.add_rounded),
               ),
-              _buildActionsMenu(context, colorScheme, UuidValue.fromString(listId)),
+              _buildActionsMenu(context, colorScheme, listId),
             ],
           ),
         ],
@@ -67,35 +91,36 @@ class BoardGroupHeader extends StatelessWidget {
     ColorScheme colorScheme,
     UuidValue listId,
   ) {
-    return MenuAnchor(
-      menuChildren: [
-        MenuItemButton(
-          onPressed: () async {
-            await onDelete(listId);
-          },
-          leadingIcon: Icon(
-            Icons.delete_outline,
-            size: 16,
-            color: colorScheme.error,
-          ),
-          child: Text(
-            'Excluir',
-            style: TextStyle(color: colorScheme.error),
+    return KanewPopover(
+      menuAnchor: Alignment.topRight,
+      childAnchor: Alignment.bottomRight,
+      offset: const Offset(0, 8),
+      width: 150,
+      anchor: const Icon(Icons.more_horiz_rounded),
+      contentPadding: const EdgeInsets.symmetric(vertical: 6),
+      contentBuilder: (close) => InkWell(
+        onTap: () async {
+          close();
+          await onDelete(listId);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Row(
+            children: [
+              Icon(
+                Icons.delete_outline,
+                size: 16,
+                color: colorScheme.error,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Excluir',
+                style: TextStyle(color: colorScheme.error),
+              ),
+            ],
           ),
         ),
-      ],
-      builder: (context, controller, child) {
-        return IconButton(
-          onPressed: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
-            }
-          },
-          icon: const Icon(Icons.more_horiz_rounded),
-        );
-      },
+      ),
     );
   }
 }

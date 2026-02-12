@@ -5,6 +5,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/ui/kanew_ui.dart';
 import '../../../core/router/auth_route_helper.dart';
 import '../viewmodel/auth_controller.dart';
 
@@ -35,12 +36,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, digite seu email'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showKanewErrorToast(context, title: 'Por favor, digite seu email');
       return;
     }
 
@@ -53,14 +49,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
     switch (state) {
       case AuthNeedsVerification():
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Código de verificação enviado! Verifique o console do servidor.',
-            ),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 4),
-          ),
+        showKanewSuccessToast(
+          context,
+          title: 'Código de verificação enviado',
+          description: 'Verifique o console do servidor.',
         );
         developer.log(
           'Verification code sent - email: $email, requestId: ${state.accountRequestId}',
@@ -80,11 +72,9 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
       case AuthAccountExistsError():
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message),
-            backgroundColor: Colors.orange,
-          ),
+        showKanewInfoToast(
+          context,
+          title: state.message,
         );
         developer.log(
           'Account already exists',
@@ -92,11 +82,10 @@ class _SignupScreenState extends State<SignupScreen> {
         );
 
       case AuthError():
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message),
-            backgroundColor: Colors.red,
-          ),
+        showKanewErrorToast(
+          context,
+          title: 'Erro no cadastro',
+          description: state.message,
         );
         developer.log(
           'Signup failed',

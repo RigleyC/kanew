@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:kanew_client/kanew_client.dart';
 import 'package:forui/forui.dart';
+import 'package:kanew_client/kanew_client.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/ui/kanew_ui.dart';
 import '../store/board_filter_store.dart';
 import 'filter_popover.dart';
 
@@ -159,70 +160,78 @@ class _BoardHeaderState extends State<BoardHeader> {
   }
 
   Widget _buildActionsMenu(ColorScheme colorScheme) {
-    return MenuAnchor(
-      menuChildren: [
-        MenuItemButton(
-          onPressed: _startEditing,
-          leadingIcon: const Icon(Icons.edit_outlined, size: 20),
-          child: const Text('Renomear'),
-        ),
-        MenuItemButton(
-          onPressed: _showDeleteConfirmation,
-          leadingIcon: Icon(
-            Icons.delete_outline,
-            size: 20,
+    return KanewPopover(
+      menuAnchor: Alignment.topRight,
+      childAnchor: Alignment.bottomRight,
+      offset: const Offset(0, 8),
+      width: 170,
+      contentPadding: const EdgeInsets.symmetric(vertical: 6),
+      anchor: Icon(
+        Icons.more_vert,
+        color: colorScheme.onSurface,
+      ),
+      contentBuilder: (close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _actionItem(
+            label: 'Renomear',
+            icon: Icons.edit_outlined,
+            onTap: () {
+              close();
+              _startEditing();
+            },
+          ),
+          _actionItem(
+            label: 'Excluir',
+            icon: Icons.delete_outline,
             color: colorScheme.error,
+            onTap: () {
+              close();
+              _showDeleteConfirmation();
+            },
           ),
-          child: Text(
-            'Excluir',
-            style: TextStyle(color: colorScheme.error),
-          ),
-        ),
-      ],
-      builder: (context, controller, child) {
-        return IconButton(
-          icon: Icon(
-            Icons.more_vert,
-            color: colorScheme.onSurface,
-          ),
-          tooltip: 'Ações do board',
-          onPressed: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
-            }
-          },
-        );
-      },
+        ],
+      ),
     );
   }
 
   void _showDeleteConfirmation() {
-    showDialog(
+    showKanewConfirmDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Excluir board'),
-        content: Text(
+      title: 'Excluir board',
+      body:
           'Tem certeza que deseja excluir "${widget.board.title}"?\n\n'
           'Esta ação não pode ser desfeita.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // TODO: Call delete and navigate back
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
+      confirmText: 'Excluir',
+      destructive: true,
+      onConfirm: () {
+        // TODO: Call delete and navigate back
+      },
+    );
+  }
+
+  Widget _actionItem({
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(color: color),
+              ),
             ),
-            child: const Text('Excluir'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

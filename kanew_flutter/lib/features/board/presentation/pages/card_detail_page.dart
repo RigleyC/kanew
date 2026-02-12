@@ -6,7 +6,7 @@ import 'package:kanew_flutter/features/board/presentation/components/card_title_
 
 import '../../../../core/router/route_paths.dart';
 import '../../../../core/di/injection.dart';
-import '../../../../core/widgets/sidebar/sidebar.dart';
+import '../../../../core/ui/kanew_ui.dart';
 import '../controllers/card_detail_controller.dart';
 import '../components/card_activity_section.dart';
 import '../components/card_detail_header.dart';
@@ -65,52 +65,23 @@ class _CardDetailPageState extends State<CardDetailPage> {
     return _controller.list?.title ?? 'Lista';
   }
 
-  void _showAddChecklistDialog(BuildContext context) {
-    final titleController = TextEditingController();
-
-    showDialog(
+  Future<void> _showAddChecklistDialog(BuildContext context) async {
+    final title = await showKanewTextPromptDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Adicionar checklist'),
-        content: TextField(
-          controller: titleController,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Título da checklist',
-            border: OutlineInputBorder(),
-          ),
-          onSubmitted: (value) {
-            if (value.isNotEmpty) {
-              _controller.createChecklist(value);
-              Navigator.pop(context);
-            }
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final title = titleController.text.trim();
-              if (title.isNotEmpty) {
-                _controller.createChecklist(title);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Adicionar'),
-          ),
-        ],
-      ),
+      title: 'Adicionar checklist',
+      labelText: 'Título da checklist',
+      hintText: 'Ex: Critérios de aceite',
+      confirmText: 'Adicionar',
     );
+    if (title != null && title.isNotEmpty) {
+      await _controller.createChecklist(title);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final provider = SidebarProvider.maybeOf(context);
-    final isMobile = provider?.isMobile ?? false;
+    final isMobile = MediaQuery.of(context).size.width < 768;
 
     return ListenableBuilder(
       listenable: _controller,
@@ -143,7 +114,6 @@ class _CardDetailPageState extends State<CardDetailPage> {
                 workspaceSlug: widget.workspaceSlug,
                 boardSlug: widget.boardSlug,
                 listName: _getListName(card.listId),
-                isMobile: isMobile,
                 onClose: () => context.go(
                   RoutePaths.boardView(widget.workspaceSlug, widget.boardSlug),
                 ),
@@ -166,12 +136,19 @@ class _CardDetailPageState extends State<CardDetailPage> {
       children: [
         // Main content
         Expanded(
-          child: CustomScrollView(
-            slivers: _buildMainContentSlivers(
-              context,
-              colorScheme,
-              card,
-              padding: const EdgeInsets.all(32),
+          child: TapRegion(
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: CustomScrollView(
+                slivers: _buildMainContentSlivers(
+                  context,
+                  colorScheme,
+                  card,
+                  padding: const EdgeInsets.all(32),
+                ),
+              ),
             ),
           ),
         ),
@@ -188,8 +165,12 @@ class _CardDetailPageState extends State<CardDetailPage> {
               boardLists: _controller.boardLists,
               labels: _controller.labels,
               boardLabels: _controller.boardLabels,
+              members: _controller.membersWithUser,
               onDueDateChanged: (date) {
                 _controller.updateCard(dueDate: date);
+              },
+              onDueDateCleared: () {
+                _controller.updateCard(clearDueDate: true);
               },
               onToggleLabel: (labelId) {
                 if (_controller.labels.any((l) => l.id == labelId)) {
@@ -207,6 +188,7 @@ class _CardDetailPageState extends State<CardDetailPage> {
               onPriorityChanged: (priority) {
                 _controller.updateCard(priority: priority);
               },
+              onAssigneeChanged: _controller.updateAssignee,
             ),
           ),
         ),
@@ -215,55 +197,64 @@ class _CardDetailPageState extends State<CardDetailPage> {
   }
 
   Widget _buildMobileLayout(ColorScheme colorScheme, Card card) {
-    return CustomScrollView(
-      slivers: [
-        ..._buildMainContentSlivers(
-          context,
-          colorScheme,
-          card,
-          padding: const EdgeInsets.all(16),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                const Divider(),
-                const SizedBox(height: 16),
-                CardDetailSidebar(
-                  card: card,
-                  listName: _getListName(card.listId),
-                  boardLists: _controller.boardLists,
-                  labels: _controller.labels,
-                  boardLabels: _controller.boardLabels,
-                  onDueDateChanged: (date) {
-                    _controller.updateCard(dueDate: date);
-                  },
-                  onToggleLabel: (labelId) {
-                    if (_controller.labels.any((l) => l.id == labelId)) {
-                      _controller.detachLabel(labelId);
-                    } else {
-                      _controller.attachLabel(labelId);
-                    }
-                  },
-                  onCreateLabel: (name, color) {
-                    _controller.createLabel(name, color);
-                  },
-                  onListChanged: (newListId) {
-                    _controller.moveCardToList(newListId);
-                  },
-                  onPriorityChanged: (priority) {
-                    _controller.updateCard(priority: priority);
-                  },
-                ),
-                const SizedBox(height: 32),
-              ],
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: CustomScrollView(
+        slivers: [
+          ..._buildMainContentSlivers(
+            context,
+            colorScheme,
+            card,
+            padding: const EdgeInsets.all(16),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  CardDetailSidebar(
+                    card: card,
+                    listName: _getListName(card.listId),
+                    boardLists: _controller.boardLists,
+                    labels: _controller.labels,
+                    boardLabels: _controller.boardLabels,
+                    members: _controller.membersWithUser,
+                    onDueDateChanged: (date) {
+                      _controller.updateCard(dueDate: date);
+                    },
+                    onDueDateCleared: () {
+                      _controller.updateCard(clearDueDate: true);
+                    },
+                    onToggleLabel: (labelId) {
+                      if (_controller.labels.any((l) => l.id == labelId)) {
+                        _controller.detachLabel(labelId);
+                      } else {
+                        _controller.attachLabel(labelId);
+                      }
+                    },
+                    onCreateLabel: (name, color) {
+                      _controller.createLabel(name, color);
+                    },
+                    onListChanged: (newListId) {
+                      _controller.moveCardToList(newListId);
+                    },
+                    onPriorityChanged: (priority) {
+                      _controller.updateCard(priority: priority);
+                    },
+                    onAssigneeChanged: _controller.updateAssignee,
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -299,62 +290,62 @@ class _CardDetailPageState extends State<CardDetailPage> {
       ),
       SliverPadding(
         padding: padding.copyWith(top: 0),
-        sliver: SliverToBoxAdapter(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 24),
+        sliver: SliverList.list(
+          children: [
+            const SizedBox(height: 24),
+            // Checklists
+            if (_controller.checklists.isNotEmpty) ...[
+              ChecklistSection(
+                checklists: _controller.checklists,
+                checklistItems: _controller.checklistItems,
+                onAddItem: _controller.addItem,
+                onRenameChecklist: _controller.renameChecklist,
+                onDeleteChecklist: _controller.deleteChecklist,
+                onToggleItem: _controller.toggleItem,
+                onDeleteItem: _controller.deleteItem,
+                onRenameItem: _controller.renameItem,
+                onReorderItems: _controller.reorderItems,
+              ),
+              const SizedBox(height: 8),
+            ],
+            const SizedBox(height: 24),
 
-              // Checklists
-              if (_controller.checklists.isNotEmpty) ...[
-                ChecklistSection(
-                  checklists: _controller.checklists,
-                  checklistItems: _controller.checklistItems,
-                  onAddItem: _controller.addItem,
-                  onDeleteChecklist: _controller.deleteChecklist,
-                  onToggleItem: _controller.toggleItem,
-                  onDeleteItem: _controller.deleteItem,
-                ),
-                const SizedBox(height: 8),
-              ],
-              const SizedBox(height: 24),
+            // Attachments
+            CardAttachmentSection(controller: _controller),
+            const SizedBox(height: 32),
 
-              // Attachments
-              CardAttachmentSection(controller: _controller),
-              const SizedBox(height: 32),
-
-              // Add Checklist Button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: () async {
-                      _showAddChecklistDialog(context);
-                    },
-                    icon: SvgPicture.asset(
-                      'assets/icons/check.svg',
-                      width: 16,
-                      height: 16,
-                      colorFilter: ColorFilter.mode(
-                        colorScheme.onSurface,
-                        BlendMode.srcIn,
-                      ),
+            // Add Checklist Button
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  onPressed: () async {
+                    await _showAddChecklistDialog(context);
+                  },
+                  icon: SvgPicture.asset(
+                    'assets/icons/check.svg',
+                    width: 16,
+                    height: 16,
+                    colorFilter: ColorFilter.mode(
+                      colorScheme.onSurface,
+                      BlendMode.srcIn,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 48),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 16),
+            // Activity
+            CardActivitySection(controller: _controller),
+            const SizedBox(height: 24),
 
-              // Activity
-              CardActivitySection(controller: _controller),
-              const SizedBox(height: 24),
-
-              // Comment input
-              CardCommentInput(
-                onSubmit: (text) => _controller.createComment(text),
-              ),
-            ],
-          ),
+            // Comment input
+            CardCommentInput(
+              onSubmit: (text) => _controller.createComment(text),
+            ),
+          ],
         ),
       ),
     ];

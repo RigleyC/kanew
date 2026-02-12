@@ -3,8 +3,8 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/ui/kanew_ui.dart';
 import '../../../../core/router/route_paths.dart';
-import '../../../../core/utils/ui_helpers.dart';
 import '../../viewmodel/workspace_controller.dart';
 
 /// Workspace switcher with dropdown popover menu
@@ -84,33 +84,22 @@ class WorkspaceSwitcher extends StatelessWidget {
     );
   }
 
-  void _showCreateDialog(BuildContext context, WorkspaceController viewModel) {
-    final nameController = TextEditingController();
-
-    showConfirmDialog(
+  Future<void> _showCreateDialog(
+    BuildContext context,
+    WorkspaceController viewModel,
+  ) async {
+    final name = await showKanewTextPromptDialog(
+      context: context,
       title: 'Criar Workspace',
-      bodyWidget: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Nome do workspace',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
-        ),
-      ),
+      labelText: 'Nome do workspace',
       confirmText: 'Criar',
-      onConfirm: () async {
-        final name = nameController.text.trim();
-        if (name.isNotEmpty) {
-          final workspace = await viewModel.createWorkspace(name);
-          if (workspace != null && context.mounted) {
-            context.go(RoutePaths.workspaceBoards(workspace.slug));
-          }
-        }
-      },
     );
+    if (name != null && name.isNotEmpty) {
+      final workspace = await viewModel.createWorkspace(name);
+      if (workspace != null && context.mounted) {
+        context.go(RoutePaths.workspaceBoards(workspace.slug));
+      }
+    }
   }
 }
 

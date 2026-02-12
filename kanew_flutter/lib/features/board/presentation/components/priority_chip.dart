@@ -5,17 +5,18 @@ import '../../../../core/constants/priority_utils.dart';
 
 class PriorityChip extends StatelessWidget {
   final CardPriority priority;
+  final bool showLabel;
 
   const PriorityChip({
     super.key,
     required this.priority,
+    this.showLabel = false,
   });
 
   @override
   Widget build(BuildContext context) {
-
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      spacing: 4,
       children: [
         SvgPicture.asset(
           priority.iconPath!,
@@ -26,8 +27,12 @@ class PriorityChip extends StatelessWidget {
             BlendMode.srcIn,
           ),
         ),
-        const SizedBox(width: 6),
-        Text(priority.label, style: Theme.of(context).textTheme.bodyMedium),
+        if (showLabel) ...[
+          Text(
+            priority.label,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
       ],
     );
   }
