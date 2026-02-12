@@ -1,5 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
+import '../errors/http_exceptions.dart';
 import '../services/permission_service.dart';
 import '../services/auth_helper.dart';
 import '../utils/slug_generator.dart';
@@ -62,7 +63,7 @@ class WorkspaceEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to read this workspace');
+      throw ForbiddenException(message: 'User does not have permission to read this workspace');
     }
 
     return workspace;
@@ -112,7 +113,7 @@ class WorkspaceEndpoint extends Endpoint {
     final member = WorkspaceMember(
       authUserId: numericUserId,
       workspaceId: created.id!,
-      role: MemberRole.owner, // Owner recebe todas as permissões
+      role: MemberRole.owner, // Owner recebe todas as permiss?es
       status: MemberStatus.active,
       joinedAt: DateTime.now(),
     );
@@ -148,13 +149,13 @@ class WorkspaceEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to update workspace');
+      throw ForbiddenException(message: 'User does not have permission to update workspace');
     }
 
     final workspace = await Workspace.db.findById(session, workspaceId);
 
     if (workspace == null || workspace.deletedAt != null) {
-      throw Exception('Workspace not found');
+      throw NotFoundException(message: 'Workspace not found');
     }
 
     String finalSlug = workspace.slug;
@@ -195,11 +196,11 @@ class WorkspaceEndpoint extends Endpoint {
     final workspace = await Workspace.db.findById(session, workspaceId);
 
     if (workspace == null || workspace.deletedAt != null) {
-      throw Exception('Workspace not found');
+      throw NotFoundException(message: 'Workspace not found');
     }
 
     if (workspace.ownerId != numericUserId) {
-      throw Exception('Only workspace owner can delete workspace');
+      throw ForbiddenException(message: 'Only workspace owner can delete workspace');
     }
 
     final updated = workspace.copyWith(
@@ -214,3 +215,4 @@ class WorkspaceEndpoint extends Endpoint {
     );
   }
 }
+

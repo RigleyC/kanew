@@ -1,5 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
+import '../errors/http_exceptions.dart';
 import '../services/permission_service.dart';
 import '../services/auth_helper.dart';
 import '../utils/slug_generator.dart';
@@ -28,7 +29,7 @@ class BoardEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to read boards');
+      throw ForbiddenException(message: 'User does not have permission to read boards');
     }
 
     final boards = await Board.db.find(
@@ -57,7 +58,7 @@ class BoardEndpoint extends Endpoint {
     );
 
     if (workspace == null) {
-      throw Exception('Workspace not found');
+      throw NotFoundException(message: 'Workspace not found');
     }
 
     // Verify permission
@@ -69,7 +70,7 @@ class BoardEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to read boards');
+      throw ForbiddenException(message: 'User does not have permission to read boards');
     }
 
     return await Board.db.find(
@@ -99,7 +100,7 @@ class BoardEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to read this board');
+      throw ForbiddenException(message: 'User does not have permission to read this board');
     }
 
     final board = await Board.db.findFirstRow(
@@ -129,7 +130,7 @@ class BoardEndpoint extends Endpoint {
     );
 
     if (workspace == null) {
-      throw Exception('Workspace not found');
+      throw NotFoundException(message: 'Workspace not found');
     }
 
     // Verify permission
@@ -141,7 +142,7 @@ class BoardEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to read this board');
+      throw ForbiddenException(message: 'User does not have permission to read this board');
     }
 
     return await Board.db.findFirstRow(
@@ -171,13 +172,13 @@ class BoardEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to create boards');
+      throw ForbiddenException(message: 'User does not have permission to create boards');
     }
 
     // Verify workspace exists and is not deleted
     final workspace = await Workspace.db.findById(session, workspaceId);
     if (workspace == null || workspace.deletedAt != null) {
-      throw Exception('Workspace not found');
+      throw NotFoundException(message: 'Workspace not found');
     }
 
     // Generate unique slug within the workspace
@@ -227,7 +228,7 @@ class BoardEndpoint extends Endpoint {
     );
 
     if (workspace == null) {
-      throw Exception('Workspace not found');
+      throw NotFoundException(message: 'Workspace not found');
     }
 
     // Delegate to existing method
@@ -247,7 +248,7 @@ class BoardEndpoint extends Endpoint {
     final board = await Board.db.findById(session, boardId);
 
     if (board == null || board.deletedAt != null) {
-      throw Exception('Board not found');
+      throw NotFoundException(message: 'Board not found');
     }
 
     // Verify user has permission to update boards
@@ -259,7 +260,7 @@ class BoardEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to update this board');
+      throw ForbiddenException(message: 'User does not have permission to update this board');
     }
 
     String finalSlug = board.slug;
@@ -313,7 +314,7 @@ class BoardEndpoint extends Endpoint {
     final board = await Board.db.findById(session, boardId);
 
     if (board == null || board.deletedAt != null) {
-      throw Exception('Board not found');
+      throw NotFoundException(message: 'Board not found');
     }
 
     // Verify user has permission to delete boards
@@ -325,7 +326,7 @@ class BoardEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to delete this board');
+      throw ForbiddenException(message: 'User does not have permission to delete this board');
     }
 
     final updated = board.copyWith(
@@ -347,3 +348,4 @@ class BoardEndpoint extends Endpoint {
     );
   }
 }
+

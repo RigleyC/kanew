@@ -1,5 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
+import '../errors/http_exceptions.dart';
 import '../services/permission_service.dart';
 import '../services/auth_helper.dart';
 
@@ -24,7 +25,7 @@ class InviteEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to create invites');
+      throw ForbiddenException(message: 'User does not have permission to create invites');
     }
 
     // Validate permissions exist
@@ -72,7 +73,7 @@ class InviteEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to read invites');
+      throw ForbiddenException(message: 'User does not have permission to read invites');
     }
 
     final invites = await WorkspaceInvite.db.find(
@@ -95,7 +96,7 @@ class InviteEndpoint extends Endpoint {
     final invite = await WorkspaceInvite.db.findById(session, inviteId);
 
     if (invite == null) {
-      throw Exception('Invite not found');
+      throw NotFoundException(message: 'Invite not found');
     }
 
     // Check permission
@@ -107,15 +108,15 @@ class InviteEndpoint extends Endpoint {
     );
 
     if (!hasPermission) {
-      throw Exception('User does not have permission to revoke invites');
+      throw ForbiddenException(message: 'User does not have permission to revoke invites');
     }
 
     if (invite.acceptedAt != null) {
-      throw Exception('Cannot revoke accepted invite');
+      throw BadRequestException(message: 'Cannot revoke accepted invite');
     }
 
     if (invite.revokedAt != null) {
-      throw Exception('Invite already revoked');
+      throw BadRequestException(message: 'Invite already revoked');
     }
 
     final updated = invite.copyWith(revokedAt: DateTime.now());
@@ -160,7 +161,7 @@ class InviteEndpoint extends Endpoint {
   /// Requires authentication
   Future<AcceptInviteResult> acceptInvite(Session session, String code) async {
     if (!session.isUserSignedIn) {
-      throw Exception('User must be signed in to accept invite');
+      throw UnauthorizedException(message: 'User must be signed in to accept invite');
     }
 
     final userId = AuthHelper.getAuthenticatedUserId(session);
@@ -171,15 +172,15 @@ class InviteEndpoint extends Endpoint {
     );
 
     if (invite == null) {
-      throw Exception('Invite not found');
+      throw NotFoundException(message: 'Invite not found');
     }
 
     if (invite.acceptedAt != null) {
-      throw Exception('Invite already accepted');
+      throw BadRequestException(message: 'Invite already accepted');
     }
 
     if (invite.revokedAt != null) {
-      throw Exception('Invite has been revoked');
+      throw BadRequestException(message: 'Invite has been revoked');
     }
 
     // Check if already member
@@ -237,3 +238,4 @@ class InviteEndpoint extends Endpoint {
     );
   }
 }
+
